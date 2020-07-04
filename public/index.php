@@ -1,5 +1,4 @@
 <?php
-die('herello');
 /**
  * Laravel - A PHP Framework For Web Artisans
  *
