@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Spatie\UptimeMonitor\Models\Monitor;
 
 class HomeController extends Controller
 {
@@ -23,6 +24,9 @@ class HomeController extends Controller
      */
     public function index()
     {
-        return view('home');
+        $monitors = Monitor::all();
+        return view('home')->with([
+            'monitors' => $monitors,
+        ]);
     }
 }

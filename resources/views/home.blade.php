@@ -3,20 +3,24 @@
 @section('content')
 <div class="container">
     <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">{{ __('Dashboard') }}</div>
-
-                <div class="card-body">
-                    @if (session('status'))
-                        <div class="alert alert-success" role="alert">
-                            {{ session('status') }}
-                        </div>
-                    @endif
-
-                    {{ __('You are logged in!') }}
+        <div class="col-md-12">
+            <h3>{{ __('Site monitoring') }}</h3>
+            @foreach($monitors as $monitor)
+                <div class="row bg-white py-3 shadow-sm">
+                    <div class="col-4">
+                        <a href="{{ __($monitor->raw_url) }}" target="_blank">{{ __($monitor->raw_url) }}</a>
+                    </div>
+                    <div class="col-4">
+                        {{ __($monitor->uptime_status) }}
+                    </div>
+                    <div class="col-2">
+                        {{ __($monitor->uptime_check_interval_in_minutes . 'min') }}
+                    </div>
+                    <div class="col-2">
+                        {{ __('Edit') }}
+                    </div>
                 </div>
-            </div>
+            @endforeach
         </div>
     </div>
 </div>
