@@ -7,11 +7,10 @@ return [
      * and 'slack'. Of course you can also specify your own notification classes.
      */
     'notifications' => [
-
         'notifications' => [
-            \Spatie\UptimeMonitor\Notifications\Notifications\UptimeCheckFailed::class => ['mail'],
-            \Spatie\UptimeMonitor\Notifications\Notifications\UptimeCheckRecovered::class => ['mail'],
-            \Spatie\UptimeMonitor\Notifications\Notifications\UptimeCheckSucceeded::class => [],
+            \App\Notifications\UptimeCheckFailed::class => ['mail', \App\Channels\GoogleChatChannel::class],
+            \App\Notifications\UptimeCheckRecovered::class => ['mail', \App\Channels\GoogleChatChannel::class],
+            \App\Notifications\UptimeCheckSucceeded::class => [],
 
             \Spatie\UptimeMonitor\Notifications\Notifications\CertificateCheckFailed::class => ['mail'],
             \Spatie\UptimeMonitor\Notifications\Notifications\CertificateExpiresSoon::class => ['mail'],
@@ -31,18 +30,22 @@ return [
         'resend_uptime_check_failed_notification_every_minutes' => 60,
 
         'mail' => [
-            'to' => ['vaibhav@coloredcow.com'],
+            'to' => explode(',', trim(env('UPTIME_MONITOR_MAIL_TO', ''))),
         ],
 
         'slack' => [
             'webhook_url' => env('UPTIME_MONITOR_SLACK_WEBHOOK_URL'),
         ],
 
+        'google_chat' => [
+            'webhook_url' => env('UPTIME_MONITOR_GOOGLE_CHAT_WEBHOOK_URL'),
+        ],
+
         /*
          * Here you can specify the notifiable to which the notifications should be sent. The default
          * notifiable will use the variables specified in this config file.
          */
-        'notifiable' => \Spatie\UptimeMonitor\Notifications\Notifiable::class,
+        'notifiable' => \App\Notifications\Notifiable::class,
 
         /*
          * The date format used in notifications.
@@ -130,5 +133,5 @@ return [
      * own model here. The only requirement is that it should extend
      * `Spatie\UptimeMonitor\Models\Monitor`.
      */
-    'monitor_model' => Spatie\UptimeMonitor\Models\Monitor::class,
+    'monitor_model' => \App\Models\Monitor::class,
 ];
