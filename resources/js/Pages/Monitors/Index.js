@@ -12,15 +12,15 @@ export default function Dashboard(props) {
         <Authenticated
             auth={props.auth}
             errors={props.errors}
-            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Monitors</h2>}
+            header={<h2 className="font-bold text-xl text-purple-600 leading-tight uppercase">Monitors</h2>}
         >
             <Head title="Monitors" />
 
             <div className="py-12">
                 <div className="flex flex-wrap max-w-7xl mx-auto sm:px-6 lg:px-8">
-                        {monitors.map((monitor, index) => (
-                            <MonitorCard monitor={monitor} key={index} />
-                        ))}
+                    {monitors.map((monitor, index) => (
+                        <MonitorCard monitor={monitor} key={index} />
+                    ))}
                 </div>
             </div>
         </Authenticated>
