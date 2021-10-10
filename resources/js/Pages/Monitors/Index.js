@@ -18,8 +18,8 @@ export default function Dashboard(props) {
 
             <div className="py-12">
                 <div className="flex flex-wrap max-w-7xl mx-auto sm:px-6 lg:px-8">
-                        {monitors.map(monitor => (
-                            <MonitorCard monitor={monitor} />
+                        {monitors.map((monitor, index) => (
+                            <MonitorCard monitor={monitor} key={index} />
                         ))}
                 </div>
             </div>
