@@ -3,6 +3,7 @@ import Authenticated from '@/Layouts/Authenticated';
 import { Link, usePage } from '@inertiajs/inertia-react';
 import { Head } from '@inertiajs/inertia-react';
 import MonitorCard from '@/components/MonitorCard';
+import PageHeader from '@/components/PageHeader';
 
 export default function Dashboard(props) {
 
@@ -13,13 +14,11 @@ export default function Dashboard(props) {
             auth={props.auth}
             errors={props.errors}
         >
-            <header className="bg-white shadow">
-                <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                    <h2 className="font-bold text-xl text-purple-600 leading-tight uppercase">Monitors</h2>
-                </div>
-            </header>
-
             <Head title="Monitors" />
+
+            <PageHeader>
+                <h2 className="font-bold text-xl text-purple-600 leading-tight uppercase">Monitors</h2>
+            </PageHeader>
 
             <div className="py-12">
                 <div className="flex flex-wrap max-w-7xl mx-auto sm:px-6 lg:px-8">
