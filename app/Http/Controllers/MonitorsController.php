@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use Inertia\Inertia;
 use Illuminate\Http\Request;
 use Spatie\UptimeMonitor\Models\Monitor;
 
-class HomeController extends Controller
+class MonitorsController extends Controller
 {
     /**
      * Create a new controller instance.
@@ -24,9 +25,8 @@ class HomeController extends Controller
      */
     public function index()
     {
-        $monitors = Monitor::all();
-        return view('home')->with([
-            'monitors' => $monitors,
+        return Inertia::render('Monitors/Index', [
+            'monitors' => Monitor::all(),
         ]);
     }
 }
