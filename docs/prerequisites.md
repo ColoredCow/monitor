@@ -121,25 +121,6 @@ node -v
 #v16.17.0
 ```
 
-### 7. Code Formatter :butterfly:
-
-Install the following extensions and packages based on the code editor you use:
-
-- Visual Studio Code Editor:
-  - [Prettier - for JS, CSS, HTML files](https://prettier.io/)
-  - [Laravel Blade Snippets for Blade files](https://marketplace.visualstudio.com/items?itemName=onecentlin.laravel-blade)
-  - [Laravel Extra Intellisense](https://marketplace.visualstudio.com/items?itemName=amiralizadeh9480.laravel-extra-intellisense)
-  - [PHP Intelephense](https://marketplace.visualstudio.com/items?itemName=bmewburn.vscode-intelephense-client)
-  - [PHP CS Fixer](https://marketplace.visualstudio.com/items?itemName=junstyle.php-cs-fixer)
-
-- Sublime Code Editor:
-  - [PHP formatting - PHPfmt](https://packagecontrol.io/packages/phpfmt)
-  - [Laravel Blade Snippets for Blade files](https://marketplace.visualstudio.com/items?itemName=onecentlin.laravel-blade)
-  - [Prettier - for JS, CSS, HTML files](https://prettier.io/)
-
-
-
-
 ## Learning :book: (If you already know these tools and technologies then you can skip the below part)
 
 There are some topics and tools you need to know to prior to work
@@ -162,18 +143,4 @@ in portal so please make sure to check this out.
 ### 3. Git and GitHub :running:
 
 - [Git, GitHub and Development](https://product.hubspot.com/blog/git-and-github-tutorial-for-beginners)
-
-### 4. Laravel Modules :butterfly:
-
-This project uses Laravel Modules, so a basic understanding of the commands is recommended:
-
-- [Laravel Module Utility Commands](https://nwidart.com/laravel-modules/v1/advanced-tools/artisan-commands)
-
-### 8. Automated Testing :computer:
-
-This project uses Cypress for automated testing, so a basic understanding of the writing test cases is recommended:
-
-- [Introduction to Cypress](https://github.com/ColoredCow/portal/blob/master/docs/testing.md)
-- [Writing Your First Test](https://docs.cypress.io/guides/getting-started/writing-your-first-test)
-- [Testing Your App](https://docs.cypress.io/guides/getting-started/testing-your-app#Step-1-Start-your-server)
 
