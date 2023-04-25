@@ -100,28 +100,6 @@ Before you start following the guidelines, make sure to go through the [prerequi
 
     These credentials will be used when you will connect to MySQL Server whether you use XAMPP, WAMP, MAMP (PhpMyadmin) or TablePlus, the proper steps you can find here in the [prerequisites guide](./docs/prerequisites.md).
 
-    3. _(Optional)_ Google configurations.
-    ```sh
-    GOOGLE_CLIENT_ID=
-    GOOGLE_CLIENT_SECRET=
-    GOOGLE_CLIENT_CALLBACK=
-    GOOGLE_CLIENT_HD=
-    GOOGLE_API_KEY=
-    GOOGLE_APPLICATION_CREDENTIALS=
-    GOOGLE_SERVICE_ACCOUNT_IMPERSONATE=
-    ```
-
-    4. _(Optional)_ ColoredCow website Configurations
-    In case you want to use website integration functionality, then you need to enable `WORDPRESS_ENABLED` as `true` and add wordpress database configurations.
-
-    ```sh
-    DB_WORDPRESS_DATABASE=
-    DB_WORDPRESS_USERNAME=
-    DB_WORDPRESS_PASSWORD=
-    DB_WORDPRESS_PREFIX=
-    WORDPRESS_ENABLED=true
-    ```
-
 9. Run migrations
     ```sh
     php artisan migrate
