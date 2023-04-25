@@ -33,7 +33,7 @@ Monitor uses PHP v7.3.20 You can install it using one of the following ways:
    - If the user is working in VSCode, possible errors may arise because of path, as may not be able to access the selected PHP version from its terminal.
 3. MAMP (macOS)
     - If you prefer using MAMP, you can download with all the PHP version from [this link](https://www.mamp.info/en/downloads/)this link for Windows and MacOS.
-    -To use the MAMP php as main php, refer[this link](https://stackoverflow.com/questions/4262006/how-to-use-mamps-version-of-php-instead-of-the-default-on-osx) for switching into the MAMP php.
+    -To use the MAMP php as main php, refer [this link](https://stackoverflow.com/questions/4262006/how-to-use-mamps-version-of-php-instead-of-the-default-on-osx) for switching into the MAMP php.
 4. After you've successfully installed, you can verify the installation using:
 
 ```sh
@@ -140,7 +140,7 @@ Install the following extensions and packages based on the code editor you use:
 
 
 
-## Learning :book:
+## Learning :book: (If you already know these tools and technologies then you can skip the below part)
 
 There are some topics and tools you need to know to prior to work
 in portal so please make sure to check this out.
