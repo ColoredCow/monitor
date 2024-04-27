@@ -19,7 +19,7 @@ class MonitorsController extends Controller
     }
 
     /**
-     * Show the application dashboard.
+     * Show the monitors dashboard.
      *
      * @return \Illuminate\Contracts\Support\Renderable
      */
@@ -27,6 +27,38 @@ class MonitorsController extends Controller
     {
         return Inertia::render('Monitors/Index', [
             'monitors' => Monitor::all(),
+        ]);
+    }
+
+    /**
+     * Show the create monitor page.
+     *
+     * @return \Illuminate\Contracts\Support\Renderable
+     */
+    public function create()
+    {
+        return Inertia::render('Monitors/Create');
+    }
+
+    /**
+     * Create a new monitor.
+     *
+     * @return \Illuminate\Contracts\Support\Renderable
+     */
+    public function store(Request $request)
+    {
+        // create a monitor
+    }
+
+    /**
+     * Show the monitor details.
+     *
+     * @return \Illuminate\Contracts\Support\Renderable
+     */
+    public function show(Monitor $monitor)
+    {
+        return Inertia::render('Monitors/Show', [
+            'monitor' => $monitor,
         ]);
     }
 }
