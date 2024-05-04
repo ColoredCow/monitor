@@ -8,14 +8,14 @@ After you've successfully installed, you can verify the installation using:
 
 ```sh
 git --version
-# git version 2.33.0.windows.2
+# git version 2.39.0.windows.2
 ```
 
 ### 2. PHP, MySQL, Apache:running:
-Monitor uses PHP v7.3.20 You can install it using one of the following ways:
+Monitor uses PHP v8.3 or higher. You can install it using one of the following ways:
 
 1. XAMPP (Windows and Linux)
-    - If you prefer using XAMPP, you can download the full stack with right PHP version from [this link](https://sourceforge.net/projects/xampp/files/XAMPP%20Windows/7.3.20/) and download the zip file.
+    - If you prefer using XAMPP, you can download the full stack with right PHP version from [this link](https://sourceforge.net/projects/xampp/files/latest/download) and download the zip file.
     - If you already have XAMPP installed for Windows, refer [this link](https://stackoverflow.com/questions/45790160/is-there-way-to-use-two-php-versions-in-xampp) for switching to the correct PHP version.
     - If you already have XAMPP installed for Ubuntu, refer [this link](http://www.facweb.iitkgp.ac.in/dashboard/docs/use-different-php-version.html)for switching to the correct PHP version.
 
@@ -39,7 +39,7 @@ Monitor uses PHP v7.3.20 You can install it using one of the following ways:
 ```sh
 php -v
 # output should be something like
-# PHP 7.3.20 (cli) (built: Jul  7 2020 11:12:12) (NTS)
+# PHP 8.3.4 (cli) (built: Jul  7 2020 11:12:12) (NTS)
 ```
 ### 3. Steps on how to connect to MySQL database in your phpMyAdmin:running:
 Before you start building PHP connection to MySQL database you need to know what phpMyAdmin is. It’s a control panel from where you can manage the database that you’ve created.
@@ -109,7 +109,7 @@ composer --version
 
 ### 6. Nodejs :running:
 For (Windows, Ubuntu, macOS)
-- [Nodejs v16.17.0](https://nodejs.org/en/blog/release/v16.17.1).
+- [Nodejs v18.17.0](https://nodejs.org/en/blog/release/v18.7.0).
 Download and install the file with .msi extension if on windows. After you've successfully installed, you can verify the installation using:
 ```sh
 npm -v
@@ -118,7 +118,7 @@ npm -v
 
 node -v
 #output should be somthing like
-#v16.17.0
+#v18.7.0
 ```
 
 ## Learning :book: (If you already know these tools and technologies then you can skip the below part)
