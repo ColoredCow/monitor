@@ -6,7 +6,7 @@ import MonitorUptimeIcon from '@/components/MonitorUptimeIcon';
 import MonitorCheckIntervalIcon from '@/components/MonitorCheckIntervalIcon';
 import PageHeader from '@/components/PageHeader';
 
-export default function Dashboard(props) {
+export default function Show(props) {
 
     const { monitor } = usePage().props;
 

@@ -1,10 +1,11 @@
 import React from 'react';
 import Authenticated from '@/Layouts/Authenticated';
-import { Link, Head, usePage } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import MonitorCard from '@/components/MonitorCard';
 import PageHeader from '@/components/PageHeader';
+import Button from '@/Components/Button';
 
-export default function Dashboard(props) {
+export default function Index(props) {
 
     const { monitors } = usePage().props;
 
@@ -16,7 +17,12 @@ export default function Dashboard(props) {
             <Head title="Monitors" />
 
             <PageHeader>
-                <h2 className="font-bold text-xl text-purple-600 leading-tight uppercase">Monitors</h2>
+                <div className='flex justify-between'>
+                    <h2 className="font-bold text-xl text-purple-600 leading-tight uppercase">Monitors</h2>
+                    <Link href='monitors/create'>
+                        <Button>Create</Button>
+                    </Link>
+                </div>
             </PageHeader>
 
             <div className="py-12">

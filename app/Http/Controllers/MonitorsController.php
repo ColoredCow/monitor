@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\MonitorRequest;
+use App\Models\Monitor;
 use Inertia\Inertia;
-use Illuminate\Http\Request;
-use Spatie\UptimeMonitor\Models\Monitor;
 
 class MonitorsController extends Controller
 {
@@ -37,7 +37,7 @@ class MonitorsController extends Controller
      */
     public function create()
     {
-        return Inertia::render('Monitors/Create');
+        return Inertia::render('Monitors/Create', []);
     }
 
     /**
@@ -45,9 +45,15 @@ class MonitorsController extends Controller
      *
      * @return \Illuminate\Contracts\Support\Renderable
      */
-    public function store(Request $request)
+    public function store(MonitorRequest $request)
     {
-        // create a monitor
+        $validated = $request->validated();
+        Monitor::create([
+            'url' => $validated['url'],
+            'uptime_check_enabled' => $validated['monitorUptime'],
+            'uptime_check_interval_in_minutes' => $validated['uptimeCheckInterval'],
+        ]);
+        return redirect()->route('monitors.index');
     }
 
     /**

@@ -1,10 +1,11 @@
 import React from 'react';
 import MonitorUptimeIcon from './MonitorUptimeIcon';
 import MonitorCheckIntervalIcon from './MonitorCheckIntervalIcon';
+import { Link } from '@inertiajs/react';
 
 export default function MonitorCard ({ monitor }) {
     return (
-        <a className="w-full md:w-1/2 lg:w-1/3" href={`/monitors/${monitor.id}`}>
+        <Link className="w-full md:w-1/2 lg:w-1/3" href={`/monitors/${monitor.id}`}>
             <div className="p-6 bg-white overflow-hidden shadow-sm rounded-lg mb-3 mx-3">
                 <div className="flex items-center mb-2">
                     <div>{monitor.raw_url}</div>
@@ -18,6 +19,6 @@ export default function MonitorCard ({ monitor }) {
                     </div>
                 </div>
             </div>
-        </a>
+        </Link>
     );
 }
