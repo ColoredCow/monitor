@@ -1,7 +1,6 @@
 import React from 'react';
 import Authenticated from '@/Layouts/Authenticated';
-import { Link, usePage } from '@inertiajs/inertia-react';
-import { Head } from '@inertiajs/inertia-react';
+import { usePage, Head } from '@inertiajs/react';
 import { ExternalLinkIcon } from '@heroicons/react/solid';
 import MonitorUptimeIcon from '@/components/MonitorUptimeIcon';
 import MonitorCheckIntervalIcon from '@/components/MonitorCheckIntervalIcon';
