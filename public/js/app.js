@@ -3894,7 +3894,7 @@ function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 function Create(props) {
   var monitor = (0,_inertiajs_react__WEBPACK_IMPORTED_MODULE_2__.usePage)().props.monitor;
   var _useState = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)({
-      name: "",
+      name: monitor.name,
       url: monitor.raw_url,
       monitorUptime: monitor.uptime_check_enabled,
       uptimeCheckInterval: monitor.uptime_check_interval_in_minutes

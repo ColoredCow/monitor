@@ -13,7 +13,7 @@ export default function Create(props) {
     const { monitor } = usePage().props;
 
     const [form, setForm] = useState({
-        name: "",
+        name: monitor.name,
         url: monitor.raw_url,
         monitorUptime: monitor.uptime_check_enabled,
         uptimeCheckInterval: monitor.uptime_check_interval_in_minutes,
