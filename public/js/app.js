@@ -4583,6 +4583,12 @@ __webpack_require__.r(__webpack_exports__);
 
 function MonitorCard(_ref) {
   var monitor = _ref.monitor;
+  var handleDelete = function handleDelete(e) {
+    e.preventDefault();
+    if (confirm('Are you sure you want to delete this monitor?')) {
+      _inertiajs_react__WEBPACK_IMPORTED_MODULE_3__.router["delete"]("/monitors/".concat(monitor.id));
+    }
+  };
   return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("div", {
     className: "w-full md:w-1/2 lg:w-1/3",
     children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)("div", {
@@ -4624,6 +4630,7 @@ function MonitorCard(_ref) {
             })
           }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("div", {
             className: "flex items-center rounded-full px-1.5 py-1.5 hover:bg-red-200 text-gray-500 hover:text-red-600 cursor-pointer",
+            onClick: handleDelete,
             children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(_heroicons_react_24_outline__WEBPACK_IMPORTED_MODULE_7__["default"], {
               className: "h-4 w-4"
             })

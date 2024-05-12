@@ -95,4 +95,15 @@ class MonitorsController extends Controller
         ]);
         return redirect()->route('monitors.index');
     }
+
+    /**
+     * Delete the monitor.
+     *
+     * @return \Illuminate\Contracts\Support\Renderable
+     */
+    public function destroy(Monitor $monitor)
+    {
+        $monitor->delete();
+        return redirect()->route('monitors.index');
+    }
 }
