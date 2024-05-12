@@ -26,7 +26,7 @@ class MonitorsController extends Controller
     public function index()
     {
         return Inertia::render('Monitors/Index', [
-            'monitors' => Monitor::all(),
+            'monitors' => Monitor::orderBy('name')->get(),
         ]);
     }
 
@@ -49,6 +49,7 @@ class MonitorsController extends Controller
     {
         $validated = $request->validated();
         Monitor::create([
+            'name' => $validated['name'],
             'url' => $validated['url'],
             'uptime_check_enabled' => $validated['monitorUptime'],
             'uptime_check_interval_in_minutes' => $validated['uptimeCheckInterval'],
@@ -89,6 +90,7 @@ class MonitorsController extends Controller
     {
         $validated = $request->validated();
         $monitor->update([
+            'name' => $validated['name'],
             'url' => $validated['url'],
             'uptime_check_enabled' => $validated['monitorUptime'],
             'uptime_check_interval_in_minutes' => $validated['uptimeCheckInterval'],
