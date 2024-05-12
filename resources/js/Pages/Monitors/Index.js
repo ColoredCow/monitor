@@ -4,6 +4,7 @@ import { Head, Link, usePage } from '@inertiajs/react';
 import MonitorCard from '@/components/MonitorCard';
 import PageHeader from '@/components/PageHeader';
 import Button from '@/Components/Button';
+import { PlusIcon } from '@heroicons/react/24/solid';
 
 export default function Index(props) {
 
@@ -20,7 +21,10 @@ export default function Index(props) {
                 <div className='flex justify-between'>
                     <h2 className="font-bold text-xl text-purple-600 leading-tight uppercase">Monitors</h2>
                     <Link href='monitors/create'>
-                        <Button>Create</Button>
+                        <Button>
+                            <PlusIcon className="h-4 w-4 mr-1"/>
+                            <span>Create</span>
+                        </Button>
                     </Link>
                 </div>
             </PageHeader>

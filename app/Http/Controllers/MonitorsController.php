@@ -67,4 +67,32 @@ class MonitorsController extends Controller
             'monitor' => $monitor,
         ]);
     }
+
+    /**
+     * Edit the monitor details.
+     *
+     * @return \Illuminate\Contracts\Support\Renderable
+     */
+    public function edit(Monitor $monitor)
+    {
+        return Inertia::render('Monitors/Edit', [
+            'monitor' => $monitor,
+        ]);
+    }
+
+    /**
+     * Update the monitor details.
+     *
+     * @return \Illuminate\Contracts\Support\Renderable
+     */
+    public function update(MonitorRequest $request, Monitor $monitor)
+    {
+        $validated = $request->validated();
+        $monitor->update([
+            'url' => $validated['url'],
+            'uptime_check_enabled' => $validated['monitorUptime'],
+            'uptime_check_interval_in_minutes' => $validated['uptimeCheckInterval'],
+        ]);
+        return redirect()->route('monitors.index');
+    }
 }

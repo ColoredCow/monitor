@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Authenticated from "@/Layouts/Authenticated";
-import { Head } from "@inertiajs/react";
+import { Head, usePage } from "@inertiajs/react";
 import PageHeader from "@/components/PageHeader";
 import Button from "@/Components/Button";
 import Label from "@/Components/Label";
@@ -9,11 +9,14 @@ import Checkbox from "@/Components/Checkbox";
 import { router } from '@inertiajs/react'
 
 export default function Create(props) {
+
+    const { monitor } = usePage().props;
+
     const [form, setForm] = useState({
         name: "",
-        url: "",
-        monitorUptime: true,
-        uptimeCheckInterval: "2",
+        url: monitor.raw_url,
+        monitorUptime: monitor.uptime_check_enabled,
+        uptimeCheckInterval: monitor.uptime_check_interval_in_minutes,
     });
 
     const handleChange = (e) => {
@@ -27,16 +30,16 @@ export default function Create(props) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        router.post('/monitors', form);
+        router.put(`/monitors/${monitor.id}`, form);
     };
 
     return (
         <Authenticated auth={props.auth} errors={props.errors}>
-            <Head title="Create Monitor" />
+            <Head title="Edit Monitor" />
 
             <PageHeader>
                 <h2 className="font-bold text-xl text-purple-600 leading-tight uppercase">
-                    Create Monitor
+                    Edit Monitor
                 </h2>
             </PageHeader>
 
@@ -84,7 +87,7 @@ export default function Create(props) {
                         </select>
                     </div>
                     <div>
-                        <Button>Create</Button>
+                        <Button>Update</Button>
                     </div>
                 </form>
             </div>

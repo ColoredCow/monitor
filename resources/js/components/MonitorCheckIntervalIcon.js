@@ -1,5 +1,5 @@
 import React from 'react';
-import { ClockIcon } from '@heroicons/react/outline';
+import { ClockIcon } from '@heroicons/react/24/outline';
 import Badge from './Badge';
 
 export default function MonitorCheckIntervalIcon ({ monitor }) {
