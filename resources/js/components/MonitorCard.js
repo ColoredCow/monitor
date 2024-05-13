@@ -8,7 +8,7 @@ export default function MonitorCard ({ monitor }) {
 
     const handleDelete = (e) => {
         e.preventDefault();
-        if (confirm('Are you sure you want to delete this monitor?')) {
+        if (confirm(`Are you sure you want to remove ${monitor.name} (${monitor.raw_url}) from monitoring?`)) {
             router.delete(`/monitors/${monitor.id}`);
         }
     }

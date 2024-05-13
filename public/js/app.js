@@ -4585,7 +4585,7 @@ function MonitorCard(_ref) {
   var monitor = _ref.monitor;
   var handleDelete = function handleDelete(e) {
     e.preventDefault();
-    if (confirm('Are you sure you want to delete this monitor?')) {
+    if (confirm("Are you sure you want to remove ".concat(monitor.name, " (").concat(monitor.raw_url, ") from monitoring?"))) {
       _inertiajs_react__WEBPACK_IMPORTED_MODULE_3__.router["delete"]("/monitors/".concat(monitor.id));
     }
   };
