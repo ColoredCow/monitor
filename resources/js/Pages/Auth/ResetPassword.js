@@ -38,7 +38,7 @@ export default function ResetPassword({ token, email }) {
 
             <form onSubmit={submit}>
                 <div>
-                    <Label forInput="email" value="Email" />
+                    <Label forInput="email">Email</Label>
 
                     <Input
                         type="email"
@@ -51,7 +51,7 @@ export default function ResetPassword({ token, email }) {
                 </div>
 
                 <div className="mt-4">
-                    <Label forInput="password" value="Password" />
+                    <Label forInput="password">Password</Label>
 
                     <Input
                         type="password"
@@ -65,7 +65,7 @@ export default function ResetPassword({ token, email }) {
                 </div>
 
                 <div className="mt-4">
-                    <Label forInput="password_confirmation" value="Confirm Password" />
+                    <Label forInput="password_confirmation">Confirm Password</Label>
 
                     <Input
                         type="password"
