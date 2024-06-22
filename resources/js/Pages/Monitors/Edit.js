@@ -17,11 +17,11 @@ export default function Create(props) {
         url: monitor.raw_url,
         monitorUptime: monitor.uptime_check_enabled,
         uptimeCheckInterval: monitor.uptime_check_interval_in_minutes,
+        monitorCertificate: monitor.certificate_check_enabled,
     });
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
-        console.log({ name, value, type, checked });
         setForm((prevState) => ({
             ...prevState,
             [name]: type === "checkbox" ? checked : value,
@@ -56,35 +56,50 @@ export default function Create(props) {
                             Example: https://coloredcow.com
                         </small>
                     </div>
-                    <div className="mb-4">
-                        <label className="inline-flex items-center">
-                            <Checkbox
-                                name="monitorUptime"
-                                checked={form.monitorUptime}
-                                handleChange={handleChange}
-                            />
-                            <span className="ml-2">Monitor Uptime</span>
-                        </label>
-                    </div>
-                    <div className="mb-4">
-                        <label htmlFor="uptimeCheckInterval" className="block font-medium">
-                            Uptime Check Interval
-                        </label>
-                        <select
-                            id="uptimeCheckInterval"
-                            name="uptimeCheckInterval"
-                            value={form.uptimeCheckInterval}
-                            className="mt-1 p-2 border border-gray-300 rounded w-full"
-                            onChange={handleChange}
-                        >
-                            <option value="1">1 minute</option>
-                            <option value="2">2 minutes</option>
-                            <option value="5">5 minutes</option>
-                            <option value="10">10 minutes</option>
-                            <option value="20">20 minutes</option>
-                            <option value="30">30 minutes</option>
-                            <option value="60">1 hour</option>
-                        </select>
+                    <div className="py-6">
+                        <h3 className="text-xl border-b-2 pb-1 mb-4 text-gray-700">Settings</h3>
+                        <div className="mb-4 flex">
+                            <div className="flex-1">
+                                <label className="inline-flex items-center">
+                                    <Checkbox
+                                        name="monitorUptime"
+                                        checked={form.monitorUptime}
+                                        handleChange={handleChange}
+                                    />
+                                    <span className="ml-2">Monitor Uptime</span>
+                                </label>
+                            </div>
+                            <div className="flex-1">
+                                <label className="inline-flex items-center">
+                                    <Checkbox
+                                        name="monitorCertificate"
+                                        checked={form.monitorCertificate}
+                                        handleChange={handleChange}
+                                    />
+                                    <span className="ml-2">Monitor SSL Certificate</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div className={`mb-4 ${form.monitorUptime || form.monitorCertificate ? 'block' : 'hidden'}`}>
+                            <label htmlFor="uptimeCheckInterval" className="block font-medium">
+                                Check Interval
+                            </label>
+                            <select
+                                id="uptimeCheckInterval"
+                                name="uptimeCheckInterval"
+                                value={form.uptimeCheckInterval}
+                                className="mt-1 p-2 border border-gray-300 rounded w-full"
+                                onChange={handleChange}
+                            >
+                                <option value="1">1 minute</option>
+                                <option value="2">2 minutes</option>
+                                <option value="5">5 minutes</option>
+                                <option value="10">10 minutes</option>
+                                <option value="20">20 minutes</option>
+                                <option value="30">30 minutes</option>
+                                <option value="60">1 hour</option>
+                            </select>
+                        </div>
                     </div>
                     <div>
                         <Button>Update</Button>
