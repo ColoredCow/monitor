@@ -3724,7 +3724,8 @@ function Create(props) {
       name: "",
       url: "",
       monitorUptime: true,
-      uptimeCheckInterval: "2"
+      uptimeCheckInterval: "2",
+      monitorCertificate: true
     }),
     _useState2 = _slicedToArray(_useState, 2),
     form = _useState2[0],

@@ -14,6 +14,7 @@ export default function Create(props) {
         url: "",
         monitorUptime: true,
         uptimeCheckInterval: "2",
+        monitorCertificate: true,
     });
 
     const handleChange = (e) => {

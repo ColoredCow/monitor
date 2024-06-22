@@ -26,6 +26,7 @@ class MonitorRequest extends FormRequest
             'url' => 'required|url',
             'monitorUptime' => 'required',
             'uptimeCheckInterval' => 'required',
+            'monitorCertificate' => 'required',
         ];
     }
 }

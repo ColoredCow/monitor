@@ -53,6 +53,7 @@ class MonitorsController extends Controller
             'url' => $validated['url'],
             'uptime_check_enabled' => $validated['monitorUptime'],
             'uptime_check_interval_in_minutes' => $validated['uptimeCheckInterval'],
+            'certificate_check_enabled' => $validated['monitorCertificate'],
         ]);
         return redirect()->route('monitors.index');
     }
@@ -94,6 +95,7 @@ class MonitorsController extends Controller
             'url' => $validated['url'],
             'uptime_check_enabled' => $validated['monitorUptime'],
             'uptime_check_interval_in_minutes' => $validated['uptimeCheckInterval'],
+            'certificate_check_enabled' => $validated['monitorCertificate'],
         ]);
         return redirect()->route('monitors.index');
     }
