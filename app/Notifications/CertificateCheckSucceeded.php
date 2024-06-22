@@ -4,9 +4,9 @@ namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
 use NotificationChannels\Webhook\WebhookMessage;
-use Spatie\UptimeMonitor\Notifications\Notifications\UptimeCheckRecovered as SpatieUptimeCheckRecovered;
+use Spatie\UptimeMonitor\Notifications\Notifications\CertificateCheckSucceeded as SpatieCertificateCheckSucceeded;
 
-class UptimeCheckRecovered extends SpatieUptimeCheckRecovered
+class CertificateCheckSucceeded extends SpatieCertificateCheckSucceeded
 {
     use Queueable;
 

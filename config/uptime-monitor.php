@@ -12,9 +12,9 @@ return [
             \App\Notifications\UptimeCheckRecovered::class => ['mail', \App\Channels\GoogleChatChannel::class],
             \App\Notifications\UptimeCheckSucceeded::class => [],
 
-            \Spatie\UptimeMonitor\Notifications\Notifications\CertificateCheckFailed::class => ['mail'],
-            \Spatie\UptimeMonitor\Notifications\Notifications\CertificateExpiresSoon::class => ['mail'],
-            \Spatie\UptimeMonitor\Notifications\Notifications\CertificateCheckSucceeded::class => [],
+            \App\Notifications\CertificateCheckFailed::class => ['mail', \App\Channels\GoogleChatChannel::class],
+            \App\Notifications\CertificateExpiresSoon::class => ['mail', \App\Channels\GoogleChatChannel::class],
+            \App\Notifications\CertificateCheckSucceeded::class => [],
         ],
 
         /*
