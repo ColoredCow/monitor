@@ -13,3 +13,4 @@ yarn-error.log
 
 # macos
 .dccache
+.DS_Store

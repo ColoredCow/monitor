@@ -4,7 +4,7 @@ import React from 'react';
 import { render } from 'react-dom';
 import { createInertiaApp } from '@inertiajs/react'
 
-const appName = window.document.getElementsByTagName('title')[0]?.innerText || 'Laravel';
+const appName = window.document.getElementsByTagName('title')[0]?.innerText || 'ColoredCow Monitor';
 
 createInertiaApp({
     title: (title) => `${title} - ${appName}`,
