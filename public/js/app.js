@@ -3724,6 +3724,7 @@ function Create(props) {
       name: "",
       url: "",
       monitorUptime: true,
+      monitorDomain: true,
       uptimeCheckInterval: "2"
     }),
     _useState2 = _slicedToArray(_useState, 2),
@@ -3789,9 +3790,9 @@ function Create(props) {
             className: "text-gray-500",
             children: "Example: https://coloredcow.com"
           })]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("div", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
           className: "mb-4",
-          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("label", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("label", {
             className: "inline-flex items-center",
             children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(_Components_Checkbox__WEBPACK_IMPORTED_MODULE_7__["default"], {
               name: "monitorUptime",
@@ -3801,7 +3802,17 @@ function Create(props) {
               className: "ml-2",
               children: "Monitor Uptime"
             })]
-          })
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("label", {
+            className: "inline-flex items-center ml-4",
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(_Components_Checkbox__WEBPACK_IMPORTED_MODULE_7__["default"], {
+              name: "monitorDomain",
+              checked: form.monitorDomain,
+              handleChange: handleChange
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("span", {
+              className: "ml-2",
+              children: "Monitor Domain"
+            })]
+          })]
         }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
           className: "mb-4",
           children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("label", {
@@ -3897,6 +3908,7 @@ function Create(props) {
       name: monitor.name,
       url: monitor.raw_url,
       monitorUptime: monitor.uptime_check_enabled,
+      monitorDomain: monitor.domain_check_enabled,
       uptimeCheckInterval: monitor.uptime_check_interval_in_minutes
     }),
     _useState2 = _slicedToArray(_useState, 2),
@@ -3962,9 +3974,9 @@ function Create(props) {
             className: "text-gray-500",
             children: "Example: https://coloredcow.com"
           })]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("div", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
           className: "mb-4",
-          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("label", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("label", {
             className: "inline-flex items-center",
             children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(_Components_Checkbox__WEBPACK_IMPORTED_MODULE_7__["default"], {
               name: "monitorUptime",
@@ -3974,7 +3986,17 @@ function Create(props) {
               className: "ml-2",
               children: "Monitor Uptime"
             })]
-          })
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("label", {
+            className: "inline-flex items-center ml-4",
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(_Components_Checkbox__WEBPACK_IMPORTED_MODULE_7__["default"], {
+              name: "monitorDomain",
+              checked: form.monitorDomain,
+              handleChange: handleChange
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("span", {
+              className: "ml-2",
+              children: "Monitor Domain"
+            })]
+          })]
         }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
           className: "mb-4",
           children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("label", {

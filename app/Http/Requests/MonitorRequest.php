@@ -25,6 +25,7 @@ class MonitorRequest extends FormRequest
             'name' => 'required|string',
             'url' => 'required|url',
             'monitorUptime' => 'required',
+            'monitorDomain' => 'required',
             'uptimeCheckInterval' => 'required',
         ];
     }

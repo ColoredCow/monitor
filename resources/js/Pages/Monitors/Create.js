@@ -13,6 +13,7 @@ export default function Create(props) {
         name: "",
         url: "",
         monitorUptime: true,
+        monitorDomain: true,
         uptimeCheckInterval: "2",
     });
 
@@ -61,6 +62,14 @@ export default function Create(props) {
                                 handleChange={handleChange}
                             />
                             <span className="ml-2">Monitor Uptime</span>
+                        </label>
+                        <label className="inline-flex items-center ml-4">
+                            <Checkbox
+                                name="monitorDomain"
+                                checked={form.monitorDomain}
+                                handleChange={handleChange}
+                            />
+                            <span className="ml-2">Monitor Domain</span>
                         </label>
                     </div>
                     <div className="mb-4">
