@@ -14,7 +14,7 @@ export default function Index(props) {
     return (
         <Authenticated
             auth={props.auth}
-            errors={errors}  // Pass errors to Authenticated layout if needed
+            errors={errors}
         >
             <Head title="Monitors" />
 
