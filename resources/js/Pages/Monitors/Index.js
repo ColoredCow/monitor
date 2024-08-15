@@ -9,11 +9,12 @@ import { PlusIcon } from '@heroicons/react/24/solid';
 export default function Index(props) {
 
     const { monitors } = usePage().props;
-
+    const { errors } = usePage().props;
+    
     return (
         <Authenticated
             auth={props.auth}
-            errors={props.errors}
+            errors={errors}  // Pass errors to Authenticated layout if needed
         >
             <Head title="Monitors" />
 

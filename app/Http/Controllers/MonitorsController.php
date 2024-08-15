@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\DomainService;
+use Illuminate\Support\Facades\Log;
 use App\Http\Requests\MonitorRequest;
 use App\Models\Monitor;
 use Inertia\Inertia;
@@ -48,12 +50,18 @@ class MonitorsController extends Controller
     public function store(MonitorRequest $request)
     {
         $validated = $request->validated();
-        Monitor::create([
+        $monitor = Monitor::create([
             'name' => $validated['name'],
             'url' => $validated['url'],
             'uptime_check_enabled' => $validated['monitorUptime'],
             'uptime_check_interval_in_minutes' => $validated['uptimeCheckInterval'],
+            'domain_check_enabled' => $validated['monitorDomain'],
         ]);
+
+        if ($monitor) {
+            $this->addOrUpdateDomainDetails($monitor);
+        }
+
         return redirect()->route('monitors.index');
     }
 
@@ -94,7 +102,13 @@ class MonitorsController extends Controller
             'url' => $validated['url'],
             'uptime_check_enabled' => $validated['monitorUptime'],
             'uptime_check_interval_in_minutes' => $validated['uptimeCheckInterval'],
+            'domain_check_enabled' => $validated['monitorDomain'],
         ]);
+
+        if ($monitor) {
+            $this->addOrUpdateDomainDetails($monitor);
+        }
+
         return redirect()->route('monitors.index');
     }
 
@@ -107,5 +121,28 @@ class MonitorsController extends Controller
     {
         $monitor->delete();
         return redirect()->route('monitors.index');
+    }
+
+    /**
+     * Add or Update domain details on the monitor.
+     *
+     * @param  Monitor  $monitor
+     * @return void
+     */
+    public function addOrUpdateDomainDetails(Monitor $monitor)
+    {
+        $domainController = app(DomainService::class);
+
+        $response = $domainController->lookupDomain($monitor->url);
+
+        if ($response) {
+            $domainExpirationDate = $response->getData();
+            $monitor->update([
+                'domain_expiration_date' => $domainExpirationDate->expiration_date
+            ]);
+        } else {
+            Log::error('Failed to fetch domain details', ['url' => $monitor->url, 'monitor_id' => $monitor->id]);
+            return redirect()->route('monitors.index')->with('errors', 'Could not fetch domain details');
+        }
     }
 }
