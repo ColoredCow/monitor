@@ -80,13 +80,20 @@ class DomainService
         }
     }
 
-    protected function getBaseDomainFromUrl($url){
-
+    protected function getBaseDomainFromUrl($url)
+    {
         $parsedUrl = parse_url((string) $url);
+        $host = $parsedUrl['host'] ?? $url;
 
-        $host = $parsedUrl['host'] ?? $parsedUrl['path'] ?? $url;
+        $hostParts = explode('.', $host);
+        $hostParts = array_reverse($hostParts);
 
-        $baseDomain = preg_replace('/^www\./', '', $host);
+        if ($hostParts[0] === 'com') {
+            $mainDomain = $hostParts[1] . '.com';
+        } else {
+            $mainDomain = implode('.', array_reverse($hostParts));
+        }
+        $baseDomain = preg_replace('/^www\./', '', $mainDomain);
 
         return $baseDomain;
     }
