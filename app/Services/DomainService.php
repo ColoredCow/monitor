@@ -31,18 +31,20 @@ class DomainService
         return 0;
     }
 
-    public function updateDomainExpiration(Monitor $monitor)
+    public function updateAndNotifyDomainExpiration(Monitor $monitor)
     {
-        $domainExpirationDate = $this->lookupDomain($monitor->url)->getData();
+        $domainInfo = $this->lookupDomain($monitor->url);
 
-        if ($domainExpirationDate) {
+        if ($domainInfo) {
+            $domainExpirationDate = $domainInfo->getData();
+
             $monitor->update(['domain_expiration_date' => $domainExpirationDate->expiration_date]);
 
-            $this->checkAndNotifyExpiration($monitor);
+            return $this->checkAndNotifyExpiration($monitor);
         }
     }
 
-    public function checkAndNotifyExpiration(Monitor $monitor)
+    protected function checkAndNotifyExpiration(Monitor $monitor)
     {
         $expirationDate = $monitor->domain_expiration_date;
 
