@@ -38,12 +38,12 @@ class DomainService
         if ($domainInfo) {
             $domainExpirationDate = $domainInfo->getData();
 
-            if ($domainExpirationDate && $domainExpirationDate->expirationDate) {
+            if ($domainExpirationDate && $domainExpirationDate->expiration_date) {
                 $monitor->update(['domain_expiration_date' => $domainExpirationDate->expiration_date]);
             }
-
             return $this->checkAndNotifyExpiration($monitor);
         }
+        return 0;
     }
 
     protected function checkAndNotifyExpiration(Monitor $monitor)
