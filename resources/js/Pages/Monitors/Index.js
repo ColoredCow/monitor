@@ -8,7 +8,7 @@ import { PlusIcon } from '@heroicons/react/24/solid';
 
 export default function Index(props) {
 
-    const { monitors } = usePage().props;
+    const { monitors, errors } = usePage().props;
 
     return (
         <Authenticated
@@ -36,6 +36,12 @@ export default function Index(props) {
                     ))}
                 </div>
             </div>
+
+            {errors.errors && (
+                <div className="alert alert-danger">
+                    {alert(errors.errors)}
+                </div>
+            )}
         </Authenticated>
     );
 }

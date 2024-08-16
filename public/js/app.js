@@ -4072,12 +4072,12 @@ __webpack_require__.r(__webpack_exports__);
 
 
 function Index(props) {
-  var monitors = (0,_inertiajs_react__WEBPACK_IMPORTED_MODULE_2__.usePage)().props.monitors;
-  var errors = (0,_inertiajs_react__WEBPACK_IMPORTED_MODULE_2__.usePage)().props.errors;
+  var _usePage$props = (0,_inertiajs_react__WEBPACK_IMPORTED_MODULE_2__.usePage)().props,
+    monitors = _usePage$props.monitors,
+    errors = _usePage$props.errors;
   return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(_Layouts_Authenticated__WEBPACK_IMPORTED_MODULE_1__["default"], {
     auth: props.auth,
-    errors: errors // Pass errors to Authenticated layout if needed
-    ,
+    errors: props.errors,
     children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_inertiajs_react__WEBPACK_IMPORTED_MODULE_2__.Head, {
       title: "Monitors"
     }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_components_PageHeader__WEBPACK_IMPORTED_MODULE_4__["default"], {
@@ -4107,6 +4107,9 @@ function Index(props) {
           }, index);
         })
       })
+    }), errors.errors && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
+      className: "alert alert-danger",
+      children: alert(errors.errors)
     })]
   });
 }

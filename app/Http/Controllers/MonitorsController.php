@@ -142,7 +142,7 @@ class MonitorsController extends Controller
             ]);
         } else {
             Log::error('Failed to fetch domain details', ['url' => $monitor->url, 'monitor_id' => $monitor->id]);
-            return redirect()->route('monitors.index')->with('errors', 'Could not fetch domain details');
+            return redirect()->route('monitors.index')->withErrors(['errors' => 'Failed to fetch domain details']);
         }
     }
 }

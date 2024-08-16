@@ -23,7 +23,7 @@ class DomainService
 
         $domainInfo = $this->whois->loadDomainInfo($baseDomain);
 
-        if ($domainInfo) {
+        if ($domainInfo && $domainInfo->expirationDate) {
             return response()->json([
                 'expiration_date' => date('Y-m-d H:i:s', $domainInfo->expirationDate)
             ]);
@@ -38,7 +38,9 @@ class DomainService
         if ($domainInfo) {
             $domainExpirationDate = $domainInfo->getData();
 
-            $monitor->update(['domain_expiration_date' => $domainExpirationDate->expiration_date]);
+            if ($domainExpirationDate && $domainExpirationDate->expirationDate) {
+                $monitor->update(['domain_expiration_date' => $domainExpirationDate->expiration_date]);
+            }
 
             return $this->checkAndNotifyExpiration($monitor);
         }
