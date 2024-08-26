@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Services\DomainService;
-use Illuminate\Support\Facades\Log;
 use App\Http\Requests\MonitorRequest;
 use App\Models\Monitor;
 use Inertia\Inertia;
