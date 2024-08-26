@@ -13,7 +13,7 @@ class Monitor extends SpatieMonitor
         'domain_expiration_date_time' => 'datetime',
     ];
 
-    public function scopeDomainCheckEnabled(Builder $query) : Collection
+    public function scopeDomainCheckEnabled(Builder $query): Collection
     {
         return $query
             ->where('domain_check_enabled', true)

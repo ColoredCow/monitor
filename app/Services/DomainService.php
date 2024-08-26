@@ -82,7 +82,7 @@ class DomainService
         return true;
     }
 
-    protected function lookupDomain(string $url) : array
+    protected function lookupDomain(string $url): array
     {
         $baseDomain = $this->getBaseDomainFromUrl($url);
 
@@ -94,12 +94,12 @@ class DomainService
         return [];
     }
 
-    protected function updateDomainExpiration(Monitor $monitor, string $expirationDate) : bool
+    protected function updateDomainExpiration(Monitor $monitor, string $expirationDate): bool
     {
         return $monitor->update(['domain_expiration_date_time' => $expirationDate]);
     }
 
-    protected function getBaseDomainFromUrl(string $url) : string
+    protected function getBaseDomainFromUrl(string $url): string
     {
         $parsedUrl = parse_url((string) $url);
         $host = $parsedUrl['host'] ?? $url;

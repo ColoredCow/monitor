@@ -14,7 +14,7 @@ class CheckDomainExpiration extends Command
 
     protected $description = 'Check domains for upcoming expiration and send notifications';
 
-    public function handle(DomainService $domainService)
+    public function handle(DomainService $domainService): void
     {
         $monitors = $this->option('force') ? Monitor::all() : Monitor::domainCheckEnabled();
 
