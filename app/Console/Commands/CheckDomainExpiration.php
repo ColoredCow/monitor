@@ -16,7 +16,7 @@ class CheckDomainExpiration extends Command
 
     public function handle(DomainService $domainService)
     {
-        $monitors = $this->option('force') ? Monitor::all() : Monitor::domainEnabled();
+        $monitors = $this->option('force') ? Monitor::all() : Monitor::domainCheckEnabled();
 
         if ($url = $this->option('url')) {
             $urls = explode(',', $url);
@@ -30,9 +30,9 @@ class CheckDomainExpiration extends Command
         $hasNotifications = false;
 
         foreach ($monitors as $monitor) {
-            $notificationMessage = $domainService->updateAndNotifyDomainExpiration($monitor);
+            $notificationMessageConfirmation = $domainService->verifyDomainExpiration($monitor);
 
-            if ($notificationMessage === null) {
+            if ($notificationMessageConfirmation) {
                 $hasNotifications = true;
             }
         }

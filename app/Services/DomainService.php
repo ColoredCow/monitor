@@ -6,7 +6,7 @@ use Carbon\Carbon;
 use Iodev\Whois\Factory;
 use App\Models\Monitor;
 use App\Notifications\Notifiable;
-use App\Notifications\DomainExpiration;
+use App\Notifications\DomainExpirationWarning;
 
 class DomainService
 {
@@ -17,74 +17,89 @@ class DomainService
         $this->whois = Factory::get()->createWhois();
     }
 
-    public function lookupDomain($url)
+    public static function addDomainExpiration(Monitor $monitor): bool
+    {
+        $domainServiceInstance = new self();
+
+        $domainInfo = $domainServiceInstance->lookupDomain($monitor->url);
+
+        if (! empty($domainInfo)) {
+            return $domainServiceInstance->updateDomainExpiration($monitor, $domainInfo['expiration_date']);
+        }
+        return false;
+    }
+
+    public function verifyDomainExpiration(Monitor $monitor): bool
+    {
+        $domainInfo = $this->lookupDomain($monitor->url);
+
+        if (! empty($domainInfo)) {
+            if(! $monitor->domain_expiration_date_time->equalTo(Carbon::parse($domainInfo['expiration_date']))){
+                $this->updateDomainExpiration($monitor, $domainInfo['expiration_date']);
+            }
+
+            return $this->checkAndNotifyExpiration($monitor);
+        }
+        return false;
+    }
+
+    protected function checkAndNotifyExpiration(Monitor $monitor) : bool
+    {
+        $expirationDate = $monitor->domain_expiration_date_time;
+
+        if(! $expirationDate){
+            return false;
+        }
+
+        $daysUntilExpiration = Carbon::now()->diffInDays($expirationDate);
+
+        $domainCheckTimePeriods = config('domain-expiration.domain_check_time_period');
+
+        $notifications = [];
+
+        foreach ($domainCheckTimePeriods as $warningType => $details) {
+            $daysThreshold = $details['days'];
+
+            if ($daysUntilExpiration === $daysThreshold) {
+                $notifications[] = [
+                    'days' => $daysThreshold,
+                    'message' => "Domain expires in $daysThreshold " . ($daysThreshold === 1 ? 'day' : 'days') . "!",
+                ];
+                break;
+            }
+        }
+
+        if (empty($notifications)) {
+            return false;
+        }
+
+        $notifiable = new Notifiable();
+
+        foreach ($notifications as $notification) {
+            $notificationInstance = new DomainExpirationWarning($monitor, $notification['message']);
+            $notifiable->notify($notificationInstance);
+        }
+        return true;
+    }
+
+    protected function lookupDomain(string $url) : array
     {
         $baseDomain = $this->getBaseDomainFromUrl($url);
 
         $domainInfo = $this->whois->loadDomainInfo($baseDomain);
 
         if ($domainInfo && $domainInfo->expirationDate) {
-            return response()->json([
-                'expiration_date' => date('Y-m-d H:i:s', $domainInfo->expirationDate)
-            ]);
+            return ['expiration_date' => date('Y-m-d H:i:s', $domainInfo->expirationDate)];
         }
-        return 0;
+        return [];
     }
 
-    public function updateAndNotifyDomainExpiration(Monitor $monitor)
+    protected function updateDomainExpiration(Monitor $monitor, string $expirationDate) : bool
     {
-        $domainInfo = $this->lookupDomain($monitor->url);
-
-        if ($domainInfo) {
-            $domainExpirationDate = $domainInfo->getData();
-
-            if ($domainExpirationDate && $domainExpirationDate->expiration_date) {
-                $monitor->update(['domain_expiration_date' => $domainExpirationDate->expiration_date]);
-            }
-            return $this->checkAndNotifyExpiration($monitor);
-        }
-        return 0;
+        return $monitor->update(['domain_expiration_date_time' => $expirationDate]);
     }
 
-    protected function checkAndNotifyExpiration(Monitor $monitor)
-    {
-        $expirationDate = $monitor->domain_expiration_date;
-
-        if($expirationDate){
-            $daysUntilExpiration = Carbon::now()->diffInDays($expirationDate);
-
-            $config = config('uptime-monitor.domain_check_time_period');
-
-            $notifications = [];
-
-            foreach ($config as $warningType => $details) {
-                $daysThreshold = $details['days'];
-
-                if ($daysUntilExpiration === $daysThreshold) {
-                    $notifications[] = [
-                        'days' => $daysThreshold,
-                        'message' => "Domain expires in $daysThreshold " . ($daysThreshold === 1 ? 'day' : 'days') . "!",
-                    ];
-                    break;
-                }
-            }
-
-            if (empty($notifications)) {
-                return 1;
-            }
-
-            $notifiable = new Notifiable();
-
-            foreach ($notifications as $notification) {
-                $notificationInstance = new DomainExpiration($monitor, $notification['message']);
-                $notifiable->notify($notificationInstance);
-            }
-        } else {
-            return 1;
-        }
-    }
-
-    protected function getBaseDomainFromUrl($url)
+    protected function getBaseDomainFromUrl(string $url) : string
     {
         $parsedUrl = parse_url((string) $url);
         $host = $parsedUrl['host'] ?? $url;
@@ -92,7 +107,7 @@ class DomainService
         $hostParts = explode('.', $host);
         $hostParts = array_reverse($hostParts);
 
-        if ($hostParts[0] === 'com') {
+        if($hostParts[0] === 'com') {
             $mainDomain = $hostParts[1] . '.com';
         } else {
             $mainDomain = implode('.', array_reverse($hostParts));

@@ -12,8 +12,6 @@ return [
             \App\Notifications\UptimeCheckRecovered::class => ['mail', \App\Channels\GoogleChatChannel::class],
             \App\Notifications\UptimeCheckSucceeded::class => [],
 
-            \App\Notifications\DomainExpiration::class => [\App\Channels\GoogleChatChannel::class],
-
             \Spatie\UptimeMonitor\Notifications\Notifications\CertificateCheckFailed::class => ['mail'],
             \Spatie\UptimeMonitor\Notifications\Notifications\CertificateExpiresSoon::class => ['mail'],
             \Spatie\UptimeMonitor\Notifications\Notifications\CertificateCheckSucceeded::class => [],
@@ -128,25 +126,6 @@ return [
          * the next number of given days.
          */
         'fire_expiring_soon_event_if_certificate_expires_within_days' => 10,
-    ],
-
-    'domain_check_time_period' => [
-
-        /*
-        * The `App\Events\DomainExpiresSoon` will notify
-        * when a domain is found whose expiration date is in
-        * the next number of given days.
-        */
-
-        '30_days_warning' => [
-            'days' => 30,
-        ],  // The first warning, e.g., 30 days before expiration
-        '7_days_warning' => [
-            'days' => 7,
-        ],  // Second warning, e.g., 7 days before expiration
-        '1_day_warning' => [
-            'days' => 1,
-        ],  // Final warning, e.g., 1 day before expiration  
     ],
 
     /*

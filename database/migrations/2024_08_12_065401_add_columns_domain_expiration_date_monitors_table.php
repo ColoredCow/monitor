@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('monitors', function (Blueprint $table) {
             $table->boolean('domain_check_enabled')->default(true);
-            $table->dateTime('domain_expiration_date')->nullable();
+            $table->timestamp('domain_expiration_date_time')->nullable();
         });
     }
 
@@ -23,8 +23,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('monitors', function (Blueprint $table) {
-            $table->dropColumn('domain_check_enabled');
-            $table->dropColumn('domain_expiration_date');
+            $table->dropColumn(['domain_check_enabled', 'domain_expiration_date_time']);
         });
     }
 };
