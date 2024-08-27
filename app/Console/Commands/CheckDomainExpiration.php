@@ -12,7 +12,7 @@ class CheckDomainExpiration extends Command
                             {--url= : Only check these URLs}
                             {--force : Force run all monitors}';
 
-    protected $description = 'Check domains for upcoming expiration and send notifications';
+    protected $description = 'Check domain expiration of all sites';
 
     public function handle(DomainService $domainService): void
     {
