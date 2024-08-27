@@ -1,5 +1,6 @@
 import React from 'react';
 import MonitorUptimeIcon from './MonitorUptimeIcon';
+import MonitorDomainIcon from './MonitorDomainIcon';
 import MonitorCheckIntervalIcon from './MonitorCheckIntervalIcon';
 import { Link, router } from '@inertiajs/react';
 import { ArrowTopRightOnSquareIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
@@ -30,6 +31,9 @@ export default function MonitorCard ({ monitor }) {
                         </div>
                         <div className="flex items-center ml-2">
                             <MonitorCheckIntervalIcon monitor={monitor} />
+                        </div>
+                        <div className="flex items-center ml-2">
+                            <MonitorDomainIcon monitor={monitor} />
                         </div>
                     </div>
                     <div className="flex">
