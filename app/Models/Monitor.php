@@ -10,7 +10,7 @@ use Spatie\UptimeMonitor\Models\Monitor as SpatieMonitor;
 class Monitor extends SpatieMonitor
 {
     protected $casts = [
-        'domain_expiration_date_time' => 'datetime',
+        'domain_expires_at' => 'datetime',
     ];
 
     public function scopeDomainCheckEnabled(Builder $query): Collection

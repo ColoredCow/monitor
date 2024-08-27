@@ -47,7 +47,7 @@ class DomainExpirationWarning extends Notification
 
     public function getMessageText(): string
     {
-        $expirationDate = $this->monitor->domain_expiration_date_time->format('F j, Y');
+        $expirationDate = $this->monitor->domain_expires_at->format('F j, Y');
 
         return "Alert: {$this->message} Domain: {$this->monitor->url}. Expiration date: {$expirationDate}.";
     }

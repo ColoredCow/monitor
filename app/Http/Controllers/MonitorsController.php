@@ -59,10 +59,6 @@ class MonitorsController extends Controller
 
         if ($monitor) {
             $domainExpiration = DomainService::addDomainExpiration($monitor);
-
-            if(! $domainExpiration){
-                return redirect()->route('monitors.index')->withErrors(['errors' => 'Failed to fetch domain expiration date!!']);
-            }
         }
         return redirect()->route('monitors.index');
     }
@@ -109,12 +105,8 @@ class MonitorsController extends Controller
             'domain_check_enabled' => $validated['monitorDomain'],
         ]);
 
-        if (($validated['monitorDomain'] && !$currentDomainCheck)) {
+        if (($validated['monitorDomain'] && !$currentDomainCheck) || ($monitor->wasChanged('url'))) {
             $updatedDomainExpiration = DomainService::addDomainExpiration($monitor);
-
-            if(! $updatedDomainExpiration){
-                return redirect()->route('monitors.index')->withErrors(['errors' => 'Failed to fetch domain expiration date!!']);
-            }
         }
 
         return redirect()->route('monitors.index');

@@ -24,7 +24,7 @@ class DomainService
         $domainInfo = $domainServiceInstance->lookupDomain($monitor->url);
 
         if (! empty($domainInfo)) {
-            return $domainServiceInstance->updateDomainExpiration($monitor, $domainInfo['expiration_date']);
+            return $domainServiceInstance->updateDomainExpiration($monitor, $domainInfo['expirationDate']);
         }
         return false;
     }
@@ -34,8 +34,8 @@ class DomainService
         $domainInfo = $this->lookupDomain($monitor->url);
 
         if (! empty($domainInfo)) {
-            if(! $monitor->domain_expiration_date_time->equalTo(Carbon::parse($domainInfo['expiration_date']))){
-                $this->updateDomainExpiration($monitor, $domainInfo['expiration_date']);
+            if(! $monitor->domain_expires_at->equalTo(Carbon::parse($domainInfo['expirationDate']))){
+                $this->updateDomainExpiration($monitor, $domainInfo['expirationDate']);
             }
 
             return $this->checkAndNotifyExpiration($monitor);
@@ -45,7 +45,7 @@ class DomainService
 
     protected function checkAndNotifyExpiration(Monitor $monitor) : bool
     {
-        $expirationDate = $monitor->domain_expiration_date_time;
+        $expirationDate = $monitor->domain_expires_at;
 
         if(! $expirationDate){
             return false;
@@ -89,14 +89,14 @@ class DomainService
         $domainInfo = $this->whois->loadDomainInfo($baseDomain);
 
         if ($domainInfo && $domainInfo->expirationDate) {
-            return ['expiration_date' => date('Y-m-d H:i:s', $domainInfo->expirationDate)];
+            return ['expirationDate' => date('Y-m-d H:i:s', $domainInfo->expirationDate)];
         }
         return [];
     }
 
     protected function updateDomainExpiration(Monitor $monitor, string $expirationDate): bool
     {
-        return $monitor->update(['domain_expiration_date_time' => $expirationDate]);
+        return $monitor->update(['domain_expires_at' => $expirationDate]);
     }
 
     protected function getBaseDomainFromUrl(string $url): string
