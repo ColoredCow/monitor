@@ -36,12 +36,6 @@ export default function Index(props) {
                     ))}
                 </div>
             </div>
-
-            {errors.errors && (
-                <div className="alert alert-danger">
-                    {alert(errors.errors)}
-                </div>
-            )}
         </Authenticated>
     );
 }

@@ -4107,9 +4107,6 @@ function Index(props) {
           }, index);
         })
       })
-    }), errors.errors && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
-      className: "alert alert-danger",
-      children: alert(errors.errors)
     })]
   });
 }
