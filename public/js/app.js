@@ -4749,7 +4749,7 @@ function MonitorDomainIcon(_ref) {
     };
   } else {
     var today = new Date();
-    var daysLeft = Math.ceil((new Date(monitor.domain_expires_at) - today) / (1000 * 60 * 60 * 24));
+    var daysLeft = Math.floor((new Date(monitor.domain_expires_at) - today) / (1000 * 60 * 60 * 24));
     switch (true) {
       case daysLeft > 100:
         badgeProps = {

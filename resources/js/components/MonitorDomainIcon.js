@@ -14,7 +14,7 @@ export default function MonitorDomainIcon({ monitor }) {
         };
     } else {
         const today = new Date();
-        const daysLeft = Math.ceil((new Date(monitor.domain_expires_at) - today) / (1000 * 60 * 60 * 24));
+        const daysLeft = Math.floor((new Date(monitor.domain_expires_at) - today) / (1000 * 60 * 60 * 24));
         
         switch (true) {
             case daysLeft > 100:
