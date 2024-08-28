@@ -4618,7 +4618,7 @@ function MonitorCard(_ref) {
   return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("div", {
     className: "w-full md:w-1/2 lg:w-1/3",
     children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("div", {
-      className: "p-6 bg-white overflow-hidden shadow-sm rounded-lg mb-3 mx-3",
+      className: "p-5 bg-white overflow-hidden shadow-sm rounded-lg mb-3 mx-3",
       children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("div", {
         className: "flex items-center",
         children: monitor.name
@@ -4749,7 +4749,7 @@ function MonitorDomainIcon(_ref) {
     };
   } else {
     var today = new Date();
-    var daysLeft = Math.floor((new Date(monitor.domain_expires_at) - today) / (1000 * 60 * 60 * 24));
+    var daysLeft = Math.ceil((new Date(monitor.domain_expires_at) - today) / (1000 * 60 * 60 * 24));
     switch (true) {
       case daysLeft > 100:
         badgeProps = {
@@ -4796,7 +4796,7 @@ function MonitorDomainIcon(_ref) {
           color: 'pink'
         };
         break;
-      case daysLeft < 0:
+      case daysLeft <= 0:
         badgeProps = {
           icon: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_4__["default"], {
             className: "h-5 w-5 mr-1 text-red-500"

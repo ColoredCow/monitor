@@ -14,8 +14,8 @@ export default function MonitorDomainIcon({ monitor }) {
         };
     } else {
         const today = new Date();
-        const daysLeft = Math.floor((new Date(monitor.domain_expires_at) - today) / (1000 * 60 * 60 * 24));
-
+        const daysLeft = Math.ceil((new Date(monitor.domain_expires_at) - today) / (1000 * 60 * 60 * 24));
+        
         switch (true) {
             case daysLeft > 100:
                 badgeProps = {
@@ -52,7 +52,7 @@ export default function MonitorDomainIcon({ monitor }) {
                     color: 'pink'
                 };
                 break;
-            case daysLeft < 0:
+            case daysLeft <= 0:
                 badgeProps = {
                     icon: <GlobeAltIcon className="h-5 w-5 mr-1 text-red-500" />,
                     text: 'Domain Expired',
