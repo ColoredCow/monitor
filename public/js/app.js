@@ -4724,8 +4724,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* binding */ MonitorDomainIcon)
 /* harmony export */ });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
-/* harmony import */ var _heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @heroicons/react/24/solid */ "./node_modules/@heroicons/react/24/solid/esm/GlobeAltIcon.js");
-/* harmony import */ var _heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @heroicons/react/24/solid */ "./node_modules/@heroicons/react/24/solid/esm/NoSymbolIcon.js");
+/* harmony import */ var _heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @heroicons/react/24/solid */ "./node_modules/@heroicons/react/24/solid/esm/NoSymbolIcon.js");
+/* harmony import */ var _heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @heroicons/react/24/solid */ "./node_modules/@heroicons/react/24/solid/esm/GlobeAltIcon.js");
 /* harmony import */ var _Badge__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Badge */ "./resources/js/components/Badge.js");
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! react/jsx-runtime */ "./node_modules/react/jsx-runtime.js");
 
@@ -4734,70 +4734,80 @@ __webpack_require__.r(__webpack_exports__);
 
 function MonitorDomainIcon(_ref) {
   var monitor = _ref.monitor;
-  var today = new Date();
-  var daysLeft = Math.floor((new Date(monitor.domain_expires_at) - today) / (1000 * 60 * 60 * 24));
   var badgeProps = {
     icon: null,
     text: '',
     color: ''
   };
-  switch (true) {
-    case daysLeft > 100:
-      badgeProps = {
-        icon: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_3__["default"], {
-          className: "h-5 w-5 mr-1 text-green-500"
-        }),
-        text: '100+ days left',
-        color: 'green'
-      };
-      break;
-    case daysLeft <= 100 && daysLeft > 30:
-      badgeProps = {
-        icon: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_3__["default"], {
-          className: "h-5 w-5 mr-1 text-blue-500"
-        }),
-        text: "".concat(daysLeft, " days left"),
-        color: 'blue'
-      };
-      break;
-    case daysLeft <= 30 && daysLeft > 7:
-      badgeProps = {
-        icon: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_3__["default"], {
-          className: "h-5 w-5 mr-1 text-purple-500"
-        }),
-        text: "".concat(daysLeft, " days left"),
-        color: 'purple'
-      };
-      break;
-    case daysLeft <= 7 && daysLeft > 1:
-      badgeProps = {
-        icon: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_3__["default"], {
-          className: "h-5 w-5 mr-1 text-yellow-500"
-        }),
-        text: "".concat(daysLeft, " days left"),
-        color: 'yellow'
-      };
-      break;
-    case daysLeft === 1:
-      badgeProps = {
-        icon: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_3__["default"], {
-          className: "h-5 w-5 mr-1 text-pink-500"
-        }),
-        text: "".concat(daysLeft, " day left"),
-        color: 'pink'
-      };
-      break;
-    case daysLeft < 0:
-      badgeProps = {
-        icon: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_4__["default"], {
-          className: "h-5 w-5 mr-1 text-red-500"
-        }),
-        text: 'No Data',
-        color: 'red'
-      };
-      break;
-    default:
-      return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.Fragment, {});
+  if (!monitor.domain_expires_at) {
+    badgeProps = {
+      icon: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_3__["default"], {
+        className: "h-5 w-5 mr-1 text-red-500"
+      }),
+      text: 'No Data',
+      color: 'red'
+    };
+  } else {
+    var today = new Date();
+    var daysLeft = Math.floor((new Date(monitor.domain_expires_at) - today) / (1000 * 60 * 60 * 24));
+    switch (true) {
+      case daysLeft > 100:
+        badgeProps = {
+          icon: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_4__["default"], {
+            className: "h-5 w-5 mr-1 text-green-500"
+          }),
+          text: '100+ days left',
+          color: 'green'
+        };
+        break;
+      case daysLeft <= 100 && daysLeft > 30:
+        badgeProps = {
+          icon: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_4__["default"], {
+            className: "h-5 w-5 mr-1 text-blue-500"
+          }),
+          text: "".concat(daysLeft, " days left"),
+          color: 'blue'
+        };
+        break;
+      case daysLeft <= 30 && daysLeft > 7:
+        badgeProps = {
+          icon: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_4__["default"], {
+            className: "h-5 w-5 mr-1 text-purple-500"
+          }),
+          text: "".concat(daysLeft, " days left"),
+          color: 'purple'
+        };
+        break;
+      case daysLeft <= 7 && daysLeft > 1:
+        badgeProps = {
+          icon: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_4__["default"], {
+            className: "h-5 w-5 mr-1 text-yellow-500"
+          }),
+          text: "".concat(daysLeft, " days left"),
+          color: 'yellow'
+        };
+        break;
+      case daysLeft === 1:
+        badgeProps = {
+          icon: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_4__["default"], {
+            className: "h-5 w-5 mr-1 text-pink-500"
+          }),
+          text: "".concat(daysLeft, " day left"),
+          color: 'pink'
+        };
+        break;
+      case daysLeft < 0:
+        badgeProps = {
+          icon: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_4__["default"], {
+            className: "h-5 w-5 mr-1 text-red-500"
+          }),
+          text: 'Domain Expired',
+          color: 'red'
+        };
+        break;
+      default:
+        return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.Fragment, {});
+    }
   }
   return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_Badge__WEBPACK_IMPORTED_MODULE_1__["default"], {
     icon: badgeProps.icon,
