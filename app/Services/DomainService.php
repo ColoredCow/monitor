@@ -101,19 +101,41 @@ class DomainService
 
     protected function getBaseDomainFromUrl(string $url): string
     {
-        $parsedUrl = parse_url((string) $url);
-        $host = $parsedUrl['host'] ?? $url;
+        $host = parse_url($url, PHP_URL_HOST);
+
+        if (!$host) {
+            return ''; // Handle invalid URLs
+        }
+
+        // Remove 'www.' prefix if present
+        $host = preg_replace('/^www\./i', '', $host);
 
         $hostParts = explode('.', $host);
-        $hostParts = array_reverse($hostParts);
+        $countHostParts = count($hostParts);
 
-        if($hostParts[0] === 'com') {
-            $mainDomain = $hostParts[1] . '.com';
-        } else {
-            $mainDomain = implode('.', array_reverse($hostParts));
+        // If there's only one part, return it (e.g., localhost)
+        if ($countHostParts < 2) {
+            return $host;
         }
-        $baseDomain = preg_replace('/^www\./', '', $mainDomain);
 
-        return $baseDomain;
+        // Combine the last two parts, unless it's a multi-part TLD
+        $tld = array_pop($hostParts); // Get the TLD
+        $secondLastHostPart = array_pop($hostParts); // Get the part before the TLD
+
+        // Reconstruct the domain
+        $mainDomain = $secondLastHostPart . '.' . $tld;
+
+        // If there are more parts, check for valid multi-part TLDs
+        if ($countHostParts > 2) {
+            // Check if the current main domain is a valid TLD
+            if (checkdnsrr($mainDomain, 'A') || checkdnsrr($mainDomain, 'MX')) {
+                return $mainDomain;
+            } else {
+                $subdomainOrBase = array_pop($hostParts);
+                return $subdomainOrBase . '.' . $mainDomain;
+            }
+        }
+
+        return $mainDomain;
     }
 }
