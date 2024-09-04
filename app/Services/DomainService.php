@@ -25,6 +25,8 @@ class DomainService
 
         if (! empty($domainInfo)) {
             return $domainServiceInstance->updateDomainExpiration($monitor, $domainInfo['expirationDate']);
+        } elseif ($monitor->domain_expires_at && empty($domainInfo)) {
+            return $domainServiceInstance->updateDomainExpiration($monitor, null);
         }
         return false;
     }
@@ -94,7 +96,7 @@ class DomainService
         return [];
     }
 
-    protected function updateDomainExpiration(Monitor $monitor, string $expirationDate): bool
+    protected function updateDomainExpiration(Monitor $monitor, mixed $expirationDate): bool
     {
         return $monitor->update(['domain_expires_at' => $expirationDate]);
     }
