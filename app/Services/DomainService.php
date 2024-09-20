@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use Carbon\Carbon;
+use Exception;
 use Iodev\Whois\Factory;
 use App\Models\Monitor;
 use App\Notifications\Notifiable;
@@ -21,11 +22,12 @@ class DomainService
     {
         $domainServiceInstance = new self();
 
-        $domainInfo = $domainServiceInstance->lookupDomain($monitor->url);
+        $domainInfo = $domainServiceInstance->getDomainExpirationDate($monitor->url);
 
         if (! empty($domainInfo)) {
             return $domainServiceInstance->updateDomainExpiration($monitor, $domainInfo['expirationDate']);
-        } elseif ($monitor->domain_expires_at && empty($domainInfo)) {
+        }
+        if ($monitor->domain_expires_at && empty($domainInfo)) {
             return $domainServiceInstance->updateDomainExpiration($monitor, null);
         }
         return false;
@@ -33,16 +35,17 @@ class DomainService
 
     public function verifyDomainExpiration(Monitor $monitor): bool
     {
-        $domainInfo = $this->lookupDomain($monitor->url);
+        $domainInfo = $this->getDomainExpirationDate($monitor->url);
 
-        if (! empty($domainInfo)) {
-            if(! $monitor->domain_expires_at->equalTo(Carbon::parse($domainInfo['expirationDate']))){
-                $this->updateDomainExpiration($monitor, $domainInfo['expirationDate']);
-            }
-
-            return $this->checkAndNotifyExpiration($monitor);
+        if (empty($domainInfo)) {
+            return false;
         }
-        return false;
+
+        if(! $monitor->domain_expires_at->equalTo(Carbon::parse($domainInfo['expirationDate']))){
+            $this->updateDomainExpiration($monitor, $domainInfo['expirationDate']);
+        }
+
+        return $this->checkAndNotifyExpiration($monitor);   
     }
 
     protected function checkAndNotifyExpiration(Monitor $monitor) : bool
@@ -84,14 +87,12 @@ class DomainService
         return true;
     }
 
-    protected function lookupDomain(string $url): array
+    protected function getDomainExpirationDate(string $url): array
     {
-        $baseDomain = $this->getBaseDomainFromUrl($url);
+        $domainExpirationDate = $this->handleUrl($url);
 
-        $domainInfo = $this->whois->loadDomainInfo($baseDomain);
-
-        if ($domainInfo && $domainInfo->expirationDate) {
-            return ['expirationDate' => date('Y-m-d H:i:s', $domainInfo->expirationDate)];
+        if ($domainExpirationDate) {
+            return ['expirationDate' => date('Y-m-d H:i:s', $domainExpirationDate)];
         }
         return [];
     }
@@ -101,16 +102,44 @@ class DomainService
         return $monitor->update(['domain_expires_at' => $expirationDate]);
     }
 
-    protected function getBaseDomainFromUrl(string $url): string
+    protected function handleUrl(string $url): ?string
     {
         $host = parse_url($url, PHP_URL_HOST);
+        $domain = preg_replace('/^www\./i', '', $host);
 
-        if (!$host) {
-            return '';
+        $domainInfo = $this->getWhoisRecord($domain);
+
+        if ($domainInfo) {
+            return $domainInfo;
         }
 
-        $host = preg_replace('/^www\./i', '', $host);
+        $baseDomain = $this->getBaseDomainFromUrl($domain);
 
+        $domainInfo = $this->getWhoisRecord($baseDomain);
+
+        if ($domainInfo) {
+            return $domainInfo;
+        }
+
+        return null;
+    }
+
+    protected function getWhoisRecord(string $baseDomain): ?string
+    {
+        try {
+            $domainInfo = $this->whois->loadDomainInfo($baseDomain);
+            if ($domainInfo) {
+                return $domainInfo->expirationDate;
+            }
+        } catch (Exception $e) {
+            return null;
+        }
+
+        return null;
+    }
+
+    protected function getBaseDomainFromUrl(string $host): string
+    {
         $hostParts = explode('.', $host);
         $countHostParts = count($hostParts);
 

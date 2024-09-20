@@ -59,11 +59,4 @@ return [
             'days' => 1,
         ],  // Final warning, e.g., 1 day before expiration  
     ],
-
-    /*
-     * To add or modify behaviour to the Monitor model you can specify your
-     * own model here. The only requirement is that it should extend
-     * `Spatie\UptimeMonitor\Models\Monitor`.
-     */
-    'monitor_model' => \App\Models\Monitor::class,
 ];

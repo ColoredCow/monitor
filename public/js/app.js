@@ -4072,9 +4072,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 function Index(props) {
-  var _usePage$props = (0,_inertiajs_react__WEBPACK_IMPORTED_MODULE_2__.usePage)().props,
-    monitors = _usePage$props.monitors,
-    errors = _usePage$props.errors;
+  var monitors = (0,_inertiajs_react__WEBPACK_IMPORTED_MODULE_2__.usePage)().props.monitors;
   return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(_Layouts_Authenticated__WEBPACK_IMPORTED_MODULE_1__["default"], {
     auth: props.auth,
     errors: props.errors,

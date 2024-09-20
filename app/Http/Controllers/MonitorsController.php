@@ -58,7 +58,7 @@ class MonitorsController extends Controller
         ]);
 
         if ($monitor) {
-            $domainExpiration = DomainService::addDomainExpiration($monitor);
+            DomainService::addDomainExpiration($monitor);
         }
         return redirect()->route('monitors.index');
     }
@@ -106,7 +106,7 @@ class MonitorsController extends Controller
         ]);
 
         if (($validated['monitorDomain'] && !$currentDomainCheck) || ($monitor->wasChanged('url'))) {
-            $updatedDomainExpiration = DomainService::addDomainExpiration($monitor);
+            DomainService::addDomainExpiration($monitor);
         }
 
         return redirect()->route('monitors.index');
