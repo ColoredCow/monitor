@@ -26,6 +26,7 @@ class Kernel extends ConsoleKernel
     {
         $schedule->command('monitor:check-uptime')->everyMinute();
         $schedule->command('monitor:check-certificate')->daily();
+        $schedule->command('monitor:check-domain-expiration')->daily();
     }
 
     /**

@@ -17,6 +17,7 @@
         "laravel/sanctum": "^3.2",
         "laravel/tinker": "^2.9",
         "laravel/ui": "^4.0",
+        "io-developer/php-whois": "^4.0",
         "spatie/laravel-uptime-monitor": "^4.2",
         "spatie/ssl-certificate": "^2.6",
         "tightenco/ziggy": "^2.1"

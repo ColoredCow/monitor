@@ -1,5 +1,6 @@
 import React from 'react';
 import MonitorUptimeIcon from './MonitorUptimeIcon';
+import MonitorDomainIcon from './MonitorDomainIcon';
 import MonitorCheckIntervalIcon from './MonitorCheckIntervalIcon';
 import { Link, router } from '@inertiajs/react';
 import { ArrowTopRightOnSquareIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
@@ -15,7 +16,7 @@ export default function MonitorCard ({ monitor }) {
 
     return (
         <div className="w-full md:w-1/2 lg:w-1/3">
-            <div className="p-6 bg-white overflow-hidden shadow-sm rounded-lg mb-3 mx-3">
+            <div className="p-5 bg-white overflow-hidden shadow-sm rounded-lg mb-3 mx-3">
                 <div className="flex items-center">{monitor.name}</div>
                 <div className="flex items-center mb-2 text-sm">
                     <span className="text-gray-500">{monitor.raw_url}</span>
@@ -30,6 +31,9 @@ export default function MonitorCard ({ monitor }) {
                         </div>
                         <div className="flex items-center ml-2">
                             <MonitorCheckIntervalIcon monitor={monitor} />
+                        </div>
+                        <div className="flex items-center ml-2">
+                            <MonitorDomainIcon monitor={monitor} />
                         </div>
                     </div>
                     <div className="flex">

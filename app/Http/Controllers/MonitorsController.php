@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\DomainService;
 use App\Http\Requests\MonitorRequest;
 use App\Models\Monitor;
 use Inertia\Inertia;
@@ -48,12 +49,17 @@ class MonitorsController extends Controller
     public function store(MonitorRequest $request)
     {
         $validated = $request->validated();
-        Monitor::create([
+        $monitor = Monitor::create([
             'name' => $validated['name'],
             'url' => $validated['url'],
             'uptime_check_enabled' => $validated['monitorUptime'],
             'uptime_check_interval_in_minutes' => $validated['uptimeCheckInterval'],
+            'domain_check_enabled' => $validated['monitorDomain'],
         ]);
+
+        if ($monitor) {
+            DomainService::addDomainExpiration($monitor);
+        }
         return redirect()->route('monitors.index');
     }
 
@@ -89,12 +95,20 @@ class MonitorsController extends Controller
     public function update(MonitorRequest $request, Monitor $monitor)
     {
         $validated = $request->validated();
+        $currentDomainCheck = $monitor->domain_check_enabled;
+
         $monitor->update([
             'name' => $validated['name'],
             'url' => $validated['url'],
             'uptime_check_enabled' => $validated['monitorUptime'],
             'uptime_check_interval_in_minutes' => $validated['uptimeCheckInterval'],
+            'domain_check_enabled' => $validated['monitorDomain'],
         ]);
+
+        if (($validated['monitorDomain'] && !$currentDomainCheck) || ($monitor->wasChanged('url'))) {
+            DomainService::addDomainExpiration($monitor);
+        }
+
         return redirect()->route('monitors.index');
     }
 
