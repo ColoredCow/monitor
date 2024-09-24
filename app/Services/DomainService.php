@@ -41,11 +41,12 @@ class DomainService
             return false;
         }
 
-        if(! $monitor->domain_expires_at->equalTo(Carbon::parse($domainInfo['expirationDate']))){
+        $expirationDate = Carbon::parse($domainInfo['expirationDate']);
+        if (!$monitor->domain_expires_at || !$monitor->domain_expires_at->equalTo($expirationDate)) {
             $this->updateDomainExpiration($monitor, $domainInfo['expirationDate']);
         }
 
-        return $this->checkAndNotifyExpiration($monitor);   
+        return $this->checkAndNotifyExpiration($monitor);
     }
 
     protected function checkAndNotifyExpiration(Monitor $monitor) : bool
