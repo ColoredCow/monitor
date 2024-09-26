@@ -9,9 +9,12 @@ use Spatie\UptimeMonitor\Models\Monitor as SpatieMonitor;
 
 class Monitor extends SpatieMonitor
 {
-    protected $casts = [
-        'domain_expires_at' => 'datetime',
-    ];
+    public function __construct()
+    {
+        $this->casts = array_merge($this->casts, [
+            'domain_expires_at' => 'datetime',
+        ]);
+    }
 
     public function scopeDomainCheckEnabled(Builder $query): Collection
     {
