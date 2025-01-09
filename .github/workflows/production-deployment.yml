@@ -30,7 +30,7 @@ jobs:
           php artisan down
 
           echo "Pulling latest code"
-          git checkout -f
+          git checkout -f main
           git pull origin main
           php artisan migrate --force
 
