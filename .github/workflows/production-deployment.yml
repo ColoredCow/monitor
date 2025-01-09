@@ -38,10 +38,6 @@ jobs:
           composer install --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist --optimize-autoloader --no-dev
           composer dump-autoload
 
-          echo "Running npm"
-          npm install
-          npm run production
-
           echo "Optimizing Laravel app"
           php artisan optimize:clear
 
