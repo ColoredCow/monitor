@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\DomainService;
 use App\Http\Requests\MonitorRequest;
 use App\Models\Monitor;
+use App\Services\DomainService;
 use Inertia\Inertia;
 
 class MonitorsController extends Controller
