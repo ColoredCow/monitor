@@ -2,16 +2,14 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Spatie\UptimeMonitor\Models\Monitor as SpatieMonitor;
 
 class Monitor extends SpatieMonitor
 {
-    public function __construct(array $attributes = [])
+    public function __construct()
     {
-        parent::__construct($attributes);
         $this->casts = array_merge($this->casts, [
             'domain_expires_at' => 'datetime',
         ]);
