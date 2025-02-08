@@ -10,6 +10,7 @@ class Monitor extends SpatieMonitor
 {
     public function __construct()
     {
+        parent::__construct();
         $this->casts = array_merge($this->casts, [
             'domain_expires_at' => 'datetime',
         ]);
