@@ -18,7 +18,7 @@ export default function Index(props) {
             <Head title="Groups" />
 
             <PageHeader>
-                <div className='flex justify-between'>
+                <div className='flex justify-between items-center'>
                     <h2 className="font-bold text-xl text-purple-600 leading-tight uppercase">Groups</h2>
                     <Link href='groups/create'>
                         <Button>

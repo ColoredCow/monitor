@@ -27,8 +27,23 @@ class MonitorsController extends Controller
      */
     public function index()
     {
+        $groups = Group::with(['monitors' => function ($query) {
+            $query->orderBy('name');
+        }])
+        ->has('monitors')
+        ->orderBy('name')->get();
+
+        $monitorWithNoGroups = Monitor::whereNull('group_id')->orderBy('name')->get();
+
+        $groups = collect($groups);
+        $groups->push([
+            'id' => null,
+            'name' => 'Ungrouped Monitors',
+            'monitors' => $monitorWithNoGroups,
+        ]);
+
         return Inertia::render('Monitors/Index', [
-            'monitors' => Monitor::orderBy('name')->get(),
+            'groups' => $groups,
         ]);
     }
 

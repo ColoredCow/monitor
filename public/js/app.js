@@ -3933,7 +3933,7 @@ function Index(props) {
       title: "Groups"
     }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_components_PageHeader__WEBPACK_IMPORTED_MODULE_4__["default"], {
       children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
-        className: "flex justify-between",
+        className: "flex justify-between items-center",
         children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("h2", {
           className: "font-bold text-xl text-purple-600 leading-tight uppercase",
           children: "Groups"
@@ -4482,7 +4482,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 function Index(props) {
-  var monitors = (0,_inertiajs_react__WEBPACK_IMPORTED_MODULE_2__.usePage)().props.monitors;
+  var groups = (0,_inertiajs_react__WEBPACK_IMPORTED_MODULE_2__.usePage)().props.groups;
   return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(_Layouts_Authenticated__WEBPACK_IMPORTED_MODULE_1__["default"], {
     auth: props.auth,
     errors: props.errors,
@@ -4490,7 +4490,7 @@ function Index(props) {
       title: "Monitors"
     }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_components_PageHeader__WEBPACK_IMPORTED_MODULE_4__["default"], {
       children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
-        className: "flex justify-between",
+        className: "flex justify-between items-center",
         children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("h2", {
           className: "font-bold text-xl text-purple-600 leading-tight uppercase",
           children: "Monitors"
@@ -4507,13 +4507,21 @@ function Index(props) {
       })
     }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
       className: "py-12",
-      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
-        className: "flex flex-wrap max-w-7xl mx-auto sm:px-6 lg:px-8",
-        children: monitors.map(function (monitor, index) {
-          return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_components_MonitorCard__WEBPACK_IMPORTED_MODULE_3__["default"], {
-            monitor: monitor
-          }, index);
-        })
+      children: groups.map(function (group, groupIndex) {
+        return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+          className: "flex flex-col max-w-7xl mx-auto sm:px-6 lg:px-8 mb-6",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("h3", {
+            className: "pl-3 mb-3 text-xl",
+            children: group.name
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
+            className: "flex flex-wrap",
+            children: group.monitors.map(function (monitor, monitorIndex) {
+              return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_components_MonitorCard__WEBPACK_IMPORTED_MODULE_3__["default"], {
+                monitor: monitor
+              }, monitorIndex);
+            })
+          })]
+        }, groupIndex);
       })
     })]
   });
