@@ -8,15 +8,17 @@ import Input from "@/Components/Input";
 import Checkbox from "@/Components/Checkbox";
 import { router } from '@inertiajs/react';
 
-export default function Create(props) {
+export default function Edit(props) {
 
-    const { monitor } = usePage().props;
+    const { monitor, groups } = usePage().props;
+
 
     const [form, setForm] = useState({
         name: monitor.name,
         url: monitor.raw_url,
         monitorUptime: monitor.uptime_check_enabled,
         monitorDomain: monitor.domain_check_enabled,
+        monitorGroupId: monitor.group_id ?? "",
         uptimeCheckInterval: monitor.uptime_check_interval_in_minutes,
     });
 
@@ -93,6 +95,23 @@ export default function Create(props) {
                             <option value="20">20 minutes</option>
                             <option value="30">30 minutes</option>
                             <option value="60">1 hour</option>
+                        </select>
+                    </div>
+                    <div className="mb-4">
+                        <label htmlFor="monitorGroupId" className="block font-medium">
+                            Group
+                        </label>
+                        <select
+                            id="monitorGroupId"
+                            name="monitorGroupId"
+                            value={form.monitorGroupId}
+                            className="mt-1 p-2 border border-gray-300 rounded w-full"
+                            onChange={handleChange}
+                        >
+                            <option value="">Select Group</option>
+                            {groups.map((group, index) => (
+                                <option value={group.id} key={index}>{group.name}</option>
+                            ))}
                         </select>
                     </div>
                     <div>

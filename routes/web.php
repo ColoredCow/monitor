@@ -19,6 +19,7 @@ Route::permanentRedirect('/', '/login');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('monitors', 'MonitorsController');
+    Route::resource('groups', 'GroupsController');
 });
 
 require __DIR__ . '/auth.php';

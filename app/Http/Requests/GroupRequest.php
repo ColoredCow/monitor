@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class MonitorRequest extends FormRequest
+class GroupRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,11 +23,6 @@ class MonitorRequest extends FormRequest
     {
         return [
             'name' => 'required|string',
-            'url' => 'required|url',
-            'monitorUptime' => 'required',
-            'monitorDomain' => 'required',
-            'uptimeCheckInterval' => 'required',
-            'monitorGroupId' => 'nullable',
         ];
     }
 }

@@ -22,4 +22,9 @@ class Monitor extends SpatieMonitor
             ->where('domain_check_enabled', true)
             ->get();
     }
+
+    public function group()
+    {
+        return $this->belongsTo(Group::class);
+    }
 }

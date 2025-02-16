@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\MonitorRequest;
 use App\Models\Monitor;
+use App\Models\Group;
 use App\Services\DomainService;
 use Inertia\Inertia;
 
@@ -26,8 +27,23 @@ class MonitorsController extends Controller
      */
     public function index()
     {
+        $groups = Group::with(['monitors' => function ($query) {
+            $query->orderBy('name');
+        }])
+        ->has('monitors')
+        ->orderBy('name')->get();
+
+        $monitorWithNoGroups = Monitor::whereNull('group_id')->orderBy('name')->get();
+
+        $groups = collect($groups);
+        $groups->push([
+            'id' => null,
+            'name' => 'Ungrouped Monitors',
+            'monitors' => $monitorWithNoGroups,
+        ]);
+
         return Inertia::render('Monitors/Index', [
-            'monitors' => Monitor::orderBy('name')->get(),
+            'groups' => $groups,
         ]);
     }
 
@@ -38,7 +54,10 @@ class MonitorsController extends Controller
      */
     public function create()
     {
-        return Inertia::render('Monitors/Create', []);
+        $groups = Group::orderBy('name')->get();
+        return Inertia::render('Monitors/Create', [
+            'groups' => $groups,
+        ]);
     }
 
     /**
@@ -55,6 +74,7 @@ class MonitorsController extends Controller
             'uptime_check_enabled' => $validated['monitorUptime'],
             'uptime_check_interval_in_minutes' => $validated['uptimeCheckInterval'],
             'domain_check_enabled' => $validated['monitorDomain'],
+            'group_id' => $validated['monitorGroupId'],
         ]);
 
         if ($monitor) {
@@ -82,8 +102,10 @@ class MonitorsController extends Controller
      */
     public function edit(Monitor $monitor)
     {
+        $groups = Group::orderBy('name')->get();
         return Inertia::render('Monitors/Edit', [
             'monitor' => $monitor,
+            'groups' => $groups,
         ]);
     }
 
@@ -103,6 +125,7 @@ class MonitorsController extends Controller
             'uptime_check_enabled' => $validated['monitorUptime'],
             'uptime_check_interval_in_minutes' => $validated['uptimeCheckInterval'],
             'domain_check_enabled' => $validated['monitorDomain'],
+            'group_id' => $validated['monitorGroupId'],
         ]);
 
         if (($validated['monitorDomain'] && !$currentDomainCheck) || ($monitor->wasChanged('url'))) {
