@@ -4435,7 +4435,6 @@ function Edit(props) {
             }), groups.map(function (group, index) {
               return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("option", {
                 value: group.id,
-                selected: monitor.group_id == group.id,
                 children: group.name
               }, index);
             })]

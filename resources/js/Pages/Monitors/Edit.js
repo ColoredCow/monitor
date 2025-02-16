@@ -110,7 +110,7 @@ export default function Edit(props) {
                         >
                             <option value="">Select Group</option>
                             {groups.map((group, index) => (
-                                <option value={group.id} key={index} selected={monitor.group_id == group.id}>{group.name}</option>
+                                <option value={group.id} key={index}>{group.name}</option>
                             ))}
                         </select>
                     </div>
