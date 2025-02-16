@@ -1,7 +1,7 @@
 import React from 'react';
 import Authenticated from '@/Layouts/Authenticated';
 import { Head, Link, usePage } from '@inertiajs/react';
-import MonitorCard from '@/components/MonitorCard';
+import GroupCard from '@/components/GroupCard';
 import PageHeader from '@/components/PageHeader';
 import Button from '@/Components/Button';
 import { PlusIcon } from '@heroicons/react/24/solid';
@@ -32,8 +32,7 @@ export default function Index(props) {
             <div className="py-12">
                 <div className="flex flex-wrap max-w-7xl mx-auto sm:px-6 lg:px-8">
                     {groups.map((group, index) => (
-                        group.name
-                        // <MonitorCard monitor={monitor} key={index} />
+                        <GroupCard group={group} key={index} />
                     ))}
                 </div>
             </div>

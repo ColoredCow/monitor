@@ -3911,7 +3911,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 /* harmony import */ var _Layouts_Authenticated__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @/Layouts/Authenticated */ "./resources/js/Layouts/Authenticated.js");
 /* harmony import */ var _inertiajs_react__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @inertiajs/react */ "./node_modules/@inertiajs/react/dist/index.esm.js");
-/* harmony import */ var _components_MonitorCard__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @/components/MonitorCard */ "./resources/js/components/MonitorCard.js");
+/* harmony import */ var _components_GroupCard__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @/components/GroupCard */ "./resources/js/components/GroupCard.js");
 /* harmony import */ var _components_PageHeader__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @/components/PageHeader */ "./resources/js/components/PageHeader.js");
 /* harmony import */ var _Components_Button__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @/Components/Button */ "./resources/js/Components/Button.js");
 /* harmony import */ var _heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! @heroicons/react/24/solid */ "./node_modules/@heroicons/react/24/solid/esm/PlusIcon.js");
@@ -3953,9 +3953,9 @@ function Index(props) {
       children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
         className: "flex flex-wrap max-w-7xl mx-auto sm:px-6 lg:px-8",
         children: groups.map(function (group, index) {
-          return group.name
-          // <MonitorCard monitor={monitor} key={index} />
-          ;
+          return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_components_GroupCard__WEBPACK_IMPORTED_MODULE_3__["default"], {
+            group: group
+          }, index);
         })
       })
     })]
@@ -4661,6 +4661,78 @@ function Badge(_ref) {
       className: "font-bold text-xs ".concat(textClass),
       children: text
     })]
+  });
+}
+
+/***/ }),
+
+/***/ "./resources/js/components/GroupCard.js":
+/*!**********************************************!*\
+  !*** ./resources/js/components/GroupCard.js ***!
+  \**********************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ GroupCard)
+/* harmony export */ });
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+/* harmony import */ var _inertiajs_react__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @inertiajs/react */ "./node_modules/@inertiajs/react/dist/index.esm.js");
+/* harmony import */ var _heroicons_react_24_outline__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @heroicons/react/24/outline */ "./node_modules/@heroicons/react/24/outline/esm/PencilIcon.js");
+/* harmony import */ var _heroicons_react_24_outline__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @heroicons/react/24/outline */ "./node_modules/@heroicons/react/24/outline/esm/TrashIcon.js");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! react/jsx-runtime */ "./node_modules/react/jsx-runtime.js");
+
+
+
+
+function GroupCard(_ref) {
+  var _group$monitors$lengt, _group$monitors;
+  var group = _ref.group;
+  var monitorsCount = (_group$monitors$lengt = (_group$monitors = group.monitors) === null || _group$monitors === void 0 ? void 0 : _group$monitors.length) !== null && _group$monitors$lengt !== void 0 ? _group$monitors$lengt : 0;
+  var monitorsCountText = monitorsCount == 1 ? "".concat(monitorsCount, " monitor") : "".concat(monitorsCount, " monitors");
+  var handleDelete = function handleDelete(e) {
+    e.preventDefault();
+    if (confirm("Are you sure you want to remove the group ".concat(group.name, "?"))) {
+      _inertiajs_react__WEBPACK_IMPORTED_MODULE_1__.router["delete"]("/groups/".concat(group.id));
+    }
+  };
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+    className: "w-full md:w-1/2 lg:w-1/3",
+    children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+      className: "p-5 bg-white overflow-hidden shadow-sm rounded-lg mb-3 mx-3",
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+        className: "flex justify-between",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+          className: "flex flex-col",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+            className: "flex items-center",
+            children: group.name
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+            className: "flex items-center mb-2 text-sm",
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("span", {
+              className: "text-gray-500",
+              children: monitorsCountText
+            })
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+          className: "flex items-center",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_inertiajs_react__WEBPACK_IMPORTED_MODULE_1__.Link, {
+            href: "groups/".concat(group.id, "/edit"),
+            className: "flex items-center rounded-full px-1.5 py-1.5 text-gray-500 hover:bg-purple-200 hover:text-purple-600",
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_heroicons_react_24_outline__WEBPACK_IMPORTED_MODULE_3__["default"], {
+              className: "h-4 w-4"
+            })
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+            className: "flex items-center rounded-full px-1.5 py-1.5 hover:bg-red-200 text-gray-500 hover:text-red-600 cursor-pointer",
+            onClick: handleDelete,
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_heroicons_react_24_outline__WEBPACK_IMPORTED_MODULE_4__["default"], {
+              className: "h-4 w-4"
+            })
+          })]
+        })]
+      })
+    })
   });
 }
 
