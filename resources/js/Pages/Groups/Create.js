@@ -5,7 +5,6 @@ import PageHeader from "@/components/PageHeader";
 import Button from "@/Components/Button";
 import Label from "@/Components/Label";
 import Input from "@/Components/Input";
-import Checkbox from "@/Components/Checkbox";
 import { router } from '@inertiajs/react'
 
 export default function Create(props) {

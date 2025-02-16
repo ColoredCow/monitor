@@ -8,7 +8,7 @@ import Input from "@/Components/Input";
 import Checkbox from "@/Components/Checkbox";
 import { router } from '@inertiajs/react';
 
-export default function Create(props) {
+export default function Edit(props) {
 
     const { monitor, groups } = usePage().props;
 

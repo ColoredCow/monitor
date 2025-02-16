@@ -9,6 +9,7 @@ export default function GroupCard ({ group }) {
 
     const handleDelete = (e) => {
         e.preventDefault();
+        if (monitorsCount) return;
         if (confirm(`Are you sure you want to remove the group ${group.name}?`)) {
             router.delete(`/groups/${group.id}`);
         }
@@ -28,9 +29,17 @@ export default function GroupCard ({ group }) {
                         <Link href={`groups/${group.id}/edit`} className="flex items-center rounded-full px-1.5 py-1.5 text-gray-500 hover:bg-purple-200 hover:text-purple-600">
                             <PencilIcon className='h-4 w-4' />
                         </Link>
-                        <div className="flex items-center rounded-full px-1.5 py-1.5 hover:bg-red-200 text-gray-500 hover:text-red-600 cursor-pointer" onClick={handleDelete}>
-                            <TrashIcon className='h-4 w-4' />
-                        </div>
+                        {monitorsCount ?
+                            (
+                                <div className="flex items-center rounded-full px-1.5 py-1.5 text-gray-300 cursor-not-allowed">
+                                    <TrashIcon className='h-4 w-4' />
+                                </div>
+                            ) : (
+                                <div className="flex items-center rounded-full px-1.5 py-1.5 hover:bg-red-200 text-gray-500 hover:text-red-600 cursor-pointer" onClick={handleDelete}>
+                                    <TrashIcon className='h-4 w-4' />
+                                </div>
+                            )
+                        }
                     </div>
                 </div>
             </div>

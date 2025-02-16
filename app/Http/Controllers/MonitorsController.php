@@ -54,7 +54,7 @@ class MonitorsController extends Controller
      */
     public function create()
     {
-        $groups = Group::all();
+        $groups = Group::orderBy('name')->get();
         return Inertia::render('Monitors/Create', [
             'groups' => $groups,
         ]);
@@ -102,7 +102,7 @@ class MonitorsController extends Controller
      */
     public function edit(Monitor $monitor)
     {
-        $groups = Group::all();
+        $groups = Group::orderBy('name')->get();
         return Inertia::render('Monitors/Edit', [
             'monitor' => $monitor,
             'groups' => $groups,

@@ -18,7 +18,7 @@ return new class extends Migration
         });
 
         Schema::table('monitors', function (Blueprint $table) {
-            $table->foreignId('group_id')->nullable()->constrained('groups')->onDelete('cascade');
+            $table->foreignId('group_id')->nullable()->constrained('groups');
         });
     }
 
