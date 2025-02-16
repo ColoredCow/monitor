@@ -35,12 +35,14 @@ class MonitorsController extends Controller
 
         $monitorWithNoGroups = Monitor::whereNull('group_id')->orderBy('name')->get();
 
-        $groups = collect($groups);
-        $groups->push([
-            'id' => null,
-            'name' => 'Ungrouped Monitors',
-            'monitors' => $monitorWithNoGroups,
-        ]);
+        if ($monitorWithNoGroups->count()) {
+            $groups = collect($groups);
+            $groups->push([
+                'id' => null,
+                'name' => 'Ungrouped Monitors',
+                'monitors' => $monitorWithNoGroups,
+            ]);
+        }
 
         return Inertia::render('Monitors/Index', [
             'groups' => $groups,
