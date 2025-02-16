@@ -27,6 +27,7 @@ class MonitorRequest extends FormRequest
             'monitorUptime' => 'required',
             'monitorDomain' => 'required',
             'uptimeCheckInterval' => 'required',
+            'monitorGroupId' => 'nullable',
         ];
     }
 }

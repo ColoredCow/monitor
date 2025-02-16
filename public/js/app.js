@@ -4079,12 +4079,14 @@ function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
 
 function Create(props) {
+  var groups = (0,_inertiajs_react__WEBPACK_IMPORTED_MODULE_2__.usePage)().props.groups;
   var _useState = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)({
       name: "",
       url: "",
       monitorUptime: true,
       monitorDomain: true,
-      uptimeCheckInterval: "2"
+      uptimeCheckInterval: "2",
+      monitorGroupId: ""
     }),
     _useState2 = _slicedToArray(_useState, 2),
     form = _useState2[0],
@@ -4207,6 +4209,28 @@ function Create(props) {
               children: "1 hour"
             })]
           })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
+          className: "mb-4",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("label", {
+            htmlFor: "monitorGroupId",
+            className: "block font-medium",
+            children: "Group"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("select", {
+            id: "monitorGroupId",
+            name: "monitorGroupId",
+            value: form.monitorGroupId,
+            className: "mt-1 p-2 border border-gray-300 rounded w-full",
+            onChange: handleChange,
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("option", {
+              value: "",
+              children: "Select Group"
+            }), groups.map(function (group, index) {
+              return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("option", {
+                value: group.id,
+                children: group.name
+              }, index);
+            })]
+          })]
         }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("div", {
           children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(_Components_Button__WEBPACK_IMPORTED_MODULE_4__["default"], {
             children: "Create"
@@ -4262,12 +4286,16 @@ function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
 
 
 function Create(props) {
-  var monitor = (0,_inertiajs_react__WEBPACK_IMPORTED_MODULE_2__.usePage)().props.monitor;
+  var _monitor$group_id;
+  var _usePage$props = (0,_inertiajs_react__WEBPACK_IMPORTED_MODULE_2__.usePage)().props,
+    monitor = _usePage$props.monitor,
+    groups = _usePage$props.groups;
   var _useState = (0,react__WEBPACK_IMPORTED_MODULE_0__.useState)({
       name: monitor.name,
       url: monitor.raw_url,
       monitorUptime: monitor.uptime_check_enabled,
       monitorDomain: monitor.domain_check_enabled,
+      monitorGroupId: (_monitor$group_id = monitor.group_id) !== null && _monitor$group_id !== void 0 ? _monitor$group_id : "",
       uptimeCheckInterval: monitor.uptime_check_interval_in_minutes
     }),
     _useState2 = _slicedToArray(_useState, 2),
@@ -4389,6 +4417,29 @@ function Create(props) {
             }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("option", {
               value: "60",
               children: "1 hour"
+            })]
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
+          className: "mb-4",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("label", {
+            htmlFor: "monitorGroupId",
+            className: "block font-medium",
+            children: "Group"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("select", {
+            id: "monitorGroupId",
+            name: "monitorGroupId",
+            value: form.monitorGroupId,
+            className: "mt-1 p-2 border border-gray-300 rounded w-full",
+            onChange: handleChange,
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("option", {
+              value: "",
+              children: "Select Group"
+            }), groups.map(function (group, index) {
+              return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("option", {
+                value: group.id,
+                selected: monitor.group_id == group.id,
+                children: group.name
+              }, index);
             })]
           })]
         }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("div", {

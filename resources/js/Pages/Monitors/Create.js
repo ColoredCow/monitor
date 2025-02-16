@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Authenticated from "@/Layouts/Authenticated";
-import { Head } from "@inertiajs/react";
+import { Head, usePage } from "@inertiajs/react";
 import PageHeader from "@/components/PageHeader";
 import Button from "@/Components/Button";
 import Label from "@/Components/Label";
@@ -9,12 +9,16 @@ import Checkbox from "@/Components/Checkbox";
 import { router } from '@inertiajs/react'
 
 export default function Create(props) {
+
+    const { groups } = usePage().props;
+
     const [form, setForm] = useState({
         name: "",
         url: "",
         monitorUptime: true,
         monitorDomain: true,
         uptimeCheckInterval: "2",
+        monitorGroupId: "",
     });
 
     const handleChange = (e) => {
@@ -90,6 +94,23 @@ export default function Create(props) {
                             <option value="20">20 minutes</option>
                             <option value="30">30 minutes</option>
                             <option value="60">1 hour</option>
+                        </select>
+                    </div>
+                    <div className="mb-4">
+                        <label htmlFor="monitorGroupId" className="block font-medium">
+                            Group
+                        </label>
+                        <select
+                            id="monitorGroupId"
+                            name="monitorGroupId"
+                            value={form.monitorGroupId}
+                            className="mt-1 p-2 border border-gray-300 rounded w-full"
+                            onChange={handleChange}
+                        >
+                            <option value="">Select Group</option>
+                            {groups.map((group, index) => (
+                                <option value={group.id} key={index}>{group.name}</option>
+                            ))}
                         </select>
                     </div>
                     <div>

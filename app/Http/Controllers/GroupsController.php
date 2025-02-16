@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\GroupRequest;
 use App\Models\Group;
-// use App\Services\DomainService;
 use Inertia\Inertia;
 
 class GroupsController extends Controller
@@ -27,7 +26,7 @@ class GroupsController extends Controller
     public function index()
     {
         return Inertia::render('Groups/Index', [
-            'groups' => Group::orderBy('name')->get(),
+            'groups' => Group::with('monitors')->orderBy('name')->get(),
         ]);
     }
 
@@ -49,7 +48,7 @@ class GroupsController extends Controller
     public function store(GroupRequest $request)
     {
         $validated = $request->validated();
-        $group = Group::create([
+        Group::create([
             'name' => $validated['name'],
         ]);
 
