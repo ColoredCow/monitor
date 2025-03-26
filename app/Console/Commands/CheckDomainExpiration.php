@@ -2,9 +2,9 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
 use App\Models\Monitor;
 use App\Services\DomainService;
+use Illuminate\Console\Command;
 
 class CheckDomainExpiration extends Command
 {
@@ -25,7 +25,7 @@ class CheckDomainExpiration extends Command
             });
         }
 
-        $this->info('Checking the expiration of ' . count($monitors) . ' monitors...');
+        $this->info('Checking the expiration of '.count($monitors).' monitors...');
 
         $hasNotifications = false;
 
@@ -37,7 +37,7 @@ class CheckDomainExpiration extends Command
             }
         }
 
-        if($hasNotifications){
+        if ($hasNotifications) {
             $this->info('Expiration dates updated and notifications sent!');
         } else {
             $this->info('No domain expiring on selected time schedule');

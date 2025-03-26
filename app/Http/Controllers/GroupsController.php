@@ -104,6 +104,7 @@ class GroupsController extends Controller
     public function destroy(Group $group)
     {
         $group->delete();
+
         return redirect()->route('groups.index');
     }
 }

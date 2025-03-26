@@ -57,6 +57,6 @@ return [
         ],  // Second warning, e.g., 7 days before expiration
         '1_day_warning' => [
             'days' => 1,
-        ],  // Final warning, e.g., 1 day before expiration  
+        ],  // Final warning, e.g., 1 day before expiration
     ],
 ];
