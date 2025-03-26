@@ -2,8 +2,8 @@
 
 namespace App\Channels;
 
-use Illuminate\Support\Arr;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\Arr;
 use NotificationChannels\Webhook\Exceptions\CouldNotSendNotification;
 use NotificationChannels\Webhook\WebhookChannel;
 
