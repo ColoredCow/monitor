@@ -2,10 +2,10 @@
 
 namespace App\Channels;
 
-use Illuminate\Support\Arr;
 use Illuminate\Notifications\Notification;
-use NotificationChannels\Webhook\WebhookChannel;
+use Illuminate\Support\Arr;
 use NotificationChannels\Webhook\Exceptions\CouldNotSendNotification;
+use NotificationChannels\Webhook\WebhookChannel;
 
 class GoogleChatChannel extends WebhookChannel
 {
@@ -13,7 +13,6 @@ class GoogleChatChannel extends WebhookChannel
      * Send the given notification.
      *
      * @param  mixed  $notifiable
-     * @param  \Illuminate\Notifications\Notification  $notification
      * @return void
      */
     public function send($notifiable, Notification $notification)

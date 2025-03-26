@@ -2,12 +2,12 @@
 
 namespace App\Services;
 
+use App\Models\Monitor;
+use App\Notifications\DomainExpirationWarning;
+use App\Notifications\Notifiable;
 use Carbon\Carbon;
 use Exception;
 use Iodev\Whois\Factory;
-use App\Models\Monitor;
-use App\Notifications\Notifiable;
-use App\Notifications\DomainExpirationWarning;
 
 class DomainService
 {
@@ -20,7 +20,7 @@ class DomainService
 
     public static function addDomainExpiration(Monitor $monitor): bool
     {
-        $domainServiceInstance = new self();
+        $domainServiceInstance = new self;
 
         $domainInfo = $domainServiceInstance->getDomainExpirationDate($monitor->url);
 
@@ -30,6 +30,7 @@ class DomainService
         if ($monitor->domain_expires_at) {
             return $domainServiceInstance->updateDomainExpiration($monitor, null);
         }
+
         return false;
     }
 
@@ -42,18 +43,18 @@ class DomainService
         }
 
         $expirationDate = Carbon::parse($domainInfo['expirationDate']);
-        if (!$monitor->domain_expires_at || !$monitor->domain_expires_at->equalTo($expirationDate)) {
+        if (! $monitor->domain_expires_at || ! $monitor->domain_expires_at->equalTo($expirationDate)) {
             $this->updateDomainExpiration($monitor, $domainInfo['expirationDate']);
         }
 
         return $this->checkAndNotifyExpiration($monitor);
     }
 
-    protected function checkAndNotifyExpiration(Monitor $monitor) : bool
+    protected function checkAndNotifyExpiration(Monitor $monitor): bool
     {
         $expirationDate = $monitor->domain_expires_at;
 
-        if(! $expirationDate){
+        if (! $expirationDate) {
             return false;
         }
 
@@ -69,7 +70,7 @@ class DomainService
             if ($daysUntilExpiration === $daysThreshold) {
                 $notifications[] = [
                     'days' => $daysThreshold,
-                    'message' => "Domain expires in $daysThreshold " . ($daysThreshold === 1 ? 'day' : 'days') . "!",
+                    'message' => "Domain expires in $daysThreshold ".($daysThreshold === 1 ? 'day' : 'days').'!',
                 ];
                 break;
             }
@@ -79,12 +80,13 @@ class DomainService
             return false;
         }
 
-        $notifiable = new Notifiable();
+        $notifiable = new Notifiable;
 
         foreach ($notifications as $notification) {
             $notificationInstance = new DomainExpirationWarning($monitor, $notification['message']);
             $notifiable->notify($notificationInstance);
         }
+
         return true;
     }
 
@@ -95,6 +97,7 @@ class DomainService
         if ($domainExpirationDate) {
             return ['expirationDate' => date('Y-m-d H:i:s', $domainExpirationDate)];
         }
+
         return [];
     }
 
@@ -151,7 +154,7 @@ class DomainService
         $tld = array_pop($hostParts); // Get the TLD
         $secondLastHostPart = array_pop($hostParts); // Get the part before the TLD
 
-        $mainDomain = $secondLastHostPart . '.' . $tld;
+        $mainDomain = $secondLastHostPart.'.'.$tld;
 
         // If there are more parts, check for valid multi-part TLDs
         if ($countHostParts > 2) {
@@ -160,7 +163,8 @@ class DomainService
                 return $mainDomain;
             } else {
                 $subdomainOrBase = array_pop($hostParts);
-                return $subdomainOrBase . '.' . $mainDomain;
+
+                return $subdomainOrBase.'.'.$mainDomain;
             }
         }
 

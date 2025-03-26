@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\MonitorRequest;
-use App\Models\Monitor;
 use App\Models\Group;
+use App\Models\Monitor;
 use App\Services\DomainService;
 use Inertia\Inertia;
 
@@ -30,8 +30,8 @@ class MonitorsController extends Controller
         $groups = Group::with(['monitors' => function ($query) {
             $query->orderBy('name');
         }])
-        ->has('monitors')
-        ->orderBy('name')->get();
+            ->has('monitors')
+            ->orderBy('name')->get();
 
         $monitorWithNoGroups = Monitor::whereNull('group_id')->orderBy('name')->get();
 
@@ -57,6 +57,7 @@ class MonitorsController extends Controller
     public function create()
     {
         $groups = Group::orderBy('name')->get();
+
         return Inertia::render('Monitors/Create', [
             'groups' => $groups,
         ]);
@@ -82,6 +83,7 @@ class MonitorsController extends Controller
         if ($monitor) {
             DomainService::addDomainExpiration($monitor);
         }
+
         return redirect()->route('monitors.index');
     }
 
@@ -105,6 +107,7 @@ class MonitorsController extends Controller
     public function edit(Monitor $monitor)
     {
         $groups = Group::orderBy('name')->get();
+
         return Inertia::render('Monitors/Edit', [
             'monitor' => $monitor,
             'groups' => $groups,
@@ -130,7 +133,7 @@ class MonitorsController extends Controller
             'group_id' => $validated['monitorGroupId'],
         ]);
 
-        if (($validated['monitorDomain'] && !$currentDomainCheck) || ($monitor->wasChanged('url'))) {
+        if (($validated['monitorDomain'] && ! $currentDomainCheck) || ($monitor->wasChanged('url'))) {
             DomainService::addDomainExpiration($monitor);
         }
 
@@ -145,6 +148,7 @@ class MonitorsController extends Controller
     public function destroy(Monitor $monitor)
     {
         $monitor->delete();
+
         return redirect()->route('monitors.index');
     }
 }

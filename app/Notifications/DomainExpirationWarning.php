@@ -3,8 +3,8 @@
 namespace App\Notifications;
 
 use App\Models\Monitor;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Bus\Queueable;
+use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use NotificationChannels\Webhook\WebhookMessage;
 
@@ -13,6 +13,7 @@ class DomainExpirationWarning extends Notification
     use Queueable;
 
     protected $monitor;
+
     protected $message;
 
     public function __construct(Monitor $monitor, string $message)
@@ -26,7 +27,7 @@ class DomainExpirationWarning extends Notification
         return config('domain-expiration.notifications.notifications.'.static::class);
     }
 
-    public function toGoogleChat(Notifiable $notifiable) : WebhookMessage
+    public function toGoogleChat(Notifiable $notifiable): WebhookMessage
     {
         return WebhookMessage::create()
             ->data([
@@ -36,11 +37,11 @@ class DomainExpirationWarning extends Notification
 
     public function toMail(Notifiable $notifiable): MailMessage
     {
-        $mailMessage = (new MailMessage())
+        $mailMessage = (new MailMessage)
             ->subject($this->monitor->name.': '.$this->message)
             ->line($this->getLocationDescription());
 
-            $mailMessage->line($this->getMessageText());
+        $mailMessage->line($this->getMessageText());
 
         return $mailMessage;
     }
@@ -62,5 +63,4 @@ class DomainExpirationWarning extends Notification
 
         return "Monitor {$configuredLocation}";
     }
-
 }
