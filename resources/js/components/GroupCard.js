@@ -11,7 +11,7 @@ export default function GroupCard ({ group }) {
         e.preventDefault();
         if (monitorsCount) return;
         if (confirm(`Are you sure you want to remove the group ${group.name}?`)) {
-            router.delete(`/groups/${group.id}`);
+            router.delete(route('groups.destroy', group.id));
         }
     }
 
@@ -26,7 +26,7 @@ export default function GroupCard ({ group }) {
                         </div>
                     </div>
                     <div className="flex items-center">
-                        <Link href={`groups/${group.id}/edit`} className="flex items-center rounded-full px-1.5 py-1.5 text-gray-500 hover:bg-purple-200 hover:text-purple-600">
+                        <Link href={route('groups.edit', group.id)} className="flex items-center rounded-full px-1.5 py-1.5 text-gray-500 hover:bg-purple-200 hover:text-purple-600">
                             <PencilIcon className='h-4 w-4' />
                         </Link>
                         {monitorsCount ?

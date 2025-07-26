@@ -23,7 +23,7 @@ export default function Create(props) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        router.post('/groups', form);
+        router.post(route('groups.store'), form);
     };
 
     return (

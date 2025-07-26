@@ -3756,7 +3756,7 @@ function Create(props) {
   };
   var handleSubmit = function handleSubmit(e) {
     e.preventDefault();
-    _inertiajs_react__WEBPACK_IMPORTED_MODULE_2__.router.post('/groups', form);
+    _inertiajs_react__WEBPACK_IMPORTED_MODULE_2__.router.post(route('groups.store'), form);
   };
   return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)(_Layouts_Authenticated__WEBPACK_IMPORTED_MODULE_1__["default"], {
     auth: props.auth,
@@ -3863,7 +3863,7 @@ function Edit(props) {
   };
   var handleSubmit = function handleSubmit(e) {
     e.preventDefault();
-    _inertiajs_react__WEBPACK_IMPORTED_MODULE_2__.router.put("/groups/".concat(group.id), form);
+    _inertiajs_react__WEBPACK_IMPORTED_MODULE_2__.router.put(route('groups.update', group.id), form);
   };
   return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)(_Layouts_Authenticated__WEBPACK_IMPORTED_MODULE_1__["default"], {
     auth: props.auth,
@@ -3943,7 +3943,7 @@ function Index(props) {
           className: "font-bold text-xl text-purple-600 leading-tight uppercase",
           children: "Groups"
         }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_inertiajs_react__WEBPACK_IMPORTED_MODULE_2__.Link, {
-          href: "groups/create",
+          href: route('groups.create'),
           children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(_Components_Button__WEBPACK_IMPORTED_MODULE_5__["default"], {
             children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_7__["default"], {
               className: "h-4 w-4 mr-1"
@@ -4114,7 +4114,7 @@ function Create(props) {
   };
   var handleSubmit = function handleSubmit(e) {
     e.preventDefault();
-    _inertiajs_react__WEBPACK_IMPORTED_MODULE_2__.router.post('/monitors', form);
+    _inertiajs_react__WEBPACK_IMPORTED_MODULE_2__.router.post(route('monitors.store'), form);
   };
   return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)(_Layouts_Authenticated__WEBPACK_IMPORTED_MODULE_1__["default"], {
     auth: props.auth,
@@ -4324,7 +4324,7 @@ function Edit(props) {
   };
   var handleSubmit = function handleSubmit(e) {
     e.preventDefault();
-    _inertiajs_react__WEBPACK_IMPORTED_MODULE_2__.router.put("/monitors/".concat(monitor.id), form);
+    _inertiajs_react__WEBPACK_IMPORTED_MODULE_2__.router.put(route('monitors.update', monitor.id), form);
   };
   return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)(_Layouts_Authenticated__WEBPACK_IMPORTED_MODULE_1__["default"], {
     auth: props.auth,
@@ -4499,7 +4499,7 @@ function Index(props) {
           className: "font-bold text-xl text-purple-600 leading-tight uppercase",
           children: "Monitors"
         }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_inertiajs_react__WEBPACK_IMPORTED_MODULE_2__.Link, {
-          href: "monitors/create",
+          href: route('monitors.create'),
           children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(_Components_Button__WEBPACK_IMPORTED_MODULE_5__["default"], {
             children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_7__["default"], {
               className: "h-4 w-4 mr-1"
@@ -5001,7 +5001,7 @@ function GroupCard(_ref) {
     e.preventDefault();
     if (monitorsCount) return;
     if (confirm("Are you sure you want to remove the group ".concat(group.name, "?"))) {
-      _inertiajs_react__WEBPACK_IMPORTED_MODULE_1__.router["delete"]("/groups/".concat(group.id));
+      _inertiajs_react__WEBPACK_IMPORTED_MODULE_1__.router["delete"](route('groups.destroy', group.id));
     }
   };
   return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
@@ -5025,7 +5025,7 @@ function GroupCard(_ref) {
         }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
           className: "flex items-center",
           children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_inertiajs_react__WEBPACK_IMPORTED_MODULE_1__.Link, {
-            href: "groups/".concat(group.id, "/edit"),
+            href: route('groups.edit', group.id),
             className: "flex items-center rounded-full px-1.5 py-1.5 text-gray-500 hover:bg-purple-200 hover:text-purple-600",
             children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_heroicons_react_24_outline__WEBPACK_IMPORTED_MODULE_3__["default"], {
               className: "h-4 w-4"
@@ -5082,7 +5082,7 @@ function MonitorCard(_ref) {
   var handleDelete = function handleDelete(e) {
     e.preventDefault();
     if (confirm("Are you sure you want to remove ".concat(monitor.name, " (").concat(monitor.raw_url, ") from monitoring?"))) {
-      _inertiajs_react__WEBPACK_IMPORTED_MODULE_4__.router["delete"]("/monitors/".concat(monitor.id));
+      _inertiajs_react__WEBPACK_IMPORTED_MODULE_4__.router["delete"](route('monitors.destroy', monitor.id));
     }
   };
   return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("div", {
@@ -5128,7 +5128,7 @@ function MonitorCard(_ref) {
         }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("div", {
           className: "flex",
           children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_inertiajs_react__WEBPACK_IMPORTED_MODULE_4__.Link, {
-            href: "monitors/".concat(monitor.id, "/edit"),
+            href: route('monitors.edit', monitor.id),
             className: "flex items-center rounded-full px-1.5 py-1.5 text-gray-500 hover:bg-purple-200 hover:text-purple-600",
             children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_heroicons_react_24_outline__WEBPACK_IMPORTED_MODULE_7__["default"], {
               className: "h-4 w-4"

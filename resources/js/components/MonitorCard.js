@@ -10,7 +10,7 @@ export default function MonitorCard ({ monitor }) {
     const handleDelete = (e) => {
         e.preventDefault();
         if (confirm(`Are you sure you want to remove ${monitor.name} (${monitor.raw_url}) from monitoring?`)) {
-            router.delete(`/monitors/${monitor.id}`);
+            router.delete(route('monitors.destroy', monitor.id));
         }
     }
 
@@ -37,7 +37,7 @@ export default function MonitorCard ({ monitor }) {
                         </div>
                     </div>
                     <div className="flex">
-                        <Link href={`monitors/${monitor.id}/edit`} className="flex items-center rounded-full px-1.5 py-1.5 text-gray-500 hover:bg-purple-200 hover:text-purple-600">
+                        <Link href={route('monitors.edit', monitor.id)} className="flex items-center rounded-full px-1.5 py-1.5 text-gray-500 hover:bg-purple-200 hover:text-purple-600">
                             <PencilIcon className='h-4 w-4' />
                         </Link>
                         <div className="flex items-center rounded-full px-1.5 py-1.5 hover:bg-red-200 text-gray-500 hover:text-red-600 cursor-pointer" onClick={handleDelete}>

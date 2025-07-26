@@ -27,7 +27,7 @@ export default function Edit(props) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        router.put(`/groups/${group.id}`, form);
+        router.put(route('groups.update', group.id), form);
     };
 
     return (
