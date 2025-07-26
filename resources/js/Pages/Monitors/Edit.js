@@ -33,7 +33,7 @@ export default function Edit(props) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        router.put(`/monitors/${monitor.id}`, form);
+        router.put(route('monitors.update', monitor.id), form);
     };
 
     return (

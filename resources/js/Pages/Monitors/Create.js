@@ -32,7 +32,7 @@ export default function Create(props) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        router.post('/monitors', form);
+        router.post(route('monitors.store'), form);
     };
 
     return (

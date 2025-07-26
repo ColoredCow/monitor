@@ -80,7 +80,7 @@ class MonitorsController extends Controller
             'group_id' => $validated['monitorGroupId'],
         ]);
 
-        if ($monitor) {
+        if ($monitor && $monitor->domain_check_enabled) {
             DomainService::addDomainExpiration($monitor);
         }
 

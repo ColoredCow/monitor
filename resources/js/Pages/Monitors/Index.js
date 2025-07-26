@@ -20,7 +20,7 @@ export default function Index(props) {
             <PageHeader>
                 <div className='flex justify-between items-center'>
                     <h2 className="font-bold text-xl text-purple-600 leading-tight uppercase">Monitors</h2>
-                    <Link href='monitors/create'>
+                    <Link href={route('monitors.create')}>
                         <Button>
                             <PlusIcon className="h-4 w-4 mr-1"/>
                             <span>Create</span>
