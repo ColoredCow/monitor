@@ -21,12 +21,12 @@ export default function Authenticated({ auth, children }) {
                             </div>
 
                             <div className="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                                <NavLink href={route('monitors.index')} active={route().current('monitors.index')}>
+                                <NavLink href={route('monitors.index')} active={route().current('monitors.*')}>
                                     Monitors
                                 </NavLink>
                             </div>
                             <div className="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                                <NavLink href={route('groups.index')} active={route().current('groups.index')}>
+                                <NavLink href={route('groups.index')} active={route().current('groups.*')}>
                                     Groups
                                 </NavLink>
                             </div>
