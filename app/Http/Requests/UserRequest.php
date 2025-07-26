@@ -15,13 +15,14 @@ class UserRequest extends FormRequest
     {
         $rules = [
             'name' => 'required|string',
-            'email' => 'required|email|unique:users,email' . ($this->user ? ',' . $this->user->id : ''),
+            'email' => 'required|email|unique:users,email'.($this->user ? ','.$this->user->id : ''),
         ];
         if ($this->isMethod('post')) {
             $rules['password'] = 'required|string|min:6';
-        } else if ($this->isMethod('put') || $this->isMethod('patch')) {
+        } elseif ($this->isMethod('put') || $this->isMethod('patch')) {
             $rules['password'] = 'nullable|string|min:6';
         }
+
         return $rules;
     }
 }

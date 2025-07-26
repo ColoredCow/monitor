@@ -33,6 +33,7 @@ class UsersController extends Controller
             'email' => $validated['email'],
             'password' => bcrypt($validated['password']),
         ]);
+
         return redirect()->route('users.index');
     }
 
@@ -52,12 +53,14 @@ class UsersController extends Controller
             // Only update password if provided
             'password' => $validated['password'] ? bcrypt($validated['password']) : $user->password,
         ]);
+
         return redirect()->route('users.index');
     }
 
     public function destroy(User $user)
     {
         $user->delete();
+
         return redirect()->route('users.index');
     }
 }
