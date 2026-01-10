@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 export default function Checkbox({ name, checked, handleChange, className }) {
     return (
@@ -6,7 +6,10 @@ export default function Checkbox({ name, checked, handleChange, className }) {
             type="checkbox"
             name={name}
             checked={checked}
-            className={`rounded border-gray-300 text-purple-600 shadow-sm focus:border-purple-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50` + className}
+            className={
+                `rounded-lg border-gray-300 text-purple-600 shadow-sm focus:ring-4 focus:ring-purple-500/10 transition-all duration-200 ` +
+                className
+            }
             onChange={handleChange}
         />
     );

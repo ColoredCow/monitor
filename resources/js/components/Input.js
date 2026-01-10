@@ -1,7 +1,7 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from "react";
 
 export default function Input({
-    type = 'text',
+    type = "text",
     name,
     value,
     className,
@@ -19,19 +19,16 @@ export default function Input({
     }, []);
 
     return (
-        <div className="flex flex-col items-start">
+        <div className="flex flex-col items-start w-full">
             <input
                 type={type}
                 name={name}
                 defaultValue={value}
-                className={
-                    `border-gray-300 focus:border-purple-300 focus:ring focus:ring-purple-200 focus:ring-opacity-50 rounded-md shadow-sm w-full ` +
-                    className
-                }
+                className={`premium-input py-2.5 px-4 text-sm ` + className}
                 ref={input}
                 autoComplete={autoComplete}
                 required={required}
-                onChange={(e) => handleChange ? handleChange(e) : {}}
+                onChange={(e) => (handleChange ? handleChange(e) : {})}
             />
         </div>
     );

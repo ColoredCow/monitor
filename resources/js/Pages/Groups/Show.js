@@ -2,9 +2,9 @@ import React from 'react';
 import Authenticated from '@/Layouts/Authenticated';
 import { usePage, Head } from '@inertiajs/react';
 import { ArrowTopRightOnSquareIcon } from '@heroicons/react/24/solid';
-import MonitorUptimeIcon from '@/components/MonitorUptimeIcon';
-import MonitorCheckIntervalIcon from '@/components/MonitorCheckIntervalIcon';
-import PageHeader from '@/components/PageHeader';
+import MonitorUptimeIcon from '@/Components/MonitorUptimeIcon';
+import MonitorCheckIntervalIcon from '@/Components/MonitorCheckIntervalIcon';
+import PageHeader from '@/Components/PageHeader';
 
 export default function Show(props) {
 

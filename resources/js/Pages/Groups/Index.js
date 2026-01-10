@@ -1,8 +1,8 @@
 import React from 'react';
 import Authenticated from '@/Layouts/Authenticated';
 import { Head, Link, usePage } from '@inertiajs/react';
-import GroupCard from '@/components/GroupCard';
-import PageHeader from '@/components/PageHeader';
+import GroupCard from '@/Components/GroupCard';
+import PageHeader from '@/Components/PageHeader';
 import Button from '@/Components/Button';
 import { PlusIcon } from '@heroicons/react/24/solid';
 

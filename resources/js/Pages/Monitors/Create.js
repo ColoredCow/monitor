@@ -1,15 +1,14 @@
 import React, { useState } from "react";
 import Authenticated from "@/Layouts/Authenticated";
-import { Head, usePage } from "@inertiajs/react";
-import PageHeader from "@/components/PageHeader";
-import Button from "@/Components/Button";
+import { Head, usePage, router } from "@inertiajs/react";
+import Select from "@/Components/Select";
+import PageHeader from "@/Components/PageHeader";
 import Label from "@/Components/Label";
 import Input from "@/Components/Input";
 import Checkbox from "@/Components/Checkbox";
-import { router } from '@inertiajs/react'
+import Button from "@/Components/Button";
 
 export default function Create(props) {
-
     const { groups } = usePage().props;
 
     const [form, setForm] = useState({
@@ -23,7 +22,6 @@ export default function Create(props) {
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
-        console.log({ name, value, type, checked });
         setForm((prevState) => ({
             ...prevState,
             [name]: type === "checkbox" ? checked : value,
@@ -32,7 +30,7 @@ export default function Create(props) {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        router.post(route('monitors.store'), form);
+        router.post(route("monitors.store"), form);
     };
 
     return (
@@ -40,83 +38,127 @@ export default function Create(props) {
             <Head title="Create Monitor" />
 
             <PageHeader>
-                <h2 className="font-bold text-xl text-purple-600 leading-tight uppercase">
-                    Create Monitor
-                </h2>
+                <div className="flex items-center justify-between">
+                    <div>
+                        <h2 className="font-bold text-3xl text-gray-900 leading-tight">
+                            Create Monitor
+                        </h2>
+                        <p className="text-gray-500 font-medium mt-1">
+                            Configure a new endpoint to monitor
+                        </p>
+                    </div>
+                </div>
             </PageHeader>
 
-            <div className="mx-auto py-12 w-1/2">
-                <form onSubmit={handleSubmit}>
-                    <div className="mb-4">
-                        <Label forInput="name">Name of Monitor</Label>
-                        <Input name="name" value={form.name} required handleChange={handleChange} />
+            <div className="max-w-3xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+                <div className="glass premium-shadow rounded-3xl overflow-hidden border border-white/40">
+                    <div className="p-8 sm:p-10">
+                        <form onSubmit={handleSubmit} className="space-y-8">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="md:col-span-2">
+                                    <Label
+                                        forInput="name"
+                                        value="Name of Monitor"
+                                    />
+                                    <Input
+                                        name="name"
+                                        value={form.name}
+                                        required
+                                        handleChange={handleChange}
+                                        placeholder="e.g. Production API"
+                                    />
+                                </div>
+
+                                <div className="md:col-span-2">
+                                    <Label forInput="url" value="Target URL" />
+                                    <Input
+                                        name="url"
+                                        type="url"
+                                        value={form.url}
+                                        required
+                                        handleChange={handleChange}
+                                        placeholder="https://example.com"
+                                    />
+                                    <p className="mt-2 text-xs text-gray-400 font-medium ml-1">
+                                        Must include protocol (http:// or
+                                        https://)
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <Label
+                                        forInput="uptimeCheckInterval"
+                                        value="Check Interval"
+                                    />
+                                    <Select
+                                        name="uptimeCheckInterval"
+                                        value={form.uptimeCheckInterval}
+                                        handleChange={handleChange}
+                                    >
+                                        <option value="1">Every Minute</option>
+                                        <option value="2">2 Minutes</option>
+                                        <option value="5">5 Minutes</option>
+                                        <option value="10">10 Minutes</option>
+                                        <option value="20">20 Minutes</option>
+                                        <option value="30">30 Minutes</option>
+                                        <option value="60">1 Hour</option>
+                                    </Select>
+                                </div>
+
+                                <div>
+                                    <Label
+                                        forInput="monitorGroupId"
+                                        value="Assign to Group"
+                                    />
+                                    <Select
+                                        name="monitorGroupId"
+                                        value={form.monitorGroupId}
+                                        handleChange={handleChange}
+                                    >
+                                        <option value="">No Group</option>
+                                        {groups.map((group, index) => (
+                                            <option
+                                                value={group.id}
+                                                key={index}
+                                            >
+                                                {group.name}
+                                            </option>
+                                        ))}
+                                    </Select>
+                                </div>
+                            </div>
+
+                            <div className="pt-4 border-t border-gray-100 flex flex-wrap gap-6">
+                                <label className="flex items-center cursor-pointer group">
+                                    <Checkbox
+                                        name="monitorUptime"
+                                        checked={form.monitorUptime}
+                                        handleChange={handleChange}
+                                    />
+                                    <span className="ml-3 text-sm font-semibold text-gray-700 group-hover:text-purple-600 transition-colors">
+                                        Monitor Uptime
+                                    </span>
+                                </label>
+                                <label className="flex items-center cursor-pointer group">
+                                    <Checkbox
+                                        name="monitorDomain"
+                                        checked={form.monitorDomain}
+                                        handleChange={handleChange}
+                                    />
+                                    <span className="ml-3 text-sm font-semibold text-gray-700 group-hover:text-purple-600 transition-colors">
+                                        Monitor Domain
+                                    </span>
+                                </label>
+                            </div>
+
+                            <div className="pt-6">
+                                <Button className="w-full sm:w-auto h-12">
+                                    Create Monitor
+                                </Button>
+                            </div>
+                        </form>
                     </div>
-                    <div className="mb-4">
-                        <Label forInput="url">URL</Label>
-                        <Input name="url" type="url" value={form.url} required handleChange={handleChange} />
-                        <small className="text-gray-500">
-                            Example: https://coloredcow.com
-                        </small>
-                    </div>
-                    <div className="mb-4">
-                        <label className="inline-flex items-center">
-                            <Checkbox
-                                name="monitorUptime"
-                                checked={form.monitorUptime}
-                                handleChange={handleChange}
-                            />
-                            <span className="ml-2">Monitor Uptime</span>
-                        </label>
-                        <label className="inline-flex items-center ml-4">
-                            <Checkbox
-                                name="monitorDomain"
-                                checked={form.monitorDomain}
-                                handleChange={handleChange}
-                            />
-                            <span className="ml-2">Monitor Domain</span>
-                        </label>
-                    </div>
-                    <div className="mb-4">
-                        <label htmlFor="uptimeCheckInterval" className="block font-medium">
-                            Uptime Check Interval
-                        </label>
-                        <select
-                            id="uptimeCheckInterval"
-                            name="uptimeCheckInterval"
-                            value={form.uptimeCheckInterval}
-                            className="mt-1 p-2 border border-gray-300 rounded w-full"
-                            onChange={handleChange}
-                        >
-                            <option value="1">1 minute</option>
-                            <option value="2">2 minutes</option>
-                            <option value="5">5 minutes</option>
-                            <option value="10">10 minutes</option>
-                            <option value="20">20 minutes</option>
-                            <option value="30">30 minutes</option>
-                            <option value="60">1 hour</option>
-                        </select>
-                    </div>
-                    <div className="mb-4">
-                        <label htmlFor="monitorGroupId" className="block font-medium">
-                            Group
-                        </label>
-                        <select
-                            id="monitorGroupId"
-                            name="monitorGroupId"
-                            value={form.monitorGroupId}
-                            className="mt-1 p-2 border border-gray-300 rounded w-full"
-                            onChange={handleChange}
-                        >
-                            <option value="">Select Group</option>
-                            {groups.map((group, index) => (
-                                <option value={group.id} key={index}>{group.name}</option>
-                            ))}
-                        </select>
-                    </div>
-                    <div>
-                        <Button>Create</Button>
-                    </div>
-                </form>
+                </div>
             </div>
         </Authenticated>
     );

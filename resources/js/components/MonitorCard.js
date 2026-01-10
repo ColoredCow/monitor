@@ -1,49 +1,68 @@
-import React from 'react';
-import MonitorUptimeIcon from './MonitorUptimeIcon';
-import MonitorDomainIcon from './MonitorDomainIcon';
-import MonitorCheckIntervalIcon from './MonitorCheckIntervalIcon';
-import { Link, router } from '@inertiajs/react';
-import { ArrowTopRightOnSquareIcon, PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
+import React from "react";
+import MonitorUptimeIcon from "./MonitorUptimeIcon";
+import MonitorDomainIcon from "./MonitorDomainIcon";
+import MonitorCheckIntervalIcon from "./MonitorCheckIntervalIcon";
+import { Link, router } from "@inertiajs/react";
+import {
+    ArrowTopRightOnSquareIcon,
+    PencilIcon,
+    TrashIcon,
+} from "@heroicons/react/24/outline";
 
-export default function MonitorCard ({ monitor }) {
-
+export default function MonitorCard({ monitor }) {
     const handleDelete = (e) => {
         e.preventDefault();
-        if (confirm(`Are you sure you want to remove ${monitor.name} (${monitor.raw_url}) from monitoring?`)) {
-            router.delete(route('monitors.destroy', monitor.id));
+        if (
+            confirm(
+                `Are you sure you want to remove ${monitor.name} (${monitor.raw_url}) from monitoring?`
+            )
+        ) {
+            router.delete(route("monitors.destroy", monitor.id));
         }
-    }
+    };
 
     return (
-        <div className="w-full md:w-1/2 lg:w-1/3">
-            <div className="p-5 bg-white overflow-hidden shadow-sm rounded-lg mb-3 mx-3">
-                <div className="flex items-center">{monitor.name}</div>
-                <div className="flex items-center mb-2 text-sm">
-                    <span className="text-gray-500">{monitor.raw_url}</span>
-                    <a className='ml-1 text-gray-400' href={monitor.raw_url} target='_blank'>
-                        <ArrowTopRightOnSquareIcon className='h-3.5 w-3.5' />
-                    </a>
-                </div>
-                <div className="flex justify-between">
-                    <div className="flex">
-                        <div className="flex items-center">
-                            <MonitorUptimeIcon monitor={monitor} />
-                        </div>
-                        <div className="flex items-center ml-2">
-                            <MonitorCheckIntervalIcon monitor={monitor} />
-                        </div>
-                        <div className="flex items-center ml-2">
-                            <MonitorDomainIcon monitor={monitor} />
+        <div className="w-full md:w-1/2 lg:w-1/3 p-4">
+            <div className="glass premium-shadow rounded-3xl p-6 border border-white/40 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl">
+                <div className="flex justify-between items-start mb-4">
+                    <div>
+                        <h3 className="font-bold text-lg text-gray-900 leading-tight">
+                            {monitor.name}
+                        </h3>
+                        <div className="flex items-center mt-1 text-sm">
+                            <span className="text-gray-500 font-medium truncate max-w-[150px]">
+                                {monitor.raw_url}
+                            </span>
+                            <a
+                                className="ml-2 text-purple-400 hover:text-purple-600 transition-colors"
+                                href={monitor.raw_url}
+                                target="_blank"
+                                rel="noreferrer"
+                            >
+                                <ArrowTopRightOnSquareIcon className="h-4 w-4" />
+                            </a>
                         </div>
                     </div>
-                    <div className="flex">
-                        <Link href={route('monitors.edit', monitor.id)} className="flex items-center rounded-full px-1.5 py-1.5 text-gray-500 hover:bg-purple-200 hover:text-purple-600">
-                            <PencilIcon className='h-4 w-4' />
+                    <div className="flex space-x-1">
+                        <Link
+                            href={route("monitors.edit", monitor.id)}
+                            className="p-2 rounded-xl text-gray-400 hover:bg-purple-100 hover:text-purple-600 transition-all"
+                        >
+                            <PencilIcon className="h-4.5 w-4.5" />
                         </Link>
-                        <div className="flex items-center rounded-full px-1.5 py-1.5 hover:bg-red-200 text-gray-500 hover:text-red-600 cursor-pointer" onClick={handleDelete}>
-                            <TrashIcon className='h-4 w-4' />
-                        </div>
+                        <button
+                            onClick={handleDelete}
+                            className="p-2 rounded-xl text-gray-400 hover:bg-red-100 hover:text-red-600 transition-all"
+                        >
+                            <TrashIcon className="h-4.5 w-4.5" />
+                        </button>
                     </div>
+                </div>
+
+                <div className="flex items-center space-x-3 pt-4 border-t border-gray-100/50">
+                    <MonitorUptimeIcon monitor={monitor} />
+                    <MonitorCheckIntervalIcon monitor={monitor} />
+                    <MonitorDomainIcon monitor={monitor} />
                 </div>
             </div>
         </div>
