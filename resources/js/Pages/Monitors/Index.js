@@ -19,21 +19,24 @@ export default function Index(props) {
 
             <PageHeader>
                 <div className='flex justify-between items-center'>
-                    <h2 className="font-bold text-xl text-purple-600 leading-tight uppercase">Monitors</h2>
+                    <div>
+                        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Monitors</h1>
+                        <p className="text-sm text-gray-500 mt-1">Manage and monitor your endpoints</p>
+                    </div>
                     <Link href={route('monitors.create')}>
                         <Button>
-                            <PlusIcon className="h-4 w-4 mr-1"/>
+                            <PlusIcon className="h-4 w-4"/>
                             <span>Create</span>
                         </Button>
                     </Link>
                 </div>
             </PageHeader>
 
-            <div className="py-12">
+            <div className="max-w-7xl mx-auto py-8 px-6 lg:px-8">
                 {groups.map((group, groupIndex) => (
-                    <div className="flex flex-col max-w-7xl mx-auto sm:px-6 lg:px-8 mb-6" key={groupIndex}>
-                        <h3 className="pl-3 mb-3 text-xl">{group.name}</h3>
-                        <div className="flex flex-wrap">
+                    <div className="mb-10 last:mb-0" key={groupIndex}>
+                        <h2 className="text-lg font-semibold text-gray-900 mb-4 px-1">{group.name}</h2>
+                        <div className="flex flex-wrap -mx-3">
                             {group.monitors.map((monitor, monitorIndex) => (
                                 <MonitorCard monitor={monitor} key={monitorIndex} />
                             ))}

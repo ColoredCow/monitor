@@ -1182,15 +1182,25 @@ __webpack_require__.r(__webpack_exports__);
 function Badge(_ref) {
   var text = _ref.text,
     _ref$icon = _ref.icon,
-    icon = _ref$icon === void 0 ? '' : _ref$icon,
+    icon = _ref$icon === void 0 ? null : _ref$icon,
     _ref$color = _ref.color,
     color = _ref$color === void 0 ? 'gray' : _ref$color;
-  var bgClass = "bg-".concat(color, "-200");
-  var textClass = "text-".concat(color, "-500");
+  var colorMap = {
+    green: 'bg-green-50 text-green-700 border-green-200',
+    red: 'bg-red-50 text-red-700 border-red-200',
+    blue: 'bg-blue-50 text-blue-700 border-blue-200',
+    purple: 'bg-purple-50 text-purple-700 border-purple-200',
+    yellow: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+    pink: 'bg-pink-50 text-pink-700 border-pink-200',
+    gray: 'bg-gray-50 text-gray-700 border-gray-200'
+  };
+  var colorClasses = colorMap[color] || colorMap.gray;
   return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("span", {
-    className: "py-0.5 pl-1 pr-2 rounded-full shadow flex items-center ".concat(bgClass),
-    children: [icon, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("span", {
-      className: "font-bold text-xs ".concat(textClass),
+    className: "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-medium ".concat(colorClasses),
+    children: [icon && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("span", {
+      className: "flex-shrink-0 flex items-center",
+      children: icon
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("span", {
       children: text
     })]
   });
@@ -1223,7 +1233,7 @@ function Button(_ref) {
     children = _ref.children;
   return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("button", {
     type: type,
-    className: "premium-button inline-flex items-center px-6 py-2.5 bg-linear-to-r from-purple-600 to-indigo-600 border border-transparent rounded-xl font-bold text-xs text-white uppercase tracking-widest hover:from-purple-500 hover:to-indigo-500 active:scale-95 transition-all duration-200 ".concat(processing && "opacity-50 cursor-not-allowed", " ") + className,
+    className: "inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 border border-transparent rounded-lg font-semibold text-sm text-white shadow-sm hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 active:scale-[0.98] transition-all duration-200 ".concat(processing && "opacity-50 cursor-not-allowed", " ").concat(className),
     disabled: processing,
     children: children
   });
@@ -1251,12 +1261,13 @@ function Checkbox(_ref) {
   var name = _ref.name,
     checked = _ref.checked,
     handleChange = _ref.handleChange,
-    className = _ref.className;
+    _ref$className = _ref.className,
+    className = _ref$className === void 0 ? "" : _ref$className;
   return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("input", {
     type: "checkbox",
     name: name,
     checked: checked,
-    className: "rounded-lg border-gray-300 text-purple-600 shadow-sm focus:ring-4 focus:ring-purple-500/10 transition-all duration-200 " + className,
+    className: "w-4 h-4 rounded border-gray-300 text-purple-600 shadow-sm focus:ring-2 focus:ring-purple-500 focus:ring-offset-0 cursor-pointer transition-all duration-200 ".concat(className),
     onChange: handleChange
   });
 }
@@ -1337,7 +1348,7 @@ var Content = function Content(_ref3) {
     _ref3$width = _ref3.width,
     width = _ref3$width === void 0 ? '48' : _ref3$width,
     _ref3$contentClasses = _ref3.contentClasses,
-    contentClasses = _ref3$contentClasses === void 0 ? 'py-1 bg-white' : _ref3$contentClasses,
+    contentClasses = _ref3$contentClasses === void 0 ? '' : _ref3$contentClasses,
     children = _ref3.children;
   var _useContext2 = (0,react__WEBPACK_IMPORTED_MODULE_0__.useContext)(DropDownContext),
     open = _useContext2.open,
@@ -1355,19 +1366,19 @@ var Content = function Content(_ref3) {
   return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.Fragment, {
     children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_headlessui_react__WEBPACK_IMPORTED_MODULE_3__.Transition, {
       show: open,
-      enter: "transition ease-out duration-200",
+      enter: "transition ease-out duration-150",
       enterFrom: "transform opacity-0 scale-95",
       enterTo: "transform opacity-100 scale-100",
-      leave: "transition ease-in duration-75",
+      leave: "transition ease-in duration-100",
       leaveFrom: "transform opacity-100 scale-100",
       leaveTo: "transform opacity-0 scale-95",
       children: open && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
-        className: "absolute z-50 mt-2 rounded-md shadow-lg ".concat(alignmentClasses, " ").concat(widthClasses),
+        className: "absolute z-50 mt-1.5 ".concat(alignmentClasses, " ").concat(widthClasses),
         onClick: function onClick() {
           return setOpen(false);
         },
         children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
-          className: "rounded-md ring-1 ring-black ring-opacity-5 " + contentClasses,
+          className: "rounded-lg bg-white shadow-lg border border-gray-200 py-1 ".concat(contentClasses),
           children: children
         })
       })
@@ -1385,7 +1396,7 @@ var DropdownLink = function DropdownLink(_ref4) {
     href: href,
     method: method,
     as: as,
-    className: "block w-full px-4 py-2 text-left text-sm leading-5 text-gray-700 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 transition duration-150 ease-in-out",
+    className: "block w-full px-4 py-2.5 text-left text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-gray-900 focus:outline-none focus:bg-gray-50 transition-colors duration-150 first:rounded-t-lg last:rounded-b-lg",
     children: children
   });
 };
@@ -1430,42 +1441,42 @@ function GroupCard(_ref) {
     }
   };
   return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
-    className: "w-full md:w-1/2 lg:w-1/3 p-4",
+    className: "w-full md:w-1/2 lg:w-1/3 px-3 mb-6",
     children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
-      className: "glass premium-shadow rounded-3xl p-6 border border-white/40 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl",
+      className: "bg-white rounded-xl p-5 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 h-full flex flex-col",
       children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
-        className: "flex justify-between items-start mb-2",
+        className: "flex justify-between items-start mb-4",
         children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
-          className: "flex flex-col",
+          className: "flex-1 min-w-0",
           children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("h3", {
-            className: "font-bold text-lg text-gray-900 leading-tight",
+            className: "font-semibold text-base text-gray-900 leading-tight mb-2",
             children: group.name
           }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
-            className: "flex items-center mt-2",
+            className: "flex items-center",
             children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("span", {
-              className: "px-3 py-1 bg-purple-50 text-purple-600 text-xs font-bold rounded-lg uppercase tracking-wider",
+              className: "inline-flex items-center px-2.5 py-1 bg-purple-50 text-purple-700 text-xs font-medium rounded-lg border border-purple-200",
               children: monitorsCountText
             })
           })]
         }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
-          className: "flex space-x-1",
+          className: "flex gap-1 ml-3 flex-shrink-0",
           children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_inertiajs_react__WEBPACK_IMPORTED_MODULE_1__.Link, {
             href: route("groups.edit", group.id),
-            className: "p-2 rounded-xl text-gray-400 hover:bg-purple-100 hover:text-purple-600 transition-all",
+            className: "p-2 rounded-lg text-gray-400 hover:bg-purple-50 hover:text-purple-600 transition-colors",
             children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_heroicons_react_24_outline__WEBPACK_IMPORTED_MODULE_3__["default"], {
-              className: "h-4.5 w-4.5"
+              className: "h-4 w-4"
             })
           }), monitorsCount ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
-            className: "p-2 rounded-xl text-gray-200 cursor-not-allowed",
+            className: "p-2 rounded-lg text-gray-300 cursor-not-allowed",
             title: "Group has monitors",
             children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_heroicons_react_24_outline__WEBPACK_IMPORTED_MODULE_4__["default"], {
-              className: "h-4.5 w-4.5"
+              className: "h-4 w-4"
             })
           }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("button", {
             onClick: handleDelete,
-            className: "p-2 rounded-xl text-gray-400 hover:bg-red-100 hover:text-red-600 transition-all",
+            className: "p-2 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600 transition-colors",
             children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_heroicons_react_24_outline__WEBPACK_IMPORTED_MODULE_4__["default"], {
-              className: "h-4.5 w-4.5"
+              className: "h-4 w-4"
             })
           })]
         })]
@@ -1490,6 +1501,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react/jsx-runtime */ "./node_modules/react/jsx-runtime.js");
+function _typeof(o) { "@babel/helpers - typeof"; return _typeof = "function" == typeof Symbol && "symbol" == typeof Symbol.iterator ? function (o) { return typeof o; } : function (o) { return o && "function" == typeof Symbol && o.constructor === Symbol && o !== Symbol.prototype ? "symbol" : typeof o; }, _typeof(o); }
+function ownKeys(e, r) { var t = Object.keys(e); if (Object.getOwnPropertySymbols) { var o = Object.getOwnPropertySymbols(e); r && (o = o.filter(function (r) { return Object.getOwnPropertyDescriptor(e, r).enumerable; })), t.push.apply(t, o); } return t; }
+function _objectSpread(e) { for (var r = 1; r < arguments.length; r++) { var t = null != arguments[r] ? arguments[r] : {}; r % 2 ? ownKeys(Object(t), !0).forEach(function (r) { _defineProperty(e, r, t[r]); }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) { Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r)); }); } return e; }
+function _defineProperty(obj, key, value) { key = _toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == _typeof(i) ? i : i + ""; }
+function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != _typeof(i)) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
 
 
 function Input(_ref) {
@@ -1497,32 +1514,43 @@ function Input(_ref) {
     type = _ref$type === void 0 ? "text" : _ref$type,
     name = _ref.name,
     value = _ref.value,
-    className = _ref.className,
+    _ref$className = _ref.className,
+    className = _ref$className === void 0 ? "" : _ref$className,
     autoComplete = _ref.autoComplete,
     required = _ref.required,
     isFocused = _ref.isFocused,
+    placeholder = _ref.placeholder,
     _ref$handleChange = _ref.handleChange,
     handleChange = _ref$handleChange === void 0 ? function () {} : _ref$handleChange;
   var input = (0,react__WEBPACK_IMPORTED_MODULE_0__.useRef)();
   (0,react__WEBPACK_IMPORTED_MODULE_0__.useEffect)(function () {
     if (isFocused) {
-      input.current.focus();
+      var _input$current;
+      (_input$current = input.current) === null || _input$current === void 0 || _input$current.focus();
     }
-  }, []);
+  }, [isFocused]);
+  var inputProps = {
+    type: type,
+    name: name,
+    placeholder: placeholder,
+    className: "w-full px-4 py-2.5 text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-lg shadow-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 ".concat(className),
+    ref: input,
+    autoComplete: autoComplete,
+    required: required,
+    onChange: function onChange(e) {
+      return handleChange ? handleChange(e) : {};
+    }
+  };
+
+  // Use controlled or uncontrolled input based on whether value is provided
+  if (value !== undefined && value !== null) {
+    inputProps.value = value;
+  } else {
+    inputProps.defaultValue = value;
+  }
   return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("div", {
-    className: "flex flex-col items-start w-full",
-    children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("input", {
-      type: type,
-      name: name,
-      defaultValue: value,
-      className: "premium-input py-2.5 px-4 text-sm " + className,
-      ref: input,
-      autoComplete: autoComplete,
-      required: required,
-      onChange: function onChange(e) {
-        return handleChange ? handleChange(e) : {};
-      }
-    })
+    className: "w-full",
+    children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("input", _objectSpread({}, inputProps))
   });
 }
 
@@ -1546,12 +1574,13 @@ __webpack_require__.r(__webpack_exports__);
 
 function Label(_ref) {
   var forInput = _ref.forInput,
-    className = _ref.className,
+    _ref$className = _ref.className,
+    className = _ref$className === void 0 ? "" : _ref$className,
     children = _ref.children,
     value = _ref.value;
   return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("label", {
     htmlFor: forInput,
-    className: "block font-semibold text-xs text-gray-700 ml-1 mb-1.5 " + className,
+    className: "block text-sm font-semibold text-gray-700 mb-2 ".concat(className),
     children: value ? value : children
   });
 }
@@ -1595,22 +1624,23 @@ function MonitorCard(_ref) {
     }
   };
   return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("div", {
-    className: "w-full md:w-1/2 lg:w-1/3 p-4",
+    className: "w-full md:w-1/2 lg:w-1/3 px-3 mb-6",
     children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("div", {
-      className: "glass premium-shadow rounded-3xl p-6 border border-white/40 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl",
+      className: "bg-white rounded-xl p-5 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 h-full flex flex-col",
       children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("div", {
         className: "flex justify-between items-start mb-4",
         children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("div", {
+          className: "flex-1 min-w-0",
           children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("h3", {
-            className: "font-bold text-lg text-gray-900 leading-tight",
+            className: "font-semibold text-base text-gray-900 leading-tight mb-1.5 truncate",
             children: monitor.name
           }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("div", {
-            className: "flex items-center mt-1 text-sm",
+            className: "flex items-center gap-2",
             children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("span", {
-              className: "text-gray-500 font-medium truncate max-w-[150px]",
+              className: "text-sm text-gray-500 truncate flex-1 min-w-0",
               children: monitor.raw_url
             }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("a", {
-              className: "ml-2 text-purple-400 hover:text-purple-600 transition-colors",
+              className: "flex-shrink-0 text-gray-400 hover:text-purple-600 transition-colors p-1 rounded hover:bg-purple-50",
               href: monitor.raw_url,
               target: "_blank",
               rel: "noreferrer",
@@ -1620,23 +1650,23 @@ function MonitorCard(_ref) {
             })]
           })]
         }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("div", {
-          className: "flex space-x-1",
+          className: "flex gap-1 ml-3 flex-shrink-0",
           children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_inertiajs_react__WEBPACK_IMPORTED_MODULE_4__.Link, {
             href: route("monitors.edit", monitor.id),
-            className: "p-2 rounded-xl text-gray-400 hover:bg-purple-100 hover:text-purple-600 transition-all",
+            className: "p-2 rounded-lg text-gray-400 hover:bg-purple-50 hover:text-purple-600 transition-colors",
             children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_heroicons_react_24_outline__WEBPACK_IMPORTED_MODULE_7__["default"], {
-              className: "h-4.5 w-4.5"
+              className: "h-4 w-4"
             })
           }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("button", {
             onClick: handleDelete,
-            className: "p-2 rounded-xl text-gray-400 hover:bg-red-100 hover:text-red-600 transition-all",
+            className: "p-2 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600 transition-colors",
             children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_heroicons_react_24_outline__WEBPACK_IMPORTED_MODULE_8__["default"], {
-              className: "h-4.5 w-4.5"
+              className: "h-4 w-4"
             })
           })]
         })]
       }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("div", {
-        className: "flex items-center space-x-3 pt-4 border-t border-gray-100/50",
+        className: "flex items-center gap-2.5 pt-4 mt-auto border-t border-gray-100 flex-wrap",
         children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_MonitorUptimeIcon__WEBPACK_IMPORTED_MODULE_1__["default"], {
           monitor: monitor
         }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_MonitorCheckIntervalIcon__WEBPACK_IMPORTED_MODULE_3__["default"], {
@@ -1676,9 +1706,10 @@ function MonitorCheckIntervalIcon(_ref) {
   if (monitor.uptime_check_interval_in_minutes) {
     return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_Badge__WEBPACK_IMPORTED_MODULE_1__["default"], {
       icon: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_heroicons_react_24_outline__WEBPACK_IMPORTED_MODULE_3__["default"], {
-        className: "h-5 w-5 mr-1 text-gray-500"
+        className: "h-4 w-4 text-gray-600"
       }),
-      text: "".concat(monitor.uptime_check_interval_in_minutes, "m")
+      text: "".concat(monitor.uptime_check_interval_in_minutes, "m"),
+      color: "gray"
     });
   }
   return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.Fragment, {});
@@ -1717,7 +1748,7 @@ function MonitorDomainIcon(_ref) {
   if (!monitor.domain_expires_at) {
     badgeProps = {
       icon: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_3__["default"], {
-        className: "h-5 w-5 mr-1 text-red-500"
+        className: "h-4 w-4 text-red-600"
       }),
       text: 'No Data',
       color: 'red'
@@ -1729,7 +1760,7 @@ function MonitorDomainIcon(_ref) {
       case daysLeft > 100:
         badgeProps = {
           icon: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_4__["default"], {
-            className: "h-5 w-5 mr-1 text-green-500"
+            className: "h-4 w-4 text-green-600"
           }),
           text: '100+ days left',
           color: 'green'
@@ -1738,7 +1769,7 @@ function MonitorDomainIcon(_ref) {
       case daysLeft <= 100 && daysLeft > 30:
         badgeProps = {
           icon: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_4__["default"], {
-            className: "h-5 w-5 mr-1 text-blue-500"
+            className: "h-4 w-4 text-blue-600"
           }),
           text: "".concat(daysLeft, " days left"),
           color: 'blue'
@@ -1747,7 +1778,7 @@ function MonitorDomainIcon(_ref) {
       case daysLeft <= 30 && daysLeft > 7:
         badgeProps = {
           icon: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_4__["default"], {
-            className: "h-5 w-5 mr-1 text-purple-500"
+            className: "h-4 w-4 text-purple-600"
           }),
           text: "".concat(daysLeft, " days left"),
           color: 'purple'
@@ -1756,7 +1787,7 @@ function MonitorDomainIcon(_ref) {
       case daysLeft <= 7 && daysLeft > 1:
         badgeProps = {
           icon: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_4__["default"], {
-            className: "h-5 w-5 mr-1 text-yellow-500"
+            className: "h-4 w-4 text-yellow-600"
           }),
           text: "".concat(daysLeft, " days left"),
           color: 'yellow'
@@ -1765,7 +1796,7 @@ function MonitorDomainIcon(_ref) {
       case daysLeft === 1:
         badgeProps = {
           icon: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_4__["default"], {
-            className: "h-5 w-5 mr-1 text-pink-500"
+            className: "h-4 w-4 text-pink-600"
           }),
           text: "".concat(daysLeft, " day left"),
           color: 'pink'
@@ -1774,7 +1805,7 @@ function MonitorDomainIcon(_ref) {
       case daysLeft <= 0:
         badgeProps = {
           icon: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_4__["default"], {
-            className: "h-5 w-5 mr-1 text-red-500"
+            className: "h-4 w-4 text-red-600"
           }),
           text: 'Domain Expired',
           color: 'red'
@@ -1820,7 +1851,7 @@ function MonitorUptimeIcon(_ref) {
   if (monitor.uptime_status == 'up') {
     return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_Badge__WEBPACK_IMPORTED_MODULE_1__["default"], {
       icon: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_3__["default"], {
-        className: "h-5 w-5 mr-1 text-green-500"
+        className: "h-4 w-4 text-green-600"
       }),
       text: "UP",
       color: "green"
@@ -1829,7 +1860,7 @@ function MonitorUptimeIcon(_ref) {
   if (monitor.uptime_status == 'down') {
     return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_Badge__WEBPACK_IMPORTED_MODULE_1__["default"], {
       icon: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_4__["default"], {
-        className: "h-5 w-5 mr-1 text-red-500"
+        className: "h-4 w-4 text-red-600"
       }),
       text: "DOWN",
       color: "red"
@@ -1838,7 +1869,7 @@ function MonitorUptimeIcon(_ref) {
   if (monitor.uptime_status == 'not yet checked') {
     return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_Badge__WEBPACK_IMPORTED_MODULE_1__["default"], {
       icon: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_5__["default"], {
-        className: "h-5 w-5 mr-1 text-blue-500"
+        className: "h-4 w-4 text-blue-600"
       }),
       text: "PENDING",
       color: "blue"
@@ -1873,7 +1904,7 @@ function NavLink(_ref) {
     children = _ref.children;
   return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_inertiajs_react__WEBPACK_IMPORTED_MODULE_1__.Link, {
     href: href,
-    className: active ? 'inline-flex items-center px-1 pt-1 border-b-2 border-purple-400 text-sm font-medium leading-5 text-gray-900 focus:outline-none focus:border-purple-700 transition duration-150 ease-in-out' : 'inline-flex items-center px-1 pt-1 border-b-2 border-transparent text-sm font-medium leading-5 text-gray-500 hover:text-gray-700 hover:border-gray-300 focus:outline-none focus:text-gray-700 focus:border-gray-300 transition duration-150 ease-in-out',
+    className: active ? 'inline-flex items-center px-3 py-2 border-b-2 border-purple-600 text-sm font-semibold text-gray-900 focus:outline-none transition-colors duration-150' : 'inline-flex items-center px-3 py-2 border-b-2 border-transparent text-sm font-medium text-gray-600 hover:text-gray-900 hover:border-gray-300 focus:outline-none transition-colors duration-150',
     children: children
   });
 }
@@ -1899,9 +1930,9 @@ __webpack_require__.r(__webpack_exports__);
 function PageHeader(_ref) {
   var children = _ref.children;
   return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("header", {
-    className: "bg-white/50 border-b border-gray-100",
+    className: "bg-white border-b border-gray-200 shadow-sm",
     children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("div", {
-      className: "max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8",
+      className: "max-w-7xl mx-auto py-6 px-6 lg:px-8",
       children: children
     })
   });
@@ -1940,7 +1971,7 @@ function ResponsiveNavLink(_ref) {
     method: method,
     as: as,
     href: href,
-    className: "w-full flex items-start pl-3 pr-4 py-2 border-l-4 ".concat(active ? 'border-indigo-400 text-indigo-700 bg-indigo-50 focus:outline-none focus:text-indigo-800 focus:bg-indigo-100 focus:border-indigo-700' : 'border-transparent text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-300', " text-base font-medium focus:outline-none transition duration-150 ease-in-out"),
+    className: "w-full flex items-center pl-4 pr-4 py-2.5 border-l-4 ".concat(active ? 'border-purple-600 text-purple-700 bg-purple-50 font-semibold focus:outline-none' : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-50 hover:border-gray-300 font-medium', " text-sm focus:outline-none transition-colors duration-150"),
     children: children
   });
 }
@@ -1978,7 +2009,7 @@ function Select(_ref) {
     name: name,
     value: value,
     required: required,
-    className: "premium-input py-2.5 px-4 text-sm w-full appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20stroke%3D%22%236b7280%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%221.5%22%20d%3D%22m6%208%204%204%204-4%22%2F%3E%3C%2Fsvg%3E')] bg-size-[1.25rem_1.25rem] bg-position-[right_0.5rem_center] bg-no-repeat " + className,
+    className: "w-full px-4 py-2.5 text-sm font-medium text-gray-900 bg-white border border-gray-300 rounded-lg shadow-sm appearance-none bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cpath%20stroke%3D%22%236b7280%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20stroke-width%3D%222%22%20d%3D%22m6%208%204%204%204-4%22%2F%3E%3C%2Fsvg%3E')] bg-[length:1.25rem_1.25rem] bg-[right_0.75rem_center] bg-no-repeat cursor-pointer focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 " + className,
     onChange: handleChange,
     children: children
   });
@@ -2016,39 +2047,39 @@ function UserCard(_ref) {
     }
   };
   return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
-    className: "w-full md:w-1/2 lg:w-1/3 p-4",
+    className: "w-full md:w-1/2 lg:w-1/3 px-3 mb-6",
     children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
-      className: "glass premium-shadow rounded-3xl p-6 border border-white/40 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl",
+      className: "bg-white rounded-xl p-5 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 h-full flex flex-col",
       children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
         className: "flex justify-between items-center",
         children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
-          className: "flex items-center",
+          className: "flex items-center flex-1 min-w-0",
           children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
-            className: "w-12 h-12 rounded-2xl bg-linear-to-br from-purple-500/10 to-indigo-500/10 flex items-center justify-center text-purple-600 font-bold text-lg mr-4 border border-purple-100",
+            className: "w-10 h-10 rounded-lg bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white text-sm font-semibold uppercase mr-3 flex-shrink-0 shadow-sm",
             children: user.name.charAt(0)
           }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
-            className: "flex flex-col",
+            className: "flex flex-col min-w-0 flex-1",
             children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("h3", {
-              className: "font-bold text-gray-900 leading-tight",
+              className: "font-semibold text-sm text-gray-900 leading-tight truncate",
               children: user.name
             }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("span", {
-              className: "text-sm text-gray-500 font-medium mt-0.5",
+              className: "text-xs text-gray-500 font-medium mt-0.5 truncate",
               children: user.email
             })]
           })]
         }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
-          className: "flex space-x-1",
+          className: "flex gap-1 ml-3 flex-shrink-0",
           children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_inertiajs_react__WEBPACK_IMPORTED_MODULE_1__.Link, {
             href: route("users.edit", user.id),
-            className: "p-2 rounded-xl text-gray-400 hover:bg-purple-100 hover:text-purple-600 transition-all",
+            className: "p-2 rounded-lg text-gray-400 hover:bg-purple-50 hover:text-purple-600 transition-colors",
             children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_heroicons_react_24_outline__WEBPACK_IMPORTED_MODULE_3__["default"], {
-              className: "h-4.5 w-4.5"
+              className: "h-4 w-4"
             })
           }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("button", {
             onClick: handleDelete,
-            className: "p-2 rounded-xl text-gray-400 hover:bg-red-100 hover:text-red-600 transition-all",
+            className: "p-2 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600 transition-colors",
             children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_heroicons_react_24_outline__WEBPACK_IMPORTED_MODULE_4__["default"], {
-              className: "h-4.5 w-4.5"
+              className: "h-4 w-4"
             })
           })]
         })]
@@ -2135,29 +2166,29 @@ function Authenticated(_ref) {
     showingNavigationDropdown = _useState2[0],
     setShowingNavigationDropdown = _useState2[1];
   return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
-    className: "min-h-screen bg-[#f8fafc] flex flex-col",
+    className: "min-h-screen bg-gray-50 flex flex-col",
     children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("nav", {
-      className: "bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-gray-200/50",
+      className: "bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm",
       children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
-        className: "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8",
+        className: "max-w-7xl mx-auto px-6 lg:px-8",
         children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
-          className: "flex justify-between h-20",
+          className: "flex justify-between items-center h-16",
           children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
-            className: "flex items-center space-x-12",
-            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
-              className: "shrink-0 flex items-center transition-transform hover:scale-105",
-              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_inertiajs_react__WEBPACK_IMPORTED_MODULE_5__.Link, {
-                href: "/",
-                className: "bg-purple-50 p-2 rounded-2xl",
+            className: "flex items-center gap-10",
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(_inertiajs_react__WEBPACK_IMPORTED_MODULE_5__.Link, {
+              href: "/",
+              className: "flex items-center gap-3 transition-opacity hover:opacity-80",
+              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
+                className: "bg-gradient-to-br from-purple-600 to-indigo-600 p-2.5 rounded-xl shadow-sm",
                 children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_Components_ApplicationLogo__WEBPACK_IMPORTED_MODULE_1__["default"], {
-                  className: "block h-8 w-auto text-purple-600"
+                  className: "block h-6 w-auto text-white"
                 })
               }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("span", {
-                className: "ml-3 font-bold text-xl tracking-tight text-gray-900 hidden lg:block",
+                className: "font-bold text-lg tracking-tight text-gray-900 hidden lg:block",
                 children: "Monitor"
               })]
             }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
-              className: "hidden space-x-2 sm:flex items-center",
+              className: "hidden sm:flex items-center gap-1",
               children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_Components_NavLink__WEBPACK_IMPORTED_MODULE_3__["default"], {
                 href: route("monitors.index"),
                 active: route().current("monitors.*"),
@@ -2173,19 +2204,22 @@ function Authenticated(_ref) {
               })]
             })]
           }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
-            className: "hidden sm:flex sm:items-center sm:ml-6",
+            className: "hidden sm:flex sm:items-center",
             children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
-              className: "ml-3 relative",
+              className: "relative",
               children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(_Components_Dropdown__WEBPACK_IMPORTED_MODULE_2__["default"], {
                 children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_Components_Dropdown__WEBPACK_IMPORTED_MODULE_2__["default"].Trigger, {
                   children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("button", {
                     type: "button",
-                    className: "inline-flex items-center px-4 py-2 bg-gray-50 border border-transparent text-sm leading-4 font-semibold rounded-2xl text-gray-700 hover:bg-gray-100 focus:outline-none transition-all duration-200",
+                    className: "inline-flex items-center gap-2.5 px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 focus:outline-none transition-colors duration-150 rounded-lg hover:bg-gray-50",
                     children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
-                      className: "w-8 h-8 rounded-xl bg-linear-to-br from-purple-500 to-indigo-500 mr-2 flex items-center justify-center text-white text-xs font-bold uppercase shadow-sm",
+                      className: "w-8 h-8 rounded-lg bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white text-xs font-semibold uppercase shadow-sm",
                       children: auth.user.name.charAt(0)
-                    }), auth.user.name, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("svg", {
-                      className: "ml-2 -mr-0.5 h-4 w-4 opacity-50",
+                    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("span", {
+                      className: "hidden md:block",
+                      children: auth.user.name
+                    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("svg", {
+                      className: "h-4 w-4 text-gray-400",
                       xmlns: "http://www.w3.org/2000/svg",
                       viewBox: "0 0 20 20",
                       fill: "currentColor",
@@ -2207,14 +2241,14 @@ function Authenticated(_ref) {
               })
             })
           }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
-            className: "-mr-2 flex items-center sm:hidden",
+            className: "flex items-center sm:hidden",
             children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("button", {
               onClick: function onClick() {
                 return setShowingNavigationDropdown(function (previousState) {
                   return !previousState;
                 });
               },
-              className: "inline-flex items-center justify-center p-2 rounded-xl text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none transition duration-150 ease-in-out",
+              className: "inline-flex items-center justify-center p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 focus:outline-none transition-colors duration-150",
               children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("svg", {
                 className: "h-6 w-6",
                 stroke: "currentColor",
@@ -2238,9 +2272,9 @@ function Authenticated(_ref) {
           })]
         })
       }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
-        className: (showingNavigationDropdown ? "block" : "hidden") + " sm:hidden",
+        className: (showingNavigationDropdown ? "block" : "hidden") + " sm:hidden border-t border-gray-200",
         children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
-          className: "pt-2 pb-3 space-y-1",
+          className: "pt-2 pb-2",
           children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_Components_ResponsiveNavLink__WEBPACK_IMPORTED_MODULE_4__["default"], {
             href: route("monitors.index"),
             active: route().current("monitors.index"),
@@ -2255,23 +2289,22 @@ function Authenticated(_ref) {
             children: "Users"
           })]
         }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
-          className: "pt-4 pb-4 border-t border-gray-100",
+          className: "pt-4 pb-3 border-t border-gray-200",
           children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
-            className: "px-4 flex items-center mb-4",
+            className: "px-4 flex items-center gap-3 mb-4",
             children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
-              className: "w-10 h-10 rounded-xl bg-purple-500 flex items-center justify-center text-white font-bold mr-3",
+              className: "w-10 h-10 rounded-lg bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center text-white text-xs font-semibold uppercase shadow-sm",
               children: auth.user.name.charAt(0)
             }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
               children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
-                className: "font-bold text-base text-gray-900",
+                className: "font-semibold text-sm text-gray-900",
                 children: auth.user.name
               }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
-                className: "font-medium text-sm text-gray-500",
+                className: "font-medium text-xs text-gray-500 mt-0.5",
                 children: auth.user.email
               })]
             })]
           }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
-            className: "space-y-1",
             children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_Components_ResponsiveNavLink__WEBPACK_IMPORTED_MODULE_4__["default"], {
               method: "post",
               href: route("logout"),
@@ -3002,12 +3035,6 @@ function Create(props) {
       value = _e$target.value,
       type = _e$target.type,
       checked = _e$target.checked;
-    console.log({
-      name: name,
-      value: value,
-      type: type,
-      checked: checked
-    });
     setForm(function (prevState) {
       return _objectSpread(_objectSpread({}, prevState), {}, _defineProperty({}, name, type === "checkbox" ? checked : value));
     });
@@ -3021,23 +3048,25 @@ function Create(props) {
     errors: props.errors,
     children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_inertiajs_react__WEBPACK_IMPORTED_MODULE_2__.Head, {
       title: "Create Group"
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)(_Components_PageHeader__WEBPACK_IMPORTED_MODULE_3__["default"], {
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("h2", {
-        className: "font-bold text-3xl text-gray-900 leading-tight",
-        children: "Create Group"
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("p", {
-        className: "text-gray-500 font-medium mt-1",
-        children: "Organize your monitors into logical sets"
-      })]
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_Components_PageHeader__WEBPACK_IMPORTED_MODULE_3__["default"], {
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)("div", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("h1", {
+          className: "text-2xl font-bold text-gray-900 tracking-tight",
+          children: "Create Group"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("p", {
+          className: "text-sm text-gray-500 mt-1",
+          children: "Organize your monitors into logical sets"
+        })]
+      })
     }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("div", {
-      className: "max-w-xl mx-auto py-12 px-4 sm:px-6 lg:px-8",
+      className: "max-w-xl mx-auto py-8 px-6 lg:px-8",
       children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("div", {
-        className: "glass premium-shadow rounded-3xl overflow-hidden border border-white/40",
+        className: "bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden",
         children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("div", {
-          className: "p-8 sm:p-10",
+          className: "p-8",
           children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)("form", {
             onSubmit: handleSubmit,
-            className: "space-y-8",
+            className: "space-y-6",
             children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)("div", {
               children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_Components_Label__WEBPACK_IMPORTED_MODULE_5__["default"], {
                 forInput: "name",
@@ -3050,9 +3079,8 @@ function Create(props) {
                 placeholder: "e.g. Production Cluster"
               })]
             }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("div", {
-              className: "pt-4",
+              className: "pt-6 border-t border-gray-200",
               children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_Components_Button__WEBPACK_IMPORTED_MODULE_4__["default"], {
-                className: "w-full h-12 justify-center",
                 children: "Create Group"
               })
             })]
@@ -3122,12 +3150,6 @@ function Edit(props) {
       value = _e$target.value,
       type = _e$target.type,
       checked = _e$target.checked;
-    console.log({
-      name: name,
-      value: value,
-      type: type,
-      checked: checked
-    });
     setForm(function (prevState) {
       return _objectSpread(_objectSpread({}, prevState), {}, _defineProperty({}, name, type === "checkbox" ? checked : value));
     });
@@ -3141,23 +3163,25 @@ function Edit(props) {
     errors: props.errors,
     children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(_inertiajs_react__WEBPACK_IMPORTED_MODULE_2__.Head, {
       title: "Edit Group"
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)(_Components_PageHeader__WEBPACK_IMPORTED_MODULE_3__["default"], {
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("h2", {
-        className: "font-bold text-3xl text-gray-900 leading-tight",
-        children: "Edit Group"
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("p", {
-        className: "text-gray-500 font-medium mt-1",
-        children: ["Modify group details for ", group.name]
-      })]
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(_Components_PageHeader__WEBPACK_IMPORTED_MODULE_3__["default"], {
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("h1", {
+          className: "text-2xl font-bold text-gray-900 tracking-tight",
+          children: "Edit Group"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("p", {
+          className: "text-sm text-gray-500 mt-1",
+          children: ["Modify group details for ", group.name]
+        })]
+      })
     }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("div", {
-      className: "max-w-xl mx-auto py-12 px-4 sm:px-6 lg:px-8",
+      className: "max-w-xl mx-auto py-8 px-6 lg:px-8",
       children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("div", {
-        className: "glass premium-shadow rounded-3xl overflow-hidden border border-white/40",
+        className: "bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden",
         children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("div", {
-          className: "p-8 sm:p-10",
+          className: "p-8",
           children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("form", {
             onSubmit: handleSubmit,
-            className: "space-y-8",
+            className: "space-y-6",
             children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
               children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(_Components_Label__WEBPACK_IMPORTED_MODULE_5__["default"], {
                 forInput: "name",
@@ -3169,9 +3193,8 @@ function Edit(props) {
                 handleChange: handleChange
               })]
             }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("div", {
-              className: "pt-4",
+              className: "pt-6 border-t border-gray-200",
               children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(_Components_Button__WEBPACK_IMPORTED_MODULE_4__["default"], {
-                className: "w-full h-12 justify-center",
                 children: "Update Group"
               })
             })]
@@ -3222,14 +3245,19 @@ function Index(props) {
     }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_Components_PageHeader__WEBPACK_IMPORTED_MODULE_4__["default"], {
       children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
         className: "flex justify-between items-center",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("h2", {
-          className: "font-bold text-xl text-purple-600 leading-tight uppercase",
-          children: "Groups"
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("h1", {
+            className: "text-2xl font-bold text-gray-900 tracking-tight",
+            children: "Groups"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("p", {
+            className: "text-sm text-gray-500 mt-1",
+            children: "Organize monitors into logical sets"
+          })]
         }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_inertiajs_react__WEBPACK_IMPORTED_MODULE_2__.Link, {
           href: route('groups.create'),
           children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(_Components_Button__WEBPACK_IMPORTED_MODULE_5__["default"], {
             children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_7__["default"], {
-              className: "h-4 w-4 mr-1"
+              className: "h-4 w-4"
             }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("span", {
               children: "Create"
             })]
@@ -3237,9 +3265,9 @@ function Index(props) {
         })]
       })
     }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
-      className: "py-12",
+      className: "max-w-7xl mx-auto py-8 px-6 lg:px-8",
       children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
-        className: "flex flex-wrap max-w-7xl mx-auto sm:px-6 lg:px-8",
+        className: "flex flex-wrap -mx-3",
         children: groups.map(function (group, index) {
           return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_Components_GroupCard__WEBPACK_IMPORTED_MODULE_3__["default"], {
             group: group
@@ -3402,31 +3430,27 @@ function Create(props) {
     children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_inertiajs_react__WEBPACK_IMPORTED_MODULE_2__.Head, {
       title: "Create Monitor"
     }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_Components_PageHeader__WEBPACK_IMPORTED_MODULE_4__["default"], {
-      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("div", {
-        className: "flex items-center justify-between",
-        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("div", {
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("h2", {
-            className: "font-bold text-3xl text-gray-900 leading-tight",
-            children: "Create Monitor"
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("p", {
-            className: "text-gray-500 font-medium mt-1",
-            children: "Configure a new endpoint to monitor"
-          })]
-        })
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("div", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("h1", {
+          className: "text-2xl font-bold text-gray-900 tracking-tight",
+          children: "Create Monitor"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("p", {
+          className: "text-sm text-gray-500 mt-1",
+          children: "Configure a new endpoint to monitor"
+        })]
       })
     }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("div", {
-      className: "max-w-3xl mx-auto py-12 px-4 sm:px-6 lg:px-8",
+      className: "max-w-3xl mx-auto py-8 px-6 lg:px-8",
       children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("div", {
-        className: "glass premium-shadow rounded-3xl overflow-hidden border border-white/40",
+        className: "bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden",
         children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("div", {
-          className: "p-8 sm:p-10",
+          className: "p-8",
           children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("form", {
             onSubmit: handleSubmit,
-            className: "space-y-8",
+            className: "space-y-6",
             children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("div", {
-              className: "grid grid-cols-1 md:grid-cols-2 gap-8",
+              className: "space-y-6",
               children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("div", {
-                className: "md:col-span-2",
                 children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_Components_Label__WEBPACK_IMPORTED_MODULE_5__["default"], {
                   forInput: "name",
                   value: "Name of Monitor"
@@ -3434,11 +3458,10 @@ function Create(props) {
                   name: "name",
                   value: form.name,
                   required: true,
-                  handleChange: handleChange,
-                  placeholder: "e.g. Production API"
+                  placeholder: "e.g. Production API",
+                  handleChange: handleChange
                 })]
               }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("div", {
-                className: "md:col-span-2",
                 children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_Components_Label__WEBPACK_IMPORTED_MODULE_5__["default"], {
                   forInput: "url",
                   value: "Target URL"
@@ -3447,89 +3470,94 @@ function Create(props) {
                   type: "url",
                   value: form.url,
                   required: true,
-                  handleChange: handleChange,
-                  placeholder: "https://example.com"
+                  placeholder: "https://example.com",
+                  handleChange: handleChange
                 }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("p", {
-                  className: "mt-2 text-xs text-gray-400 font-medium ml-1",
+                  className: "mt-1.5 text-xs text-gray-500 ml-0.5",
                   children: "Must include protocol (http:// or https://)"
                 })]
               }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("div", {
-                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_Components_Label__WEBPACK_IMPORTED_MODULE_5__["default"], {
-                  forInput: "uptimeCheckInterval",
-                  value: "Check Interval"
-                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)(_Components_Select__WEBPACK_IMPORTED_MODULE_3__["default"], {
-                  name: "uptimeCheckInterval",
-                  value: form.uptimeCheckInterval,
-                  handleChange: handleChange,
-                  children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("option", {
-                    value: "1",
-                    children: "Every Minute"
-                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("option", {
-                    value: "2",
-                    children: "2 Minutes"
-                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("option", {
-                    value: "5",
-                    children: "5 Minutes"
-                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("option", {
-                    value: "10",
-                    children: "10 Minutes"
-                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("option", {
-                    value: "20",
-                    children: "20 Minutes"
-                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("option", {
-                    value: "30",
-                    children: "30 Minutes"
-                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("option", {
-                    value: "60",
-                    children: "1 Hour"
+                className: "grid grid-cols-1 md:grid-cols-2 gap-6",
+                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("div", {
+                  children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_Components_Label__WEBPACK_IMPORTED_MODULE_5__["default"], {
+                    forInput: "uptimeCheckInterval",
+                    value: "Check Interval"
+                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)(_Components_Select__WEBPACK_IMPORTED_MODULE_3__["default"], {
+                    name: "uptimeCheckInterval",
+                    value: form.uptimeCheckInterval,
+                    handleChange: handleChange,
+                    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("option", {
+                      value: "1",
+                      children: "Every Minute"
+                    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("option", {
+                      value: "2",
+                      children: "2 Minutes"
+                    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("option", {
+                      value: "5",
+                      children: "5 Minutes"
+                    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("option", {
+                      value: "10",
+                      children: "10 Minutes"
+                    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("option", {
+                      value: "20",
+                      children: "20 Minutes"
+                    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("option", {
+                      value: "30",
+                      children: "30 Minutes"
+                    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("option", {
+                      value: "60",
+                      children: "1 Hour"
+                    })]
                   })]
-                })]
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("div", {
-                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_Components_Label__WEBPACK_IMPORTED_MODULE_5__["default"], {
-                  forInput: "monitorGroupId",
-                  value: "Assign to Group"
-                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)(_Components_Select__WEBPACK_IMPORTED_MODULE_3__["default"], {
-                  name: "monitorGroupId",
-                  value: form.monitorGroupId,
-                  handleChange: handleChange,
-                  children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("option", {
-                    value: "",
-                    children: "No Group"
-                  }), groups.map(function (group, index) {
-                    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("option", {
-                      value: group.id,
-                      children: group.name
-                    }, index);
+                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("div", {
+                  children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_Components_Label__WEBPACK_IMPORTED_MODULE_5__["default"], {
+                    forInput: "monitorGroupId",
+                    value: "Assign to Group"
+                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)(_Components_Select__WEBPACK_IMPORTED_MODULE_3__["default"], {
+                    name: "monitorGroupId",
+                    value: form.monitorGroupId,
+                    handleChange: handleChange,
+                    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("option", {
+                      value: "",
+                      children: "No Group"
+                    }), groups.map(function (group, index) {
+                      return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("option", {
+                        value: group.id,
+                        children: group.name
+                      }, index);
+                    })]
                   })]
-                })]
-              })]
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("div", {
-              className: "pt-4 border-t border-gray-100 flex flex-wrap gap-6",
-              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("label", {
-                className: "flex items-center cursor-pointer group",
-                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_Components_Checkbox__WEBPACK_IMPORTED_MODULE_7__["default"], {
-                  name: "monitorUptime",
-                  checked: form.monitorUptime,
-                  handleChange: handleChange
-                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("span", {
-                  className: "ml-3 text-sm font-semibold text-gray-700 group-hover:text-purple-600 transition-colors",
-                  children: "Monitor Uptime"
-                })]
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("label", {
-                className: "flex items-center cursor-pointer group",
-                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_Components_Checkbox__WEBPACK_IMPORTED_MODULE_7__["default"], {
-                  name: "monitorDomain",
-                  checked: form.monitorDomain,
-                  handleChange: handleChange
-                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("span", {
-                  className: "ml-3 text-sm font-semibold text-gray-700 group-hover:text-purple-600 transition-colors",
-                  children: "Monitor Domain"
                 })]
               })]
             }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("div", {
-              className: "pt-6",
+              className: "pt-6 border-t border-gray-200 space-y-4",
+              children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("div", {
+                className: "flex flex-col sm:flex-row gap-4",
+                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("label", {
+                  className: "flex items-center gap-3 cursor-pointer group",
+                  children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_Components_Checkbox__WEBPACK_IMPORTED_MODULE_7__["default"], {
+                    name: "monitorUptime",
+                    checked: form.monitorUptime,
+                    handleChange: handleChange
+                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("span", {
+                    className: "text-sm font-medium text-gray-700 group-hover:text-gray-900 transition-colors",
+                    children: "Monitor Uptime"
+                  })]
+                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("label", {
+                  className: "flex items-center gap-3 cursor-pointer group",
+                  children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_Components_Checkbox__WEBPACK_IMPORTED_MODULE_7__["default"], {
+                    name: "monitorDomain",
+                    checked: form.monitorDomain,
+                    handleChange: handleChange
+                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("span", {
+                    className: "text-sm font-medium text-gray-700 group-hover:text-gray-900 transition-colors",
+                    children: "Monitor Domain"
+                  })]
+                })]
+              })
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("div", {
+              className: "pt-6 border-t border-gray-200",
               children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_Components_Button__WEBPACK_IMPORTED_MODULE_8__["default"], {
-                className: "w-full sm:w-auto h-12",
                 children: "Create Monitor"
               })
             })]
@@ -3623,31 +3651,27 @@ function Edit(props) {
     children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_inertiajs_react__WEBPACK_IMPORTED_MODULE_2__.Head, {
       title: "Edit ".concat(monitor.name)
     }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_Components_PageHeader__WEBPACK_IMPORTED_MODULE_3__["default"], {
-      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("div", {
-        className: "flex items-center justify-between",
-        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("div", {
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("h2", {
-            className: "font-bold text-3xl text-gray-900 leading-tight",
-            children: "Edit Monitor"
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("p", {
-            className: "text-gray-500 font-medium mt-1",
-            children: ["Update configuration for ", monitor.name]
-          })]
-        })
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("div", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("h1", {
+          className: "text-2xl font-bold text-gray-900 tracking-tight",
+          children: "Edit Monitor"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("p", {
+          className: "text-sm text-gray-500 mt-1",
+          children: ["Update configuration for ", monitor.name]
+        })]
       })
     }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("div", {
-      className: "max-w-3xl mx-auto py-12 px-4 sm:px-6 lg:px-8",
+      className: "max-w-3xl mx-auto py-8 px-6 lg:px-8",
       children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("div", {
-        className: "glass premium-shadow rounded-3xl overflow-hidden border border-white/40",
+        className: "bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden",
         children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("div", {
-          className: "p-8 sm:p-10",
+          className: "p-8",
           children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("form", {
             onSubmit: handleSubmit,
-            className: "space-y-8",
+            className: "space-y-6",
             children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("div", {
-              className: "grid grid-cols-1 md:grid-cols-2 gap-8",
+              className: "space-y-6",
               children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("div", {
-                className: "md:col-span-2",
                 children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_Components_Label__WEBPACK_IMPORTED_MODULE_5__["default"], {
                   forInput: "name",
                   value: "Name of Monitor"
@@ -3658,7 +3682,6 @@ function Edit(props) {
                   handleChange: handleChange
                 })]
               }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("div", {
-                className: "md:col-span-2",
                 children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_Components_Label__WEBPACK_IMPORTED_MODULE_5__["default"], {
                   forInput: "url",
                   value: "Target URL"
@@ -3670,82 +3693,87 @@ function Edit(props) {
                   handleChange: handleChange
                 })]
               }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("div", {
-                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_Components_Label__WEBPACK_IMPORTED_MODULE_5__["default"], {
-                  forInput: "uptimeCheckInterval",
-                  value: "Check Interval"
-                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)(_Components_Select__WEBPACK_IMPORTED_MODULE_8__["default"], {
-                  name: "uptimeCheckInterval",
-                  value: form.uptimeCheckInterval,
-                  handleChange: handleChange,
-                  children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("option", {
-                    value: "1",
-                    children: "Every Minute"
-                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("option", {
-                    value: "2",
-                    children: "2 Minutes"
-                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("option", {
-                    value: "5",
-                    children: "5 Minutes"
-                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("option", {
-                    value: "10",
-                    children: "10 Minutes"
-                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("option", {
-                    value: "20",
-                    children: "20 Minutes"
-                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("option", {
-                    value: "30",
-                    children: "30 Minutes"
-                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("option", {
-                    value: "60",
-                    children: "1 Hour"
+                className: "grid grid-cols-1 md:grid-cols-2 gap-6",
+                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("div", {
+                  children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_Components_Label__WEBPACK_IMPORTED_MODULE_5__["default"], {
+                    forInput: "uptimeCheckInterval",
+                    value: "Check Interval"
+                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)(_Components_Select__WEBPACK_IMPORTED_MODULE_8__["default"], {
+                    name: "uptimeCheckInterval",
+                    value: form.uptimeCheckInterval,
+                    handleChange: handleChange,
+                    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("option", {
+                      value: "1",
+                      children: "Every Minute"
+                    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("option", {
+                      value: "2",
+                      children: "2 Minutes"
+                    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("option", {
+                      value: "5",
+                      children: "5 Minutes"
+                    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("option", {
+                      value: "10",
+                      children: "10 Minutes"
+                    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("option", {
+                      value: "20",
+                      children: "20 Minutes"
+                    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("option", {
+                      value: "30",
+                      children: "30 Minutes"
+                    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("option", {
+                      value: "60",
+                      children: "1 Hour"
+                    })]
                   })]
-                })]
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("div", {
-                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_Components_Label__WEBPACK_IMPORTED_MODULE_5__["default"], {
-                  forInput: "monitorGroupId",
-                  value: "Assign to Group"
-                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)(_Components_Select__WEBPACK_IMPORTED_MODULE_8__["default"], {
-                  name: "monitorGroupId",
-                  value: form.monitorGroupId,
-                  handleChange: handleChange,
-                  children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("option", {
-                    value: "",
-                    children: "No Group"
-                  }), groups.map(function (group, index) {
-                    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("option", {
-                      value: group.id,
-                      children: group.name
-                    }, index);
+                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("div", {
+                  children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_Components_Label__WEBPACK_IMPORTED_MODULE_5__["default"], {
+                    forInput: "monitorGroupId",
+                    value: "Assign to Group"
+                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)(_Components_Select__WEBPACK_IMPORTED_MODULE_8__["default"], {
+                    name: "monitorGroupId",
+                    value: form.monitorGroupId,
+                    handleChange: handleChange,
+                    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("option", {
+                      value: "",
+                      children: "No Group"
+                    }), groups.map(function (group, index) {
+                      return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("option", {
+                        value: group.id,
+                        children: group.name
+                      }, index);
+                    })]
                   })]
-                })]
-              })]
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("div", {
-              className: "pt-4 border-t border-gray-100 flex flex-wrap gap-6",
-              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("label", {
-                className: "flex items-center cursor-pointer group",
-                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_Components_Checkbox__WEBPACK_IMPORTED_MODULE_7__["default"], {
-                  name: "monitorUptime",
-                  checked: form.monitorUptime,
-                  handleChange: handleChange
-                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("span", {
-                  className: "ml-3 text-sm font-semibold text-gray-700 group-hover:text-purple-600 transition-colors",
-                  children: "Monitor Uptime"
-                })]
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("label", {
-                className: "flex items-center cursor-pointer group",
-                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_Components_Checkbox__WEBPACK_IMPORTED_MODULE_7__["default"], {
-                  name: "monitorDomain",
-                  checked: form.monitorDomain,
-                  handleChange: handleChange
-                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("span", {
-                  className: "ml-3 text-sm font-semibold text-gray-700 group-hover:text-purple-600 transition-colors",
-                  children: "Monitor Domain"
                 })]
               })]
             }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("div", {
-              className: "pt-6",
+              className: "pt-6 border-t border-gray-200 space-y-4",
+              children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("div", {
+                className: "flex flex-col sm:flex-row gap-4",
+                children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("label", {
+                  className: "flex items-center gap-3 cursor-pointer group",
+                  children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_Components_Checkbox__WEBPACK_IMPORTED_MODULE_7__["default"], {
+                    name: "monitorUptime",
+                    checked: form.monitorUptime,
+                    handleChange: handleChange
+                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("span", {
+                    className: "text-sm font-medium text-gray-700 group-hover:text-gray-900 transition-colors",
+                    children: "Monitor Uptime"
+                  })]
+                }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("label", {
+                  className: "flex items-center gap-3 cursor-pointer group",
+                  children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_Components_Checkbox__WEBPACK_IMPORTED_MODULE_7__["default"], {
+                    name: "monitorDomain",
+                    checked: form.monitorDomain,
+                    handleChange: handleChange
+                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("span", {
+                    className: "text-sm font-medium text-gray-700 group-hover:text-gray-900 transition-colors",
+                    children: "Monitor Domain"
+                  })]
+                })]
+              })
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("div", {
+              className: "pt-6 border-t border-gray-200",
               children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_Components_Button__WEBPACK_IMPORTED_MODULE_4__["default"], {
-                className: "w-full sm:w-auto h-12",
                 children: "Update Monitor"
               })
             })]
@@ -3796,14 +3824,19 @@ function Index(props) {
     }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_Components_PageHeader__WEBPACK_IMPORTED_MODULE_4__["default"], {
       children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
         className: "flex justify-between items-center",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("h2", {
-          className: "font-bold text-xl text-purple-600 leading-tight uppercase",
-          children: "Monitors"
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("h1", {
+            className: "text-2xl font-bold text-gray-900 tracking-tight",
+            children: "Monitors"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("p", {
+            className: "text-sm text-gray-500 mt-1",
+            children: "Manage and monitor your endpoints"
+          })]
         }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_inertiajs_react__WEBPACK_IMPORTED_MODULE_2__.Link, {
           href: route('monitors.create'),
           children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(_Components_Button__WEBPACK_IMPORTED_MODULE_5__["default"], {
             children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_7__["default"], {
-              className: "h-4 w-4 mr-1"
+              className: "h-4 w-4"
             }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("span", {
               children: "Create"
             })]
@@ -3811,15 +3844,15 @@ function Index(props) {
         })]
       })
     }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
-      className: "py-12",
+      className: "max-w-7xl mx-auto py-8 px-6 lg:px-8",
       children: groups.map(function (group, groupIndex) {
         return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
-          className: "flex flex-col max-w-7xl mx-auto sm:px-6 lg:px-8 mb-6",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("h3", {
-            className: "pl-3 mb-3 text-xl",
+          className: "mb-10 last:mb-0",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("h2", {
+            className: "text-lg font-semibold text-gray-900 mb-4 px-1",
             children: group.name
           }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
-            className: "flex flex-wrap",
+            className: "flex flex-wrap -mx-3",
             children: group.monitors.map(function (monitor, monitorIndex) {
               return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_Components_MonitorCard__WEBPACK_IMPORTED_MODULE_3__["default"], {
                 monitor: monitor
@@ -3903,20 +3936,22 @@ function Create(props) {
     errors: props.errors,
     children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_inertiajs_react__WEBPACK_IMPORTED_MODULE_2__.Head, {
       title: "Create User"
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)(_Components_PageHeader__WEBPACK_IMPORTED_MODULE_3__["default"], {
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("h2", {
-        className: "font-bold text-3xl text-gray-900 leading-tight",
-        children: "Create User"
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("p", {
-        className: "text-gray-500 font-medium mt-1",
-        children: "Add a new team member to the platform"
-      })]
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_Components_PageHeader__WEBPACK_IMPORTED_MODULE_3__["default"], {
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)("div", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("h1", {
+          className: "text-2xl font-bold text-gray-900 tracking-tight",
+          children: "Create User"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("p", {
+          className: "text-sm text-gray-500 mt-1",
+          children: "Add a new team member to the platform"
+        })]
+      })
     }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("div", {
-      className: "max-w-xl mx-auto py-12 px-4 sm:px-6 lg:px-8",
+      className: "max-w-xl mx-auto py-8 px-6 lg:px-8",
       children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("div", {
-        className: "glass premium-shadow rounded-3xl overflow-hidden border border-white/40",
+        className: "bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden",
         children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("div", {
-          className: "p-8 sm:p-10",
+          className: "p-8",
           children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)("form", {
             onSubmit: handleSubmit,
             className: "space-y-6",
@@ -3956,9 +3991,8 @@ function Create(props) {
                 placeholder: "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022"
               })]
             }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("div", {
-              className: "pt-4",
+              className: "pt-6 border-t border-gray-200",
               children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_Components_Button__WEBPACK_IMPORTED_MODULE_4__["default"], {
-                className: "w-full h-12 justify-center",
                 children: "Create User"
               })
             })]
@@ -4041,20 +4075,22 @@ function Edit(props) {
     errors: props.errors,
     children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_inertiajs_react__WEBPACK_IMPORTED_MODULE_2__.Head, {
       title: "Edit User"
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)(_Components_PageHeader__WEBPACK_IMPORTED_MODULE_3__["default"], {
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("h2", {
-        className: "font-bold text-3xl text-gray-900 leading-tight",
-        children: "Edit User"
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)("p", {
-        className: "text-gray-500 font-medium mt-1",
-        children: ["Update profile details for ", user.name]
-      })]
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_Components_PageHeader__WEBPACK_IMPORTED_MODULE_3__["default"], {
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)("div", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("h1", {
+          className: "text-2xl font-bold text-gray-900 tracking-tight",
+          children: "Edit User"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)("p", {
+          className: "text-sm text-gray-500 mt-1",
+          children: ["Update profile details for ", user.name]
+        })]
+      })
     }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("div", {
-      className: "max-w-xl mx-auto py-12 px-4 sm:px-6 lg:px-8",
+      className: "max-w-xl mx-auto py-8 px-6 lg:px-8",
       children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("div", {
-        className: "glass premium-shadow rounded-3xl overflow-hidden border border-white/40",
+        className: "bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden",
         children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("div", {
-          className: "p-8 sm:p-10",
+          className: "p-8",
           children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)("form", {
             onSubmit: handleSubmit,
             className: "space-y-6",
@@ -4091,9 +4127,8 @@ function Edit(props) {
                 placeholder: "Leave blank to keep current"
               })]
             }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("div", {
-              className: "pt-4",
+              className: "pt-6 border-t border-gray-200",
               children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_Components_Button__WEBPACK_IMPORTED_MODULE_4__["default"], {
-                className: "w-full h-12 justify-center",
                 children: "Update User"
               })
             })]
@@ -4144,14 +4179,19 @@ function Index(props) {
     }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_Components_PageHeader__WEBPACK_IMPORTED_MODULE_4__["default"], {
       children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
         className: "flex justify-between items-center",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("h2", {
-          className: "font-bold text-xl text-purple-600 leading-tight uppercase",
-          children: "Users"
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("h1", {
+            className: "text-2xl font-bold text-gray-900 tracking-tight",
+            children: "Users"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("p", {
+            className: "text-sm text-gray-500 mt-1",
+            children: "Manage user accounts and access"
+          })]
         }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_inertiajs_react__WEBPACK_IMPORTED_MODULE_2__.Link, {
           href: route('users.create'),
           children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(_Components_Button__WEBPACK_IMPORTED_MODULE_5__["default"], {
             children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_heroicons_react_24_solid__WEBPACK_IMPORTED_MODULE_7__["default"], {
-              className: "h-4 w-4 mr-1"
+              className: "h-4 w-4"
             }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("span", {
               children: "Create"
             })]
@@ -4159,9 +4199,9 @@ function Index(props) {
         })]
       })
     }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
-      className: "py-12",
+      className: "max-w-7xl mx-auto py-8 px-6 lg:px-8",
       children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
-        className: "flex flex-wrap max-w-7xl mx-auto sm:px-6 lg:px-8",
+        className: "flex flex-wrap -mx-3",
         children: users.map(function (user, index) {
           return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_Components_UserCard__WEBPACK_IMPORTED_MODULE_3__["default"], {
             user: user

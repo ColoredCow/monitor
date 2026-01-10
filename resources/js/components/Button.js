@@ -10,9 +10,9 @@ export default function Button({
         <button
             type={type}
             className={
-                `premium-button inline-flex items-center px-6 py-2.5 bg-linear-to-r from-purple-600 to-indigo-600 border border-transparent rounded-xl font-bold text-xs text-white uppercase tracking-widest hover:from-purple-500 hover:to-indigo-500 active:scale-95 transition-all duration-200 ${
+                `inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 border border-transparent rounded-lg font-semibold text-sm text-white shadow-sm hover:from-purple-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 active:scale-[0.98] transition-all duration-200 ${
                     processing && "opacity-50 cursor-not-allowed"
-                } ` + className
+                } ${className}`
             }
             disabled={processing}
         >

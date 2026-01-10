@@ -22,19 +22,19 @@ export default function MonitorCard({ monitor }) {
     };
 
     return (
-        <div className="w-full md:w-1/2 lg:w-1/3 p-4">
-            <div className="glass premium-shadow rounded-3xl p-6 border border-white/40 transition-all duration-300 hover:scale-[1.02] hover:shadow-2xl">
+        <div className="w-full md:w-1/2 lg:w-1/3 px-3 mb-6">
+            <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 h-full flex flex-col">
                 <div className="flex justify-between items-start mb-4">
-                    <div>
-                        <h3 className="font-bold text-lg text-gray-900 leading-tight">
+                    <div className="flex-1 min-w-0">
+                        <h3 className="font-semibold text-base text-gray-900 leading-tight mb-1.5 truncate">
                             {monitor.name}
                         </h3>
-                        <div className="flex items-center mt-1 text-sm">
-                            <span className="text-gray-500 font-medium truncate max-w-[150px]">
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm text-gray-500 truncate flex-1 min-w-0">
                                 {monitor.raw_url}
                             </span>
                             <a
-                                className="ml-2 text-purple-400 hover:text-purple-600 transition-colors"
+                                className="flex-shrink-0 text-gray-400 hover:text-purple-600 transition-colors p-1 rounded hover:bg-purple-50"
                                 href={monitor.raw_url}
                                 target="_blank"
                                 rel="noreferrer"
@@ -43,23 +43,23 @@ export default function MonitorCard({ monitor }) {
                             </a>
                         </div>
                     </div>
-                    <div className="flex space-x-1">
+                    <div className="flex gap-1 ml-3 flex-shrink-0">
                         <Link
                             href={route("monitors.edit", monitor.id)}
-                            className="p-2 rounded-xl text-gray-400 hover:bg-purple-100 hover:text-purple-600 transition-all"
+                            className="p-2 rounded-lg text-gray-400 hover:bg-purple-50 hover:text-purple-600 transition-colors"
                         >
-                            <PencilIcon className="h-4.5 w-4.5" />
+                            <PencilIcon className="h-4 w-4" />
                         </Link>
                         <button
                             onClick={handleDelete}
-                            className="p-2 rounded-xl text-gray-400 hover:bg-red-100 hover:text-red-600 transition-all"
+                            className="p-2 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600 transition-colors"
                         >
-                            <TrashIcon className="h-4.5 w-4.5" />
+                            <TrashIcon className="h-4 w-4" />
                         </button>
                     </div>
                 </div>
 
-                <div className="flex items-center space-x-3 pt-4 border-t border-gray-100/50">
+                <div className="flex items-center gap-2.5 pt-4 mt-auto border-t border-gray-100 flex-wrap">
                     <MonitorUptimeIcon monitor={monitor} />
                     <MonitorCheckIntervalIcon monitor={monitor} />
                     <MonitorDomainIcon monitor={monitor} />

@@ -34,17 +34,19 @@ export default function Edit(props) {
             <Head title="Edit User" />
 
             <PageHeader>
-                <h2 className="font-bold text-3xl text-gray-900 leading-tight">
-                    Edit User
-                </h2>
-                <p className="text-gray-500 font-medium mt-1">
-                    Update profile details for {user.name}
-                </p>
+                <div>
+                    <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+                        Edit User
+                    </h1>
+                    <p className="text-sm text-gray-500 mt-1">
+                        Update profile details for {user.name}
+                    </p>
+                </div>
             </PageHeader>
 
-            <div className="max-w-xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-                <div className="glass premium-shadow rounded-3xl overflow-hidden border border-white/40">
-                    <div className="p-8 sm:p-10">
+            <div className="max-w-xl mx-auto py-8 px-6 lg:px-8">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div className="p-8">
                         <form onSubmit={handleSubmit} className="space-y-6">
                             <div>
                                 <Label forInput="name" value="Full Name" />
@@ -78,8 +80,8 @@ export default function Edit(props) {
                                     placeholder="Leave blank to keep current"
                                 />
                             </div>
-                            <div className="pt-4">
-                                <Button className="w-full h-12 justify-center">
+                            <div className="pt-6 border-t border-gray-200">
+                                <Button>
                                     Update User
                                 </Button>
                             </div>

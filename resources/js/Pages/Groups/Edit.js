@@ -17,7 +17,6 @@ export default function Edit(props) {
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
-        console.log({ name, value, type, checked });
         setForm((prevState) => ({
             ...prevState,
             [name]: type === "checkbox" ? checked : value,
@@ -34,18 +33,20 @@ export default function Edit(props) {
             <Head title="Edit Group" />
 
             <PageHeader>
-                <h2 className="font-bold text-3xl text-gray-900 leading-tight">
-                    Edit Group
-                </h2>
-                <p className="text-gray-500 font-medium mt-1">
-                    Modify group details for {group.name}
-                </p>
+                <div>
+                    <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+                        Edit Group
+                    </h1>
+                    <p className="text-sm text-gray-500 mt-1">
+                        Modify group details for {group.name}
+                    </p>
+                </div>
             </PageHeader>
 
-            <div className="max-w-xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-                <div className="glass premium-shadow rounded-3xl overflow-hidden border border-white/40">
-                    <div className="p-8 sm:p-10">
-                        <form onSubmit={handleSubmit} className="space-y-8">
+            <div className="max-w-xl mx-auto py-8 px-6 lg:px-8">
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div className="p-8">
+                        <form onSubmit={handleSubmit} className="space-y-6">
                             <div>
                                 <Label forInput="name" value="Name of Group" />
                                 <Input
@@ -55,8 +56,8 @@ export default function Edit(props) {
                                     handleChange={handleChange}
                                 />
                             </div>
-                            <div className="pt-4">
-                                <Button className="w-full h-12 justify-center">
+                            <div className="pt-6 border-t border-gray-200">
+                                <Button>
                                     Update Group
                                 </Button>
                             </div>

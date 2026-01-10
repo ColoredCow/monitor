@@ -8,40 +8,24 @@
     --secondary-foreground: 270 20% 10%;
     --accent: 270 76% 53%;
     --accent-foreground: 0 0% 100%;
-    --radius: 0.75rem;
+    --radius: 0.5rem;
   }
 
   body {
-    @apply antialiased text-gray-900 bg-[#f9fafb];
+    @apply antialiased text-gray-900 bg-gray-50;
     font-family: 'Outfit', sans-serif;
   }
 }
 
 @layer utilities {
-  .glass {
-    @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-xl;
+  /* Custom transitions */
+  .page-enter {
+    opacity: 0;
+    transform: translateY(10px);
   }
-
-  .premium-shadow {
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+  .page-enter-active {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 300ms, transform 300ms;
   }
-
-  .premium-input {
-    @apply transition-all duration-200 border-gray-200 focus:border-purple-500 focus:ring-4 focus:ring-purple-500/10 rounded-xl bg-white shadow-sm;
-  }
-
-  .premium-button {
-    @apply transition-all duration-200 active:scale-95 shadow-lg shadow-purple-500/20 hover:shadow-purple-500/30 font-semibold;
-  }
-}
-
-/* Custom transitions */
-.page-enter {
-  opacity: 0;
-  transform: translateY(10px);
-}
-.page-enter-active {
-  opacity: 1;
-  transform: translateY(0);
-  transition: opacity 300ms, transform 300ms;
 }
