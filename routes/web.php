@@ -1,8 +1,7 @@
 <?php
 
-use Illuminate\Foundation\Application;
-use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\GroupsController;
+use App\Http\Controllers\MonitorsController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -14,9 +13,9 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-use App\Http\Controllers\GroupsController;
-use App\Http\Controllers\MonitorsController;
 use App\Http\Controllers\UsersController;
+use Illuminate\Foundation\Application;
+use Illuminate\Support\Facades\Route;
 
 Route::permanentRedirect('/', '/login');
 
