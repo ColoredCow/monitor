@@ -17,7 +17,7 @@ Before you start following the guidelines, make sure to go through the [prerequi
         ```sh
         cd /Application/MAMP/htdocs/
     ```
-    Note- phpMyAdmin/PHP, apache, and MySQL comes preinstalled with the  WAMP, XAMPP package, that is going to be used later on in this project, so no need to install these files separately. 
+    Note- phpMyAdmin/PHP, apache, and MySQL comes preinstalled with the  WAMP, XAMPP package, that is going to be used later on in this project, so no need to install these files separately.
 
 2. Clone this repository and move to `monitor` directory
    ```sh
@@ -33,8 +33,8 @@ Before you start following the guidelines, make sure to go through the [prerequi
       ```
        composer update
       ```
- 
-    - After running `composer update` then run  "composer install --ignore-platform-req=ext-intl" command as some packages were creating problem so we ignore it by using this command. 
+
+    - After running `composer update` then run  "composer install --ignore-platform-req=ext-intl" command as some packages were creating problem so we ignore it by using this command.
          ```
           composer install --ignore-platform-req=ext-intl
          ```
@@ -42,19 +42,16 @@ Before you start following the guidelines, make sure to go through the [prerequi
      ```sh
      npm install
      ```
-5. npm build
+5. Build assets
+   To build for production:
+   ```sh
+   npm run build
+   ```
+   To start the development server (with Hot Module Replacement):
    ```sh
    npm run dev
    ```
-    A possible error may arise with `cross-env`. So try running the following commands.
-    - To clear a cache in npm, we need to run the npm cache command in our terminal and install cross-env.
-   ```sh
-   npm cache clear --force
-   npm install cross-env
-
-   npm install
-   npm run dev
-   ```
+   **Note:** When running `npm run dev`, keep the terminal open. You will also need to run `php artisan serve` in a separate terminal.
 
 
 6. Make a copy of the `.env.example` file in the same directory and save it as `.env`:
@@ -105,8 +102,8 @@ Before you start following the guidelines, make sure to go through the [prerequi
     php artisan migrate
     ```
 10. Start development server
-   
+
     ```sh
     php artisan serve
-    ``` 
-    Note- php artisan serve command will start a development server on your local machine that listens to port 8000 by default. This command will provide a link in the terminal which we can copy and paste it in our browser and see our laraver application. 
+    ```
+    Note- php artisan serve command will start a development server on your local machine that listens to port 8000 by default. This command will provide a link in the terminal which we can copy and paste it in our browser and see our laraver application.

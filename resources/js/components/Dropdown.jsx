@@ -58,16 +58,14 @@ const Content = ({ align = 'right', width = '48', contentClasses = '', children 
                 leaveFrom="transform opacity-100 scale-100"
                 leaveTo="transform opacity-0 scale-95"
             >
-                {open && (
-                    <div
-                        className={`absolute z-50 mt-1.5 ${alignmentClasses} ${widthClasses}`}
-                        onClick={() => setOpen(false)}
-                    >
-                        <div className={`rounded-lg bg-white shadow-lg border border-gray-200 py-1 ${contentClasses}`}>
-                            {children}
-                        </div>
+                <div
+                    className={`absolute z-50 mt-1.5 ${alignmentClasses} ${widthClasses}`}
+                    onClick={() => setOpen(false)}
+                >
+                    <div className={`rounded-lg bg-white shadow-lg border border-gray-200 py-1 ${contentClasses}`}>
+                        {children}
                     </div>
-                )}
+                </div>
             </Transition>
         </>
     );
