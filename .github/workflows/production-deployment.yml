@@ -1,20 +1,48 @@
 name: Production Deployment
+
 on:
   push:
     branches: [main]
 
 jobs:
-  build:
-    name: build
+  deploy:
     runs-on: ubuntu-latest
 
-    # uses GitHub environment
     environment:
       name: Production
 
     steps:
+      # 1️⃣ Checkout code
       - uses: actions/checkout@v3
-      - name: Deploy to production
+
+      # 2️⃣ Setup Node (for Vite build)
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      # 3️⃣ Install frontend deps
+      - name: Install frontend dependencies
+        run: npm ci
+
+      # 4️⃣ Build frontend assets
+      - name: Build frontend assets
+        run: npm run build
+
+      # 5️⃣ Rsync build output to server
+      - name: Upload built assets to server
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "public/build"
+          target: ${{ secrets.SSH_BUILD_DIRECTORY }}/public
+          strip_components: 1
+
+      # 6️⃣ Deploy backend on server
+      - name: Deploy backend to production
         uses: appleboy/ssh-action@master
         env:
           SSH_BUILD_DIRECTORY: ${{ secrets.SSH_BUILD_DIRECTORY }}
@@ -29,20 +57,21 @@ jobs:
             echo "Enabling maintenance mode"
             php artisan down
 
-            echo "Pulling latest code"
+            echo "Pulling latest backend code"
             git checkout -f main
             git pull origin main
+
+            echo "Running migrations"
             php artisan migrate --force
 
-            echo "Running composer"
-            composer install --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist --optimize-autoloader --no-dev
-            composer dump-autoload
+            echo "Installing composer dependencies"
+            composer install \
+              --no-dev \
+              --prefer-dist \
+              --no-interaction \
+              --optimize-autoloader
 
-            echo "Building frontend assets"
-            npm install
-            npm run build
-
-            echo "Optimizing Laravel app"
+            echo "Optimizing Laravel"
             php artisan optimize:clear
 
             echo "Disabling maintenance mode"
