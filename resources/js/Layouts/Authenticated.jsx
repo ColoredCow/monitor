@@ -19,10 +19,7 @@ export default function Authenticated({ auth, children }) {
                                 href="/"
                                 className="flex items-center gap-3 transition-opacity hover:opacity-80"
                             >
-                                <ApplicationLogo className="block h-6 w-auto text-white" />
-                                <span className="font-bold text-lg tracking-tight text-gray-900 hidden lg:block">
-                                    ColoredCow Monitor
-                                </span>
+                                <ApplicationLogo className="block h-9 w-auto text-white" />
                             </Link>
 
                             <div className="hidden sm:flex items-center gap-1">
