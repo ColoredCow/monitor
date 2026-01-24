@@ -1,3 +1,31 @@
-@import 'tailwindcss/base';
-@import 'tailwindcss/components';
-@import 'tailwindcss/utilities';
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --primary: 270 76% 53%; /* Purple */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 270 20% 96%;
+    --secondary-foreground: 270 20% 10%;
+    --accent: 270 76% 53%;
+    --accent-foreground: 0 0% 100%;
+    --radius: 0.5rem;
+  }
+
+  body {
+    @apply antialiased text-gray-900 bg-gray-50;
+    font-family: 'Outfit', sans-serif;
+  }
+}
+
+@layer utilities {
+  /* Custom transitions */
+  .page-enter {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  .page-enter-active {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 300ms, transform 300ms;
+  }
+}

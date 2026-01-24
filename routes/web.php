@@ -1,8 +1,7 @@
 <?php
 
-use Illuminate\Foundation\Application;
-use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\GroupsController;
+use App\Http\Controllers\MonitorsController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -14,12 +13,16 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+use App\Http\Controllers\UsersController;
+use Illuminate\Foundation\Application;
+use Illuminate\Support\Facades\Route;
+
 Route::permanentRedirect('/', '/login');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::resource('monitors', 'MonitorsController');
-    Route::resource('groups', 'GroupsController');
-    Route::resource('users', 'UsersController');
+    Route::resource('monitors', MonitorsController::class);
+    Route::resource('groups', GroupsController::class);
+    Route::resource('users', UsersController::class);
 });
 
 require __DIR__.'/auth.php';

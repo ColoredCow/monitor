@@ -16,4 +16,10 @@ use Illuminate\Support\Facades\Artisan;
 
 Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
-})->describe('Display an inspiring quote');
+})->purpose('Display an inspiring quote');
+
+use Illuminate\Support\Facades\Schedule;
+
+Schedule::command('monitor:check-uptime')->everyMinute();
+Schedule::command('monitor:check-certificate')->daily();
+Schedule::command('monitor:check-domain-expiration')->daily();

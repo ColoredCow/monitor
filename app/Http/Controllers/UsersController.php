@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\UserRequest;
-use App\User;
+use App\Models\User;
 use Inertia\Inertia;
 
 class UsersController extends Controller
