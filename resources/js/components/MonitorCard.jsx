@@ -29,21 +29,21 @@ export default function MonitorCard({ monitor }) {
                         <h3 className="font-semibold text-base text-gray-900 leading-tight mb-1.5 truncate">
                             {monitor.name}
                         </h3>
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm text-gray-500 truncate flex-1 min-w-0">
+                        <div className="flex items-center gap-1">
+                            <span className="text-sm text-gray-500 truncate">
                                 {monitor.raw_url}
                             </span>
                             <a
-                                className="flex-shrink-0 text-gray-400 hover:text-purple-600 transition-colors p-1 rounded hover:bg-purple-50"
+                                className="shrink-0 text-gray-400 hover:text-purple-600 transition-colors p-1 rounded hover:bg-purple-50"
                                 href={monitor.raw_url}
                                 target="_blank"
                                 rel="noreferrer"
                             >
-                                <ArrowTopRightOnSquareIcon className="h-4 w-4" />
+                                <ArrowTopRightOnSquareIcon className="h-3 w-3" />
                             </a>
                         </div>
                     </div>
-                    <div className="flex gap-1 ml-3 flex-shrink-0">
+                    <div className="flex gap-1 ml-3 shrink-0">
                         <Link
                             href={route("monitors.edit", monitor.id)}
                             className="p-2 rounded-lg text-gray-400 hover:bg-purple-50 hover:text-purple-600 transition-colors"

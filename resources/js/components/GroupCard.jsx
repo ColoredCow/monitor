@@ -22,7 +22,7 @@ export default function GroupCard({ group }) {
     return (
         <div className="w-full md:w-1/2 lg:w-1/3 px-3 mb-6">
             <div className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200 h-full flex flex-col">
-                <div className="flex justify-between items-start mb-4">
+                <div className="flex justify-between items-start">
                     <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-base text-gray-900 leading-tight mb-2">
                             {group.name}
