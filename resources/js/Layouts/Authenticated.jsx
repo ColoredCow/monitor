@@ -19,11 +19,9 @@ export default function Authenticated({ auth, children }) {
                                 href="/"
                                 className="flex items-center gap-3 transition-opacity hover:opacity-80"
                             >
-                                <div className="bg-gradient-to-br from-purple-600 to-indigo-600 p-2.5 rounded-xl shadow-sm">
-                                    <ApplicationLogo className="block h-6 w-auto text-white" />
-                                </div>
+                                <ApplicationLogo className="block h-6 w-auto text-white" />
                                 <span className="font-bold text-lg tracking-tight text-gray-900 hidden lg:block">
-                                    Monitor
+                                    ColoredCow Monitor
                                 </span>
                             </Link>
 

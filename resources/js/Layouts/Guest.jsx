@@ -15,15 +15,10 @@ export default function Guest({ children }) {
 
             <div className="z-10 flex flex-col items-center">
                 <Link href="/" className="flex flex-col items-center group">
-                    <div className="p-4 bg-white rounded-3xl premium-shadow mb-6 transition-transform duration-300 group-hover:scale-110">
-                        <ApplicationLogo className="w-16 h-12" />
-                    </div>
+                    <ApplicationLogo className="w-16 h-12" />
                     <h1 className="text-3xl font-bold tracking-tight text-gray-900 mb-2">
                         ColoredCow Monitor
                     </h1>
-                    <p className="text-gray-500 font-medium mb-8">
-                        Maintain vigilance across your infrastructure
-                    </p>
                 </Link>
             </div>
 
