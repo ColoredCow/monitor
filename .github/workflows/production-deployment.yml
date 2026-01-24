@@ -2,7 +2,7 @@ name: Production Deployment
 
 on:
   push:
-    branches: [main, feature/prod-deployment]
+    branches: [main]
 
 jobs:
   deploy:
@@ -58,8 +58,8 @@ jobs:
             php artisan down
 
             echo "Pulling latest backend code"
-            git checkout -f feature/prod-deployment
-            git pull origin feature/prod-deployment
+            git checkout -f main
+            git pull origin main
 
             echo "Running migrations"
             php artisan migrate --force
