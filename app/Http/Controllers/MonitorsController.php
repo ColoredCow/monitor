@@ -5,7 +5,11 @@ namespace App\Http\Controllers;
 use App\Http\Requests\MonitorRequest;
 use App\Models\Group;
 use App\Models\Monitor;
+use App\Models\MonitorCheckLog;
+use App\Services\MonitorCheckLogService;
 use App\Services\DomainService;
+use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class MonitorsController extends Controller
@@ -92,10 +96,88 @@ class MonitorsController extends Controller
      *
      * @return \Illuminate\Contracts\Support\Renderable
      */
-    public function show(Monitor $monitor)
+    public function show(Request $request, Monitor $monitor)
     {
+        $history = null;
+
+        if (config('monitor-history.enabled')) {
+            $range = $this->resolveHistoryRange($request, $monitor);
+            $fromUtc = $range['from']->copy()->startOfDay()->utc();
+            $toUtc = $range['to']->copy()->endOfDay()->utc();
+            $timezone = $range['timezone'];
+
+            $selectedRangeQuery = $monitor->checkLogs()
+                ->whereBetween('checked_at', [$fromUtc, $toUtc]);
+
+            $allTimeSummary = $this->buildSummary($monitor->checkLogs());
+            $selectedRangeSummary = $this->buildSummary($selectedRangeQuery);
+
+            $dailyMetrics = $monitor->dailyCheckMetrics()
+                ->forTimezone($timezone)
+                ->betweenDates($range['from']->toDateString(), $range['to']->toDateString())
+                ->orderBy('date')
+                ->get()
+                ->groupBy('check_type')
+                ->map(function ($rows) {
+                    return $rows->map(function ($row) {
+                        return [
+                            'date' => $row->date->toDateString(),
+                            'total_checks' => $row->total_checks,
+                            'successful_checks' => $row->successful_checks,
+                            'warning_checks' => $row->warning_checks,
+                            'failed_checks' => $row->failed_checks,
+                            'success_ratio' => (float) $row->success_ratio,
+                            'worst_status' => $row->worst_status,
+                            'avg_response_time_ms' => $row->avg_response_time_ms,
+                            'p95_response_time_ms' => $row->p95_response_time_ms,
+                        ];
+                    })->values();
+                });
+
+            $recentChecks = $monitor->checkLogs()
+                ->latest('checked_at')
+                ->limit((int) config('monitor-history.recent_checks_limit', 50))
+                ->get()
+                ->map(function (MonitorCheckLog $log) use ($timezone) {
+                    return [
+                        'id' => $log->id,
+                        'check_type' => $log->check_type,
+                        'status' => $log->status,
+                        'checked_at' => $log->checked_at->timezone($timezone)->toDateTimeString(),
+                        'message' => $log->message,
+                        'failure_reason' => $log->failure_reason,
+                        'response_time_ms' => $log->response_time_ms,
+                        'metadata' => $log->metadata,
+                    ];
+                });
+
+            $history = [
+                'range' => [
+                    'preset' => $range['preset'],
+                    'from' => $range['from']->toDateString(),
+                    'to' => $range['to']->toDateString(),
+                    'timezone' => $timezone,
+                ],
+                'available_check_types' => array_values(array_unique(array_merge(
+                    [
+                        MonitorCheckLogService::CHECK_TYPE_UPTIME,
+                        MonitorCheckLogService::CHECK_TYPE_DOMAIN,
+                        MonitorCheckLogService::CHECK_TYPE_CERTIFICATE,
+                    ],
+                    $monitor->checkLogs()->distinct()->pluck('check_type')->all()
+                ))),
+                'summary' => [
+                    'all_time' => $allTimeSummary,
+                    'selected_range' => $selectedRangeSummary,
+                ],
+                'daily_metrics' => $dailyMetrics,
+                'recent_checks' => $recentChecks,
+            ];
+        }
+
         return Inertia::render('Monitors/Show', [
             'monitor' => $monitor,
+            'history' => $history,
         ]);
     }
 
@@ -150,5 +232,136 @@ class MonitorsController extends Controller
         $monitor->delete();
 
         return redirect()->route('monitors.index');
+    }
+
+    protected function resolveHistoryRange(Request $request, Monitor $monitor): array
+    {
+        $timezone = $request->string('timezone')->toString();
+        if ($timezone === '' || ! in_array($timezone, timezone_identifiers_list(), true)) {
+            $timezone = config('app.timezone', 'UTC');
+        }
+
+        $preset = $request->string('preset')->toString() ?: '30d';
+
+        if ($preset === 'all') {
+            $firstCheckedAt = $monitor->checkLogs()->orderBy('checked_at')->value('checked_at');
+
+            $from = $firstCheckedAt
+                ? Carbon::parse($firstCheckedAt)->timezone($timezone)->startOfDay()
+                : Carbon::now($timezone)->subDays(30)->startOfDay();
+            $to = Carbon::now($timezone)->endOfDay();
+
+            return compact('preset', 'from', 'to', 'timezone');
+        }
+
+        if ($preset === '7d') {
+            return [
+                'preset' => $preset,
+                'from' => Carbon::now($timezone)->subDays(6)->startOfDay(),
+                'to' => Carbon::now($timezone)->endOfDay(),
+                'timezone' => $timezone,
+            ];
+        }
+
+        if ($preset === 'custom') {
+            $fromInput = $request->string('from')->toString();
+            $toInput = $request->string('to')->toString();
+
+            $from = $fromInput !== ''
+                ? $this->parseDateInput($fromInput, $timezone, Carbon::now($timezone)->subDays(30)->startOfDay())
+                : Carbon::now($timezone)->subDays(30)->startOfDay();
+            $to = $toInput !== ''
+                ? $this->parseDateInput($toInput, $timezone, Carbon::now($timezone)->endOfDay(), true)
+                : Carbon::now($timezone)->endOfDay();
+
+            if ($from->greaterThan($to)) {
+                [$from, $to] = [$to->copy()->startOfDay(), $from->copy()->endOfDay()];
+            }
+
+            return compact('preset', 'from', 'to', 'timezone');
+        }
+
+        return [
+            'preset' => '30d',
+            'from' => Carbon::now($timezone)->subDays(29)->startOfDay(),
+            'to' => Carbon::now($timezone)->endOfDay(),
+            'timezone' => $timezone,
+        ];
+    }
+
+    protected function parseDateInput(string $value, string $timezone, Carbon $fallback, bool $endOfDay = false): Carbon
+    {
+        try {
+            $date = Carbon::parse($value, $timezone);
+
+            return $endOfDay ? $date->endOfDay() : $date->startOfDay();
+        } catch (\Throwable $exception) {
+            return $fallback;
+        }
+    }
+
+    protected function buildSummary($query): array
+    {
+        $rows = (clone $query)
+            ->selectRaw('check_type, status, COUNT(*) as aggregate')
+            ->groupBy('check_type', 'status')
+            ->get();
+
+        $summary = [
+            'total_checks' => 0,
+            'status_totals' => [
+                MonitorCheckLogService::STATUS_SUCCESS => 0,
+                MonitorCheckLogService::STATUS_WARNING => 0,
+                MonitorCheckLogService::STATUS_FAILED => 0,
+                MonitorCheckLogService::STATUS_UNKNOWN => 0,
+            ],
+            'by_type' => [],
+        ];
+
+        foreach ($rows as $row) {
+            $type = $row->check_type;
+            $status = $row->status;
+            $aggregate = (int) $row->aggregate;
+
+            if (! isset($summary['by_type'][$type])) {
+                $summary['by_type'][$type] = [
+                    'total_checks' => 0,
+                    'status_totals' => [
+                        MonitorCheckLogService::STATUS_SUCCESS => 0,
+                        MonitorCheckLogService::STATUS_WARNING => 0,
+                        MonitorCheckLogService::STATUS_FAILED => 0,
+                        MonitorCheckLogService::STATUS_UNKNOWN => 0,
+                    ],
+                    'success_ratio' => 0,
+                ];
+            }
+
+            if (! isset($summary['status_totals'][$status])) {
+                $summary['status_totals'][$status] = 0;
+            }
+
+            if (! isset($summary['by_type'][$type]['status_totals'][$status])) {
+                $summary['by_type'][$type]['status_totals'][$status] = 0;
+            }
+
+            $summary['total_checks'] += $aggregate;
+            $summary['status_totals'][$status] += $aggregate;
+            $summary['by_type'][$type]['total_checks'] += $aggregate;
+            $summary['by_type'][$type]['status_totals'][$status] += $aggregate;
+        }
+
+        foreach ($summary['by_type'] as $type => $typeSummary) {
+            $totalChecks = $typeSummary['total_checks'];
+            $successfulChecks = $typeSummary['status_totals'][MonitorCheckLogService::STATUS_SUCCESS] ?? 0;
+            $summary['by_type'][$type]['success_ratio'] = $totalChecks > 0
+                ? round(($successfulChecks / $totalChecks) * 100, 2)
+                : 0;
+        }
+
+        $summary['success_ratio'] = $summary['total_checks'] > 0
+            ? round(($summary['status_totals'][MonitorCheckLogService::STATUS_SUCCESS] / $summary['total_checks']) * 100, 2)
+            : 0;
+
+        return $summary;
     }
 }
