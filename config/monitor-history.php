@@ -18,4 +18,9 @@ return [
      * Maximum recent check rows to return on monitor detail page.
      */
     'recent_checks_limit' => 50,
+
+    /*
+     * How many days of raw logs to keep before pruning.
+     */
+    'raw_log_retention_days' => 180,
 ];

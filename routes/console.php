@@ -24,3 +24,4 @@ Schedule::command('monitor:check-uptime')->everyMinute();
 Schedule::command('monitor:check-certificate')->daily();
 Schedule::command('monitor:check-domain-expiration')->daily();
 Schedule::command('monitor:aggregate-check-metrics')->hourly();
+Schedule::command('monitor:prune-check-history')->dailyAt('01:00');
