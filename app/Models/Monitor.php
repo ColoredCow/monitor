@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\UptimeMonitor\Models\Monitor as SpatieMonitor;
 
 class Monitor extends SpatieMonitor
@@ -26,5 +27,15 @@ class Monitor extends SpatieMonitor
     public function group()
     {
         return $this->belongsTo(Group::class);
+    }
+
+    public function checkLogs(): HasMany
+    {
+        return $this->hasMany(MonitorCheckLog::class);
+    }
+
+    public function dailyCheckMetrics(): HasMany
+    {
+        return $this->hasMany(MonitorDailyCheckMetric::class);
     }
 }
