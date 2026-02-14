@@ -5,6 +5,7 @@ import MonitorCheckIntervalIcon from "./MonitorCheckIntervalIcon";
 import { Link, router } from "@inertiajs/react";
 import {
     ArrowTopRightOnSquareIcon,
+    EyeIcon,
     PencilIcon,
     TrashIcon,
 } from "@heroicons/react/24/outline";
@@ -44,6 +45,13 @@ export default function MonitorCard({ monitor }) {
                         </div>
                     </div>
                     <div className="flex gap-1 ml-3 shrink-0">
+                        <Link
+                            href={route("monitors.show", monitor.id)}
+                            className="p-2 rounded-lg text-gray-400 hover:bg-gray-50 hover:text-gray-700 transition-colors"
+                            title="View monitor details"
+                        >
+                            <EyeIcon className="h-4 w-4" />
+                        </Link>
                         <Link
                             href={route("monitors.edit", monitor.id)}
                             className="p-2 rounded-lg text-gray-400 hover:bg-purple-50 hover:text-purple-600 transition-colors"
