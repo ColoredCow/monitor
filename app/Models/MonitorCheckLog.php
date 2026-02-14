@@ -13,6 +13,7 @@ class MonitorCheckLog extends Model
 
     protected $fillable = [
         'monitor_id',
+        'idempotency_key',
         'check_type',
         'status',
         'checked_at',

@@ -30,9 +30,9 @@ class CheckDomainExpiration extends Command
         $hasNotifications = false;
 
         foreach ($monitors as $monitor) {
-            $notificationMessageConfirmation = $domainService->verifyDomainExpiration($monitor);
+            $result = $domainService->verifyDomainExpiration($monitor);
 
-            if ($notificationMessageConfirmation) {
+            if ($result['notified']) {
                 $hasNotifications = true;
             }
         }

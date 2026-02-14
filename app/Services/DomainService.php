@@ -34,12 +34,38 @@ class DomainService
         return false;
     }
 
-    public function verifyDomainExpiration(Monitor $monitor): bool
+    public function verifyDomainExpiration(Monitor $monitor): array
     {
+        if (! $monitor->domain_check_enabled) {
+            return [
+                'status' => MonitorCheckLogService::STATUS_UNKNOWN,
+                'notified' => false,
+                'reason' => 'Domain check is disabled for this monitor.',
+                'days_until_expiration' => null,
+                'expiration_date' => null,
+            ];
+        }
+
+        $checkedAt = Carbon::now()->utc();
         $domainInfo = $this->getDomainExpirationDate($monitor->url);
 
         if (empty($domainInfo)) {
-            return false;
+            app(MonitorCheckLogService::class)->logCheck(
+                monitor: $monitor,
+                checkType: MonitorCheckLogService::CHECK_TYPE_DOMAIN,
+                status: MonitorCheckLogService::STATUS_FAILED,
+                checkedAt: $checkedAt,
+                message: 'Domain expiration lookup failed.',
+                failureReason: 'Unable to determine domain expiration date.',
+            );
+
+            return [
+                'status' => MonitorCheckLogService::STATUS_FAILED,
+                'notified' => false,
+                'reason' => 'Unable to determine domain expiration date.',
+                'days_until_expiration' => null,
+                'expiration_date' => null,
+            ];
         }
 
         $expirationDate = Carbon::parse($domainInfo['expirationDate']);
@@ -47,18 +73,50 @@ class DomainService
             $this->updateDomainExpiration($monitor, $domainInfo['expirationDate']);
         }
 
-        return $this->checkAndNotifyExpiration($monitor);
+        $daysUntilExpiration = Carbon::now()->startOfDay()->diffInDays($expirationDate->copy()->startOfDay(), false);
+        $notifications = $this->checkAndNotifyExpiration($monitor, $daysUntilExpiration);
+
+        $status = match (true) {
+            $daysUntilExpiration < 0 => MonitorCheckLogService::STATUS_FAILED,
+            $daysUntilExpiration <= 30 => MonitorCheckLogService::STATUS_WARNING,
+            default => MonitorCheckLogService::STATUS_SUCCESS,
+        };
+
+        $message = match (true) {
+            $daysUntilExpiration < 0 => 'Domain has expired.',
+            $daysUntilExpiration === 0 => 'Domain expires today.',
+            default => "Domain expires in {$daysUntilExpiration} day(s).",
+        };
+
+        app(MonitorCheckLogService::class)->logCheck(
+            monitor: $monitor,
+            checkType: MonitorCheckLogService::CHECK_TYPE_DOMAIN,
+            status: $status,
+            checkedAt: $checkedAt,
+            message: $message,
+            metadata: [
+                'days_until_expiration' => $daysUntilExpiration,
+                'expiration_date' => optional($monitor->domain_expires_at)->toDateString(),
+                'notifications_sent' => count($notifications),
+            ],
+        );
+
+        return [
+            'status' => $status,
+            'notified' => ! empty($notifications),
+            'reason' => null,
+            'days_until_expiration' => $daysUntilExpiration,
+            'expiration_date' => optional($monitor->domain_expires_at)->toDateString(),
+        ];
     }
 
-    protected function checkAndNotifyExpiration(Monitor $monitor): bool
+    protected function checkAndNotifyExpiration(Monitor $monitor, int $daysUntilExpiration): array
     {
         $expirationDate = $monitor->domain_expires_at;
 
         if (! $expirationDate) {
-            return false;
+            return [];
         }
-
-        $daysUntilExpiration = Carbon::now()->diffInDays($expirationDate);
 
         $domainCheckTimePeriods = config('domain-expiration.domain_check_time_period');
 
@@ -67,7 +125,7 @@ class DomainService
         foreach ($domainCheckTimePeriods as $warningType => $details) {
             $daysThreshold = $details['days'];
 
-            if ($daysUntilExpiration === $daysThreshold) {
+            if ($daysUntilExpiration >= 0 && $daysUntilExpiration === $daysThreshold) {
                 $notifications[] = [
                     'days' => $daysThreshold,
                     'message' => "Domain expires in $daysThreshold ".($daysThreshold === 1 ? 'day' : 'days').'!',
@@ -77,7 +135,7 @@ class DomainService
         }
 
         if (empty($notifications)) {
-            return false;
+            return [];
         }
 
         $notifiable = new Notifiable;
@@ -87,7 +145,7 @@ class DomainService
             $notifiable->notify($notificationInstance);
         }
 
-        return true;
+        return $notifications;
     }
 
     protected function getDomainExpirationDate(string $url): array
