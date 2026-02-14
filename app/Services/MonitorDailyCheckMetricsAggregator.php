@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
-use App\Models\MonitorDailyCheckMetric;
 use App\Models\MonitorCheckLog;
+use App\Models\MonitorDailyCheckMetric;
 use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Collection;
