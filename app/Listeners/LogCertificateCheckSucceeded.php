@@ -8,9 +8,7 @@ use Spatie\UptimeMonitor\Events\CertificateCheckSucceeded;
 
 class LogCertificateCheckSucceeded
 {
-    public function __construct(protected MonitorCheckLogService $monitorCheckLogService)
-    {
-    }
+    public function __construct(protected MonitorCheckLogService $monitorCheckLogService) {}
 
     public function handle(CertificateCheckSucceeded $event): void
     {
