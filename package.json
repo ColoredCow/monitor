@@ -14,7 +14,7 @@
         "@tailwindcss/vite": "^4.1.18",
         "@vitejs/plugin-react": "^5.1.2",
         "autoprefixer": "^10.4.23",
-        "axios": "^1.13.2",
+        "axios": "^1.16.0",
         "bootstrap": "^4.0.0",
         "jquery": "^3.2",
         "laravel-vite-plugin": "^2.1.0",
