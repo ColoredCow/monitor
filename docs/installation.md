@@ -107,3 +107,32 @@ Before you start following the guidelines, make sure to go through the [prerequi
     php artisan serve
     ```
     Note- php artisan serve command will start a development server on your local machine that listens to port 8000 by default. This command will provide a link in the terminal which we can copy and paste it in our browser and see our laraver application.
+
+## Running tests
+
+The test suite runs against MySQL (not SQLite) so `RefreshDatabase` exercises the
+same engine as production. It uses a **dedicated** database named `monitor_test`
+(configured in `phpunit.xml`) so tests never touch your development data — a guard
+test fails fast if the suite is pointed anywhere else.
+
+1. Create the test database once:
+
+    ```sh
+    mysql -u root -e "CREATE DATABASE IF NOT EXISTS monitor_test;"
+    ```
+
+    (Adjust the user/host to match your `.env`. No data needs to be seeded —
+    migrations run automatically.)
+
+2. If `php artisan config:cache` was ever run, clear it first, otherwise the cached
+   `DB_DATABASE` overrides `phpunit.xml` and the suite would run against your dev DB:
+
+    ```sh
+    php artisan config:clear
+    ```
+
+3. Run the suite:
+
+    ```sh
+    php artisan test
+    ```

@@ -3,6 +3,37 @@ import { CHECK_STATUS, normalizeCheckStatus } from "@/Utils/checkStatusSeverity"
 
 const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
+// Mirrors the cell colors produced by getCellClasses(): healthy and failed cells
+// are graded by success ratio (lighter = lower volume/ratio, darker = higher), and
+// warning cells use yellow for high ratios and orange for low ones.
+const LEGEND_ITEMS = [
+    { label: "No checks", swatches: ["bg-gray-100 border-gray-200"] },
+    {
+        label: "Healthy",
+        swatches: [
+            "bg-green-300 border-green-300",
+            "bg-green-500 border-green-500",
+            "bg-green-700 border-green-700",
+        ],
+    },
+    {
+        label: "Warning",
+        swatches: [
+            "bg-yellow-300 border-yellow-300",
+            "bg-orange-400 border-orange-400",
+        ],
+    },
+    {
+        label: "Failed",
+        swatches: [
+            "bg-red-300 border-red-300",
+            "bg-red-500 border-red-500",
+            "bg-red-700 border-red-700",
+        ],
+    },
+    { label: "Unknown", swatches: ["bg-gray-300 border-gray-300"] },
+];
+
 function parseIsoDateUTC(isoDate) {
     const [year, month, day] = isoDate.split("-").map(Number);
     return new Date(Date.UTC(year, month - 1, day));
@@ -169,26 +200,19 @@ export default function MonitorHistoryHeatmap({
             </div>
 
             <div className="mt-4 flex items-center flex-wrap gap-x-4 gap-y-2 text-xs text-gray-500">
-                <span className="flex items-center gap-1.5">
-                    <span className="h-3.5 w-3.5 rounded-sm border border-gray-200 bg-gray-100" />
-                    No checks
-                </span>
-                <span className="flex items-center gap-1.5">
-                    <span className="h-3.5 w-3.5 rounded-sm border border-green-500 bg-green-500" />
-                    Healthy
-                </span>
-                <span className="flex items-center gap-1.5">
-                    <span className="h-3.5 w-3.5 rounded-sm border border-orange-400 bg-orange-400" />
-                    Warning
-                </span>
-                <span className="flex items-center gap-1.5">
-                    <span className="h-3.5 w-3.5 rounded-sm border border-red-500 bg-red-500" />
-                    Failed
-                </span>
-                <span className="flex items-center gap-1.5">
-                    <span className="h-3.5 w-3.5 rounded-sm border border-gray-300 bg-gray-300" />
-                    Unknown
-                </span>
+                {LEGEND_ITEMS.map((item) => (
+                    <span key={item.label} className="flex items-center gap-1.5">
+                        <span className="flex gap-0.5">
+                            {item.swatches.map((swatch) => (
+                                <span
+                                    key={swatch}
+                                    className={`h-3.5 w-3.5 rounded-sm border ${swatch}`}
+                                />
+                            ))}
+                        </span>
+                        {item.label}
+                    </span>
+                ))}
             </div>
         </div>
     );

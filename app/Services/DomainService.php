@@ -50,7 +50,7 @@ class DomainService
         $domainInfo = $this->getDomainExpirationDate($monitor->url);
 
         if (empty($domainInfo)) {
-            app(MonitorCheckLogService::class)->logCheck(
+            app(MonitorCheckLogService::class)->logCheckIfEnabled(
                 monitor: $monitor,
                 checkType: MonitorCheckLogService::CHECK_TYPE_DOMAIN,
                 status: MonitorCheckLogService::STATUS_FAILED,
@@ -82,7 +82,7 @@ class DomainService
         $status = $outcome['status'];
         $message = $outcome['message'];
 
-        app(MonitorCheckLogService::class)->logCheck(
+        app(MonitorCheckLogService::class)->logCheckIfEnabled(
             monitor: $monitor,
             checkType: MonitorCheckLogService::CHECK_TYPE_DOMAIN,
             status: $status,
@@ -124,29 +124,41 @@ class DomainService
         return ['status' => $status, 'message' => $message];
     }
 
-    protected function checkAndNotifyExpiration(Monitor $monitor, int $daysUntilExpiration): array
+    /**
+     * Resolve which expiration-warning notifications are due for a whole-day count
+     * until expiration. Returns at most one notification (the first matching
+     * threshold). An already-expired domain (negative days) never produces an
+     * "expires in N days" warning.
+     */
+    public function resolveExpirationNotifications(int $daysUntilExpiration): array
     {
-        $expirationDate = $monitor->domain_expires_at;
-
-        if (! $expirationDate) {
+        if ($daysUntilExpiration < 0) {
             return [];
         }
 
-        $domainCheckTimePeriods = config('domain-expiration.domain_check_time_period');
+        $domainCheckTimePeriods = config('domain-expiration.domain_check_time_period', []);
 
-        $notifications = [];
-
-        foreach ($domainCheckTimePeriods as $warningType => $details) {
+        foreach ($domainCheckTimePeriods as $details) {
             $daysThreshold = $details['days'];
 
-            if ($daysUntilExpiration >= 0 && $daysUntilExpiration === $daysThreshold) {
-                $notifications[] = [
+            if ($daysUntilExpiration === $daysThreshold) {
+                return [[
                     'days' => $daysThreshold,
                     'message' => "Domain expires in $daysThreshold ".($daysThreshold === 1 ? 'day' : 'days').'!',
-                ];
-                break;
+                ]];
             }
         }
+
+        return [];
+    }
+
+    protected function checkAndNotifyExpiration(Monitor $monitor, int $daysUntilExpiration): array
+    {
+        if (! $monitor->domain_expires_at) {
+            return [];
+        }
+
+        $notifications = $this->resolveExpirationNotifications($daysUntilExpiration);
 
         if (empty($notifications)) {
             return [];

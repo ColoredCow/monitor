@@ -17,7 +17,7 @@ class LogCertificateCheckSucceeded
             return;
         }
 
-        $this->monitorCheckLogService->logCheck(
+        $this->monitorCheckLogService->logCheckIfEnabled(
             monitor: $monitor,
             checkType: MonitorCheckLogService::CHECK_TYPE_CERTIFICATE,
             status: MonitorCheckLogService::STATUS_SUCCESS,

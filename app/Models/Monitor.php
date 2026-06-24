@@ -45,7 +45,7 @@ class Monitor extends SpatieMonitor
             ? $updatedMonitor->uptime_check_failure_reason
             : null;
 
-        app(MonitorCheckLogService::class)->logCheck(
+        app(MonitorCheckLogService::class)->logCheckIfEnabled(
             monitor: $updatedMonitor,
             checkType: MonitorCheckLogService::CHECK_TYPE_UPTIME,
             status: $status,
@@ -68,7 +68,7 @@ class Monitor extends SpatieMonitor
             return;
         }
 
-        app(MonitorCheckLogService::class)->logCheck(
+        app(MonitorCheckLogService::class)->logCheckIfEnabled(
             monitor: $updatedMonitor,
             checkType: MonitorCheckLogService::CHECK_TYPE_UPTIME,
             status: MonitorCheckLogService::STATUS_FAILED,

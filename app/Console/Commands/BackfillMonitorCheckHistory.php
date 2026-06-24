@@ -14,11 +14,11 @@ class BackfillMonitorCheckHistory extends Command
 {
     protected $signature = 'monitor:backfill-check-history
                             {--monitor-id= : Backfill only one monitor by id}
-                            {--days=30 : Days window used for aggregation after backfill}
+                            {--days=30 : Size of the aggregation window (in days) rolled up after the snapshot; does NOT fabricate per-day history}
                             {--timezone= : Timezone used for daily aggregation}
                             {--dry-run : Preview rows without writing}';
 
-    protected $description = 'Create synthetic monitor check logs from current monitor state';
+    protected $description = 'Seed one synthetic check log per enabled check type from current monitor state (approximate, not real history)';
 
     public function handle(
         MonitorCheckLogService $logService,

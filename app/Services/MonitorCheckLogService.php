@@ -23,6 +23,40 @@ class MonitorCheckLogService
 
     public const STATUS_UNKNOWN = 'unknown';
 
+    /**
+     * Log a check only when monitor history is enabled.
+     *
+     * This is the entry point for automatic, per-check ingestion (uptime/domain/
+     * certificate hooks). When the feature flag is off it is a no-op, so a "default
+     * off" deployment incurs no per-check write load. Operator-driven paths
+     * (backfill, seeder) call logCheck() directly to bypass the flag.
+     */
+    public function logCheckIfEnabled(
+        Monitor $monitor,
+        string $checkType,
+        string $status,
+        CarbonInterface|string|null $checkedAt = null,
+        ?string $message = null,
+        ?string $failureReason = null,
+        ?int $responseTimeMs = null,
+        array $metadata = []
+    ): ?MonitorCheckLog {
+        if (! config('monitor-history.enabled')) {
+            return null;
+        }
+
+        return $this->logCheck(
+            $monitor,
+            $checkType,
+            $status,
+            $checkedAt,
+            $message,
+            $failureReason,
+            $responseTimeMs,
+            $metadata
+        );
+    }
+
     public function logCheck(
         Monitor $monitor,
         string $checkType,

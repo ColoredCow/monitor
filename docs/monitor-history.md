@@ -4,11 +4,26 @@ This document covers operational workflows for monitor history logging, aggregat
 
 ## Feature Flag
 
-Monitor history UI and payload are controlled by:
+The entire monitor-history feature is controlled by a single flag (default **off**):
 
 ```bash
 MONITOR_HISTORY_ENABLED=true
 ```
+
+When the flag is **off**, the feature is a true no-op:
+
+- Per-check ingestion (uptime/domain/certificate hooks) writes **no** rows to
+  `monitor_check_logs`, so there is no added write load.
+- The scheduled `monitor:aggregate-check-metrics` and `monitor:prune-check-history`
+  jobs are skipped entirely (nothing is aggregated or pruned).
+- The monitor detail page returns no history payload.
+
+Core uptime/certificate/domain checking and domain-expiry notifications are
+**not** affected by this flag — they always run.
+
+Operator commands (`monitor:backfill-check-history`, `monitor:aggregate-check-metrics`,
+`monitor:prune-check-history`) can still be run manually regardless of the flag, so
+history can be pre-staged before the feature is switched on.
 
 ## Timezone
 
@@ -44,7 +59,8 @@ Useful options:
 
 ### Backfill synthetic logs (one-time bootstrap)
 
-Creates synthetic check logs from current monitor state and aggregates days window.
+Seeds **one** synthetic check log per enabled check type from each monitor's
+*current* state, then aggregates the window into daily metrics.
 
 ```bash
 php artisan monitor:backfill-check-history --days=30
@@ -59,7 +75,11 @@ Useful options:
 Notes:
 
 - Backfill records include `metadata.source=backfill`.
-- Backfill is best-effort and should be treated as approximate history.
+- This is a **single current-state snapshot per check type**, not a reconstruction
+  of real per-day history (that data does not exist). It exists only so a monitor
+  is not completely empty before real checks start accumulating. `--days` sizes the
+  aggregation window that rolls the snapshot up; it does not fabricate per-day rows.
+- Real history begins accumulating from the moment the feature flag is switched on.
 
 ### Prune old raw logs
 
@@ -76,12 +96,13 @@ Useful options:
 
 ## Scheduler
 
-Configured schedules:
+History maintenance schedules (only run while `MONITOR_HISTORY_ENABLED=true`, and
+guarded with `withoutOverlapping()` so a slow run cannot stack on the next tick):
 
 - `monitor:aggregate-check-metrics` hourly
 - `monitor:prune-check-history` daily at `01:00`
 
-Existing schedules remain unchanged:
+Existing core schedules remain unchanged and always run:
 
 - `monitor:check-uptime` every minute
 - `monitor:check-certificate` daily
@@ -101,22 +122,27 @@ Default:
 ## Rollout Checklist
 
 1. Deploy migrations for history tables and idempotency key.
-2. Deploy ingestion listeners/model hooks/services.
-3. Enable scheduler entries for aggregate/prune commands.
-4. Run backfill in `--dry-run` mode and review expected writes.
-5. Run live backfill once approved.
-6. Validate monitor detail page:
+2. Deploy the code (ingestion hooks, scheduler entries, services). All of it stays
+   dormant while `MONITOR_HISTORY_ENABLED` is off.
+3. (Optional) Pre-stage approximate history while the flag is still off:
+   - Run `monitor:backfill-check-history --dry-run` and review expected writes.
+   - Run the live backfill once approved.
+4. Enable `MONITOR_HISTORY_ENABLED=true` in the target environment. This activates,
+   together: per-check ingestion, the hourly aggregate + daily prune schedules, and
+   the detail-page payload. Real history accumulates from this point forward.
+5. Validate the monitor detail page:
    - range filters work
    - heatmaps render by check type
    - recent checks and totals are sensible
-7. Enable `MONITOR_HISTORY_ENABLED=true` in target environment.
-8. Monitor logs for command failures and verify aggregate row growth.
+6. Monitor logs for command failures and verify aggregate row growth.
 
 ## Troubleshooting
 
 ### No heatmap data visible
 
-- Confirm feature flag is enabled.
+- Confirm `MONITOR_HISTORY_ENABLED=true`. Ingestion only writes logs while the flag
+  is on, so a freshly enabled feature has no history until checks run (or a backfill
+  is performed).
 - Confirm `monitor_check_logs` has data.
 - Run `monitor:aggregate-check-metrics --lookback=30`.
 - Check selected timezone/range in monitor detail.
