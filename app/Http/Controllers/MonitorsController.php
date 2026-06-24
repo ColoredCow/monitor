@@ -100,12 +100,23 @@ class MonitorsController extends Controller
     public function show(Request $request, Monitor $monitor)
     {
         $history = null;
+        $graph = null;
 
         if (config('monitor-history.enabled')) {
             $range = $this->resolveHistoryRange($request, $monitor);
             $fromUtc = $range['from']->copy()->startOfDay()->utc();
             $toUtc = $range['to']->copy()->endOfDay()->utc();
             $timezone = $range['timezone'];
+
+            $availableYears = $this->availableYears($monitor, $timezone);
+            $graphYear = $this->resolveGraphYear($request, $availableYears);
+            $graph = [
+                'year' => $graphYear,
+                'available_years' => $availableYears,
+                'timezone' => $timezone,
+                'check_types' => $this->graphCheckTypes($monitor),
+                'series' => [],
+            ];
 
             $selectedRangeQuery = $monitor->checkLogs()
                 ->whereBetween('checked_at', [$fromUtc, $toUtc]);
@@ -186,6 +197,7 @@ class MonitorsController extends Controller
         return Inertia::render('Monitors/Show', [
             'monitor' => $monitor,
             'history' => $history,
+            'graph' => $graph,
         ]);
     }
 
@@ -375,5 +387,51 @@ class MonitorsController extends Controller
             : 0;
 
         return $summary;
+    }
+
+    protected function graphCheckTypes(Monitor $monitor): array
+    {
+        return [
+            [
+                'type' => MonitorCheckLogService::CHECK_TYPE_UPTIME,
+                'enabled' => (bool) $monitor->uptime_check_enabled,
+            ],
+            [
+                'type' => MonitorCheckLogService::CHECK_TYPE_DOMAIN,
+                'enabled' => (bool) $monitor->domain_check_enabled,
+            ],
+        ];
+    }
+
+    protected function availableYears(Monitor $monitor, string $timezone): array
+    {
+        $currentYear = (int) Carbon::now($timezone)->format('Y');
+
+        $firstCheckedAt = $monitor->checkLogs()->orderBy('checked_at')->value('checked_at');
+
+        if (! $firstCheckedAt) {
+            return [$currentYear];
+        }
+
+        $minYear = (int) Carbon::parse($firstCheckedAt)->timezone($timezone)->format('Y');
+
+        if ($minYear > $currentYear) {
+            $minYear = $currentYear;
+        }
+
+        return range($minYear, $currentYear);
+    }
+
+    protected function resolveGraphYear(Request $request, array $availableYears): int
+    {
+        $default = end($availableYears) ?: (int) Carbon::now('UTC')->format('Y');
+
+        $requested = $request->integer('year') ?: $default;
+
+        if (! in_array((int) $requested, $availableYears, true)) {
+            return (int) $default;
+        }
+
+        return (int) $requested;
     }
 }
