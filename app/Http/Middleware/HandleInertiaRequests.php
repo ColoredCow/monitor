@@ -35,6 +35,9 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'features' => [
+                'monitorHistory' => config('monitor-history.enabled'),
+            ],
         ]);
     }
 }

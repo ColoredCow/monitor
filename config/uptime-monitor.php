@@ -1,5 +1,16 @@
 <?php
 
+use App\Channels\GoogleChatChannel;
+use App\Models\Monitor;
+use App\Notifications\Notifiable;
+use App\Notifications\UptimeCheckFailed;
+use App\Notifications\UptimeCheckRecovered;
+use App\Notifications\UptimeCheckSucceeded;
+use Spatie\UptimeMonitor\Helpers\UptimeResponseCheckers\LookForStringChecker;
+use Spatie\UptimeMonitor\Notifications\Notifications\CertificateCheckFailed;
+use Spatie\UptimeMonitor\Notifications\Notifications\CertificateCheckSucceeded;
+use Spatie\UptimeMonitor\Notifications\Notifications\CertificateExpiresSoon;
+
 return [
 
     /*
@@ -8,13 +19,13 @@ return [
      */
     'notifications' => [
         'notifications' => [
-            \App\Notifications\UptimeCheckFailed::class => ['mail', \App\Channels\GoogleChatChannel::class],
-            \App\Notifications\UptimeCheckRecovered::class => ['mail', \App\Channels\GoogleChatChannel::class],
-            \App\Notifications\UptimeCheckSucceeded::class => [],
+            UptimeCheckFailed::class => ['mail', GoogleChatChannel::class],
+            UptimeCheckRecovered::class => ['mail', GoogleChatChannel::class],
+            UptimeCheckSucceeded::class => [],
 
-            \Spatie\UptimeMonitor\Notifications\Notifications\CertificateCheckFailed::class => ['mail'],
-            \Spatie\UptimeMonitor\Notifications\Notifications\CertificateExpiresSoon::class => ['mail'],
-            \Spatie\UptimeMonitor\Notifications\Notifications\CertificateCheckSucceeded::class => [],
+            CertificateCheckFailed::class => ['mail'],
+            CertificateExpiresSoon::class => ['mail'],
+            CertificateCheckSucceeded::class => [],
         ],
 
         /*
@@ -45,7 +56,7 @@ return [
          * Here you can specify the notifiable to which the notifications should be sent. The default
          * notifiable will use the variables specified in this config file.
          */
-        'notifiable' => \App\Notifications\Notifiable::class,
+        'notifiable' => Notifiable::class,
 
         /*
          * The date format used in notifications.
@@ -61,7 +72,7 @@ return [
          *
          * You can use any implementation of Spatie\UptimeMonitor\Helpers\UptimeResponseCheckers\UptimeResponseChecker here.
          */
-        'response_checker' => Spatie\UptimeMonitor\Helpers\UptimeResponseCheckers\LookForStringChecker::class,
+        'response_checker' => LookForStringChecker::class,
 
         /*
          * An uptime check will be performed if the last check was performed more than the
@@ -133,5 +144,5 @@ return [
      * own model here. The only requirement is that it should extend
      * `Spatie\UptimeMonitor\Models\Monitor`.
      */
-    'monitor_model' => \App\Models\Monitor::class,
+    'monitor_model' => Monitor::class,
 ];

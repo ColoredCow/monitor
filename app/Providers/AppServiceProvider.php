@@ -2,7 +2,14 @@
 
 namespace App\Providers;
 
+use App\Listeners\LogCertificateCheckFailed;
+use App\Listeners\LogCertificateCheckSucceeded;
+use Illuminate\Auth\Events\Registered;
+use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
+use Spatie\UptimeMonitor\Events\CertificateCheckFailed;
+use Spatie\UptimeMonitor\Events\CertificateCheckSucceeded;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -23,9 +30,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        \Illuminate\Support\Facades\Event::listen(
-            \Illuminate\Auth\Events\Registered::class,
-            \Illuminate\Auth\Listeners\SendEmailVerificationNotification::class
-        );
+        Event::listen(Registered::class, SendEmailVerificationNotification::class);
+        Event::listen(CertificateCheckSucceeded::class, LogCertificateCheckSucceeded::class);
+        Event::listen(CertificateCheckFailed::class, LogCertificateCheckFailed::class);
     }
 }

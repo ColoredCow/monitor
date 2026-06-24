@@ -20,6 +20,22 @@ Artisan::command('inspire', function () {
 
 use Illuminate\Support\Facades\Schedule;
 
+// Core uptime monitoring always runs, regardless of the history feature flag.
 Schedule::command('monitor:check-uptime')->everyMinute();
 Schedule::command('monitor:check-certificate')->daily();
 Schedule::command('monitor:check-domain-expiration')->daily();
+
+// Monitor-history maintenance only runs when the feature is enabled, so a
+// "default off" deployment performs no aggregation or pruning. withoutOverlapping()
+// prevents a slow aggregation run from stacking on the next hourly tick.
+$historyEnabled = fn () => (bool) config('monitor-history.enabled');
+
+Schedule::command('monitor:aggregate-check-metrics')
+    ->hourly()
+    ->when($historyEnabled)
+    ->withoutOverlapping();
+
+Schedule::command('monitor:prune-check-history')
+    ->dailyAt('01:00')
+    ->when($historyEnabled)
+    ->withoutOverlapping();
