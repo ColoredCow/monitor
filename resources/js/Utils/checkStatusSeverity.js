@@ -62,3 +62,31 @@ export function mapUptimeStatusToCheckStatus(uptimeStatus) {
             return CHECK_STATUS.UNKNOWN;
     }
 }
+
+export const CHECK_TYPE_STATUSES = Object.freeze({
+    uptime: [CHECK_STATUS.SUCCESS, CHECK_STATUS.FAILED, CHECK_STATUS.UNKNOWN],
+    domain: [
+        CHECK_STATUS.SUCCESS,
+        CHECK_STATUS.WARNING,
+        CHECK_STATUS.FAILED,
+        CHECK_STATUS.UNKNOWN,
+    ],
+    certificate: [
+        CHECK_STATUS.SUCCESS,
+        CHECK_STATUS.FAILED,
+        CHECK_STATUS.UNKNOWN,
+    ],
+});
+
+const ALL_CHECK_STATUSES = [
+    CHECK_STATUS.SUCCESS,
+    CHECK_STATUS.WARNING,
+    CHECK_STATUS.FAILED,
+    CHECK_STATUS.UNKNOWN,
+];
+
+export function statusesForCheckType(checkType) {
+    const statuses = CHECK_TYPE_STATUSES[checkType] || ALL_CHECK_STATUSES;
+
+    return [...statuses];
+}
