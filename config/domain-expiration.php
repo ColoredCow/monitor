@@ -1,5 +1,9 @@
 <?php
 
+use App\Channels\GoogleChatChannel;
+use App\Notifications\DomainExpirationWarning;
+use App\Notifications\Notifiable;
+
 return [
 
     /*
@@ -8,7 +12,7 @@ return [
      */
     'notifications' => [
         'notifications' => [
-            \App\Notifications\DomainExpirationWarning::class => ['mail', \App\Channels\GoogleChatChannel::class],
+            DomainExpirationWarning::class => ['mail', GoogleChatChannel::class],
         ],
 
         /*
@@ -33,7 +37,7 @@ return [
          * Here you can specify the notifiable to which the notifications should be sent. The default
          * notifiable will use the variables specified in this config file.
          */
-        'notifiable' => \App\Notifications\Notifiable::class,
+        'notifiable' => Notifiable::class,
 
         /*
          * The date format used in notifications.
