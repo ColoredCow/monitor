@@ -31,4 +31,10 @@ return [
      * How many days of raw logs to keep before pruning.
      */
     'raw_log_retention_days' => 180,
+
+    /*
+     * How many days of synthetic history MonitorHistorySeeder generates when
+     * seeding demo data locally (php artisan db:seed --class=MonitorHistorySeeder).
+     */
+    'seed_days' => (int) env('MONITOR_HISTORY_SEED_DAYS', 90),
 ];
