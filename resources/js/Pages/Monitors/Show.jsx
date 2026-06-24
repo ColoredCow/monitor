@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Authenticated from "@/Layouts/Authenticated";
 import { Head, Link, router, usePage } from "@inertiajs/react";
 import {
@@ -38,23 +38,23 @@ export default function Show(props) {
         to: selectedRange?.to || "",
     });
 
-    const browserTimezone = useMemo(() => {
-        return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
-    }, []);
+    // Keep the custom-range inputs in sync with the range the server actually applied
+    // (it may clamp or swap the supplied dates) so the controls never misrepresent the view.
+    useEffect(() => {
+        setCustomRange({
+            from: selectedRange?.from || "",
+            to: selectedRange?.to || "",
+        });
+    }, [selectedRange?.from, selectedRange?.to]);
 
     const applyRange = (params) => {
-        router.get(
-            route("monitors.show", monitor.id),
-            {
-                timezone: browserTimezone,
-                ...params,
-            },
-            {
-                preserveScroll: true,
-                preserveState: true,
-                replace: true,
-            }
-        );
+        // Timezone is resolved server-side (it must match how metrics were aggregated),
+        // so we intentionally do not send the browser timezone here.
+        router.get(route("monitors.show", monitor.id), params, {
+            preserveScroll: true,
+            preserveState: true,
+            replace: true,
+        });
     };
 
     const submitCustomRange = (event) => {
@@ -66,17 +66,21 @@ export default function Show(props) {
         });
     };
 
-    const availableTypes = useMemo(() => {
-        const defaultOrder = ["uptime", "domain", "certificate"];
-        const fromApi = history?.available_check_types || [];
-        const union = Array.from(new Set([...defaultOrder, ...fromApi]));
-
-        if (!monitor.domain_check_enabled) {
-            return union.filter((type) => type !== "domain");
+    const checkTypes = useMemo(() => {
+        if (history?.check_types?.length) {
+            return history.check_types;
         }
 
-        return union;
-    }, [history, monitor.domain_check_enabled]);
+        // Fallback: derive enabled flags from the monitor when no payload is present.
+        return [
+            { type: "uptime", enabled: Boolean(monitor.uptime_check_enabled) },
+            { type: "domain", enabled: Boolean(monitor.domain_check_enabled) },
+            {
+                type: "certificate",
+                enabled: Boolean(monitor.certificate_check_enabled),
+            },
+        ];
+    }, [history, monitor]);
 
     const statusTotals = history?.summary?.selected_range?.status_totals || {};
     const totalChecks = history?.summary?.selected_range?.total_checks || 0;
@@ -258,16 +262,31 @@ export default function Show(props) {
                                 </div>
                             </div>
 
-                            {availableTypes.map((checkType) => (
-                                <MonitorHistoryHeatmap
-                                    key={checkType}
-                                    title={`${formatCheckTypeLabel(checkType)} Health`}
-                                    description={`${selectedRange?.from} to ${selectedRange?.to} (${selectedRange?.timezone})`}
-                                    fromDate={selectedRange?.from}
-                                    toDate={selectedRange?.to}
-                                    points={history.daily_metrics?.[checkType] || []}
-                                />
-                            ))}
+                            {checkTypes.map(({ type, enabled }) =>
+                                enabled ? (
+                                    <MonitorHistoryHeatmap
+                                        key={type}
+                                        title={`${formatCheckTypeLabel(type)} Health`}
+                                        description={`${selectedRange?.from} to ${selectedRange?.to} (${selectedRange?.timezone})`}
+                                        fromDate={selectedRange?.from}
+                                        toDate={selectedRange?.to}
+                                        points={history.daily_metrics?.[type] || []}
+                                    />
+                                ) : (
+                                    <div
+                                        key={type}
+                                        className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-5"
+                                    >
+                                        <h3 className="text-base font-semibold text-gray-700">
+                                            {`${formatCheckTypeLabel(type)} Health`}
+                                        </h3>
+                                        <p className="mt-1 text-sm text-gray-500">
+                                            {formatCheckTypeLabel(type)} checks are not enabled
+                                            for this monitor.
+                                        </p>
+                                    </div>
+                                )
+                            )}
 
                             <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
                                 <h3 className="text-base font-semibold text-gray-900">

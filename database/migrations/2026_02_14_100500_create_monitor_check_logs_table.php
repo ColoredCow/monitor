@@ -13,7 +13,9 @@ return new class extends Migration
     {
         Schema::create('monitor_check_logs', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('monitor_id')->constrained('monitors')->cascadeOnDelete();
+            // monitors.id is an unsigned INT (increments()), so the FK column must match its width.
+            $table->unsignedInteger('monitor_id');
+            $table->foreign('monitor_id')->references('id')->on('monitors')->cascadeOnDelete();
             $table->string('check_type', 50);
             $table->string('status', 50)->default('unknown');
             $table->timestamp('checked_at');

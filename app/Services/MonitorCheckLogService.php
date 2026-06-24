@@ -38,10 +38,7 @@ class MonitorCheckLogService
             $monitor->id,
             $checkType,
             $status,
-            $checkedAt,
-            $message,
-            $failureReason,
-            $metadata
+            $checkedAt
         );
 
         return MonitorCheckLog::firstOrCreate(
@@ -73,23 +70,23 @@ class MonitorCheckLogService
         return Carbon::now()->utc()->startOfSecond();
     }
 
+    /**
+     * Identity of a single check observation: a given monitor's check of a given
+     * type, resolved to a status, at a given second. Message/metadata are derived
+     * details of that same observation and are intentionally excluded so that a
+     * quick command retry collapses onto the existing row instead of duplicating it.
+     */
     protected function buildIdempotencyKey(
         int $monitorId,
         string $checkType,
         string $status,
-        Carbon $checkedAt,
-        ?string $message,
-        ?string $failureReason,
-        array $metadata
+        Carbon $checkedAt
     ): string {
         return hash('sha256', implode('|', [
             $monitorId,
             $checkType,
             $status,
             $checkedAt->toDateTimeString(),
-            $message ?? '',
-            $failureReason ?? '',
-            json_encode($metadata),
         ]));
     }
 }

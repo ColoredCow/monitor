@@ -42,7 +42,8 @@ class AggregateMonitorCheckMetrics extends Command
 
     protected function resolveTimezone(): string
     {
-        $timezone = (string) ($this->option('timezone') ?: config('app.timezone', 'UTC'));
+        $default = config('monitor-history.timezone') ?: config('app.timezone', 'UTC');
+        $timezone = (string) ($this->option('timezone') ?: $default);
 
         if (! in_array($timezone, timezone_identifiers_list(), true)) {
             return 'UTC';

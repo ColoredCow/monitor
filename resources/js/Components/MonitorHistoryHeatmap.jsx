@@ -168,13 +168,27 @@ export default function MonitorHistoryHeatmap({
                 </div>
             </div>
 
-            <div className="mt-4 flex items-center flex-wrap gap-4 text-xs text-gray-500">
-                <span>Less</span>
-                <span className="h-3.5 w-3.5 rounded-sm border border-gray-200 bg-gray-100" />
-                <span className="h-3.5 w-3.5 rounded-sm border border-green-300 bg-green-300" />
-                <span className="h-3.5 w-3.5 rounded-sm border border-yellow-300 bg-yellow-300" />
-                <span className="h-3.5 w-3.5 rounded-sm border border-red-500 bg-red-500" />
-                <span>More</span>
+            <div className="mt-4 flex items-center flex-wrap gap-x-4 gap-y-2 text-xs text-gray-500">
+                <span className="flex items-center gap-1.5">
+                    <span className="h-3.5 w-3.5 rounded-sm border border-gray-200 bg-gray-100" />
+                    No checks
+                </span>
+                <span className="flex items-center gap-1.5">
+                    <span className="h-3.5 w-3.5 rounded-sm border border-green-500 bg-green-500" />
+                    Healthy
+                </span>
+                <span className="flex items-center gap-1.5">
+                    <span className="h-3.5 w-3.5 rounded-sm border border-orange-400 bg-orange-400" />
+                    Warning
+                </span>
+                <span className="flex items-center gap-1.5">
+                    <span className="h-3.5 w-3.5 rounded-sm border border-red-500 bg-red-500" />
+                    Failed
+                </span>
+                <span className="flex items-center gap-1.5">
+                    <span className="h-3.5 w-3.5 rounded-sm border border-gray-300 bg-gray-300" />
+                    Unknown
+                </span>
             </div>
         </div>
     );

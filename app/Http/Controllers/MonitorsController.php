@@ -135,6 +135,7 @@ class MonitorsController extends Controller
                 });
 
             $recentChecks = $monitor->checkLogs()
+                ->whereBetween('checked_at', [$fromUtc, $toUtc])
                 ->latest('checked_at')
                 ->limit((int) config('monitor-history.recent_checks_limit', 50))
                 ->get()
@@ -158,14 +159,20 @@ class MonitorsController extends Controller
                     'to' => $range['to']->toDateString(),
                     'timezone' => $timezone,
                 ],
-                'available_check_types' => array_values(array_unique(array_merge(
+                'check_types' => [
                     [
-                        MonitorCheckLogService::CHECK_TYPE_UPTIME,
-                        MonitorCheckLogService::CHECK_TYPE_DOMAIN,
-                        MonitorCheckLogService::CHECK_TYPE_CERTIFICATE,
+                        'type' => MonitorCheckLogService::CHECK_TYPE_UPTIME,
+                        'enabled' => (bool) $monitor->uptime_check_enabled,
                     ],
-                    $monitor->checkLogs()->distinct()->pluck('check_type')->all()
-                ))),
+                    [
+                        'type' => MonitorCheckLogService::CHECK_TYPE_DOMAIN,
+                        'enabled' => (bool) $monitor->domain_check_enabled,
+                    ],
+                    [
+                        'type' => MonitorCheckLogService::CHECK_TYPE_CERTIFICATE,
+                        'enabled' => (bool) $monitor->certificate_check_enabled,
+                    ],
+                ],
                 'summary' => [
                     'all_time' => $allTimeSummary,
                     'selected_range' => $selectedRangeSummary,
@@ -236,9 +243,13 @@ class MonitorsController extends Controller
 
     protected function resolveHistoryRange(Request $request, Monitor $monitor): array
     {
-        $timezone = $request->string('timezone')->toString();
-        if ($timezone === '' || ! in_array($timezone, timezone_identifiers_list(), true)) {
-            $timezone = config('app.timezone', 'UTC');
+        // The daily metrics are aggregated server-side under this single timezone,
+        // so the detail page must read them back under the same one. We deliberately
+        // ignore any client-supplied timezone here: reading with the browser timezone
+        // would never match the aggregated rows and would render empty heatmaps.
+        $timezone = config('monitor-history.timezone') ?: config('app.timezone', 'UTC');
+        if (! in_array($timezone, timezone_identifiers_list(), true)) {
+            $timezone = 'UTC';
         }
 
         $preset = $request->string('preset')->toString() ?: '30d';

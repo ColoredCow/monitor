@@ -10,6 +10,22 @@ Monitor history UI and payload are controlled by:
 MONITOR_HISTORY_ENABLED=true
 ```
 
+## Timezone
+
+Daily metrics are bucketed by a single server-side timezone, and the monitor
+detail page reads them back under that **same** timezone — the client/browser
+timezone is intentionally not used, otherwise the heatmap would query buckets
+that were never written and render empty.
+
+```bash
+# Optional. Defaults to APP_TIMEZONE when empty.
+MONITOR_HISTORY_TIMEZONE=Asia/Kolkata
+```
+
+If you change this value, re-run aggregation so metrics exist under the new
+timezone (`monitor:aggregate-check-metrics --from=... --to=...`); buckets written
+under the previous timezone will no longer be read by the detail page.
+
 ## Commands
 
 ### Aggregate daily metrics
@@ -108,7 +124,9 @@ Default:
 ### Duplicate entries concern
 
 - `monitor_check_logs` has an `idempotency_key` unique index.
-- Verify retries are not mutating check payload fields unexpectedly.
+- The key is derived from `monitor_id + check_type + status + checked_at` (rounded to
+  the second), so a quick command retry of the same check collapses onto the existing
+  row. Message/metadata are not part of the key.
 
 ### Domain history missing
 

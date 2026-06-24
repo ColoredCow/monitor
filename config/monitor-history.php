@@ -8,6 +8,14 @@ return [
     'enabled' => (bool) env('MONITOR_HISTORY_ENABLED', false),
 
     /*
+     * Timezone used to bucket checks into daily metrics. Both the aggregation
+     * command and the monitor detail page resolve to this same value, so the
+     * heatmap always reads back the rows the scheduler wrote. Defaults to the
+     * application timezone (resolved at runtime in code).
+     */
+    'timezone' => env('MONITOR_HISTORY_TIMEZONE'),
+
+    /*
      * Aggregation configuration.
      */
     'aggregation' => [

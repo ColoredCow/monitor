@@ -13,7 +13,9 @@ return new class extends Migration
     {
         Schema::create('monitor_daily_check_metrics', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('monitor_id')->constrained('monitors')->cascadeOnDelete();
+            // monitors.id is an unsigned INT (increments()), so the FK column must match its width.
+            $table->unsignedInteger('monitor_id');
+            $table->foreign('monitor_id')->references('id')->on('monitors')->cascadeOnDelete();
             $table->string('check_type', 50);
             $table->date('date');
             $table->string('timezone', 64)->default('UTC');

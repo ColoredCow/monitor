@@ -73,20 +73,14 @@ class DomainService
             $this->updateDomainExpiration($monitor, $domainInfo['expirationDate']);
         }
 
-        $daysUntilExpiration = Carbon::now()->startOfDay()->diffInDays($expirationDate->copy()->startOfDay(), false);
+        // Carbon::diffInDays() returns a float; cast to int so the day-count comparisons
+        // (notably "expires today") behave as whole days.
+        $daysUntilExpiration = (int) Carbon::now()->startOfDay()->diffInDays($expirationDate->copy()->startOfDay(), false);
         $notifications = $this->checkAndNotifyExpiration($monitor, $daysUntilExpiration);
 
-        $status = match (true) {
-            $daysUntilExpiration < 0 => MonitorCheckLogService::STATUS_FAILED,
-            $daysUntilExpiration <= 30 => MonitorCheckLogService::STATUS_WARNING,
-            default => MonitorCheckLogService::STATUS_SUCCESS,
-        };
-
-        $message = match (true) {
-            $daysUntilExpiration < 0 => 'Domain has expired.',
-            $daysUntilExpiration === 0 => 'Domain expires today.',
-            default => "Domain expires in {$daysUntilExpiration} day(s).",
-        };
+        $outcome = $this->resolveDomainExpirationOutcome($daysUntilExpiration);
+        $status = $outcome['status'];
+        $message = $outcome['message'];
 
         app(MonitorCheckLogService::class)->logCheck(
             monitor: $monitor,
@@ -108,6 +102,26 @@ class DomainService
             'days_until_expiration' => $daysUntilExpiration,
             'expiration_date' => optional($monitor->domain_expires_at)->toDateString(),
         ];
+    }
+
+    /**
+     * Map a whole-day count until expiration onto a check status and a human message.
+     */
+    public function resolveDomainExpirationOutcome(int $daysUntilExpiration): array
+    {
+        $status = match (true) {
+            $daysUntilExpiration < 0 => MonitorCheckLogService::STATUS_FAILED,
+            $daysUntilExpiration <= 30 => MonitorCheckLogService::STATUS_WARNING,
+            default => MonitorCheckLogService::STATUS_SUCCESS,
+        };
+
+        $message = match (true) {
+            $daysUntilExpiration < 0 => 'Domain has expired.',
+            $daysUntilExpiration === 0 => 'Domain expires today.',
+            default => "Domain expires in {$daysUntilExpiration} day(s).",
+        };
+
+        return ['status' => $status, 'message' => $message];
     }
 
     protected function checkAndNotifyExpiration(Monitor $monitor, int $daysUntilExpiration): array
