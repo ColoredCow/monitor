@@ -26,6 +26,14 @@ describe("formatDateUTC", () => {
         expect(formatDateUTC(null)).toBe("");
         expect(formatDateUTC("")).toBe("");
     });
+
+    it("returns empty string for malformed input (non-date string)", () => {
+        expect(formatDateUTC("not-a-date")).toBe("");
+    });
+
+    it("returns empty string for malformed input (non-numeric date part)", () => {
+        expect(formatDateUTC("abcd-ef-gh")).toBe("");
+    });
 });
 
 describe("formatDateTimeUTC", () => {
@@ -49,6 +57,10 @@ describe("formatDateTimeUTC", () => {
 
     it("returns empty string for null input", () => {
         expect(formatDateTimeUTC(null)).toBe("");
+    });
+
+    it("returns empty string for malformed input (garbage after date)", () => {
+        expect(formatDateTimeUTC("2026-03-27 garbage")).toBe("");
     });
 });
 
@@ -77,5 +89,9 @@ describe("formatRelative", () => {
 
     it("returns empty string for null input", () => {
         expect(formatRelative(null, base)).toBe("");
+    });
+
+    it("returns empty string for malformed input (non-date string)", () => {
+        expect(formatRelative("not-a-date", base)).toBe("");
     });
 });

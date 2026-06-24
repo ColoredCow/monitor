@@ -19,6 +19,12 @@ function toUTCDate(iso) {
         return null;
     }
 
+    // Reject if any component is NaN (from malformed input).
+    if (Number.isNaN(year) || Number.isNaN(month) || Number.isNaN(day) ||
+        Number.isNaN(hour) || Number.isNaN(minute) || Number.isNaN(second)) {
+        return null;
+    }
+
     return new Date(Date.UTC(year, month - 1, day, hour, minute, second));
 }
 
