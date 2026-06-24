@@ -2,7 +2,8 @@
     "private": true,
     "scripts": {
         "dev": "vite",
-        "build": "vite build"
+        "build": "vite build",
+        "test:js": "vitest run"
     },
     "devDependencies": {
         "@babel/preset-react": "^7.13.13",
@@ -25,7 +26,8 @@
         "react": "^19.2.3",
         "react-dom": "^19.2.3",
         "tailwindcss": "^4.1.18",
-        "vite": "^7.3.1"
+        "vite": "^7.3.1",
+        "vitest": "^2.1.9"
     },
     "dependencies": {
         "@tanstack/react-query": "^5.90.20"
