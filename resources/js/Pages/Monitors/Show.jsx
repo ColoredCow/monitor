@@ -255,6 +255,20 @@ export default function Show(props) {
                                                 </div>
                                             );
                                         })}
+
+                                    {graph.check_types.some(({ enabled }) => !enabled) ? (
+                                        <p className="text-xs text-gray-600">
+                                            {graph.check_types
+                                                .filter(({ enabled }) => !enabled)
+                                                .map(({ type }) => formatCheckTypeLabel(type))
+                                                .join(", ")}{" "}
+                                            {graph.check_types.filter(({ enabled }) => !enabled)
+                                                .length === 1
+                                                ? "check is"
+                                                : "checks are"}{" "}
+                                            not enabled for this monitor.
+                                        </p>
+                                    ) : null}
                                 </section>
                             ) : null}
 
