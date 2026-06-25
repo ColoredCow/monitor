@@ -12,6 +12,7 @@ import MonitorDomainIcon from "@/Components/MonitorDomainIcon";
 import MonitorCheckIntervalIcon from "@/Components/MonitorCheckIntervalIcon";
 import PageHeader from "@/Components/PageHeader";
 import MonitorHistoryHeatmap from "@/Components/MonitorHistoryHeatmap";
+import MonitorLiveStatus from "@/Components/MonitorLiveStatus";
 import MonitorTodayBar from "@/Components/MonitorTodayBar";
 import RecentChecksPanel from "@/Components/RecentChecksPanel";
 import MonitorHistoryFilters from "@/Components/MonitorHistoryFilters";
@@ -111,31 +112,34 @@ export default function Show(props) {
             <Head title={monitor.name || "Monitor Details"} />
 
             <PageHeader>
-                <div className="flex items-center justify-between gap-4">
-                    <div>
+                <div className="flex items-start gap-4">
+                    <Link
+                        href={route("monitors.index")}
+                        className="mt-1 inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors duration-150 ease-out hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 motion-reduce:transition-none"
+                    >
+                        <ArrowLeftIcon className="h-4 w-4" />
+                        Back
+                    </Link>
+                    <div className="min-w-0">
                         <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
                             {monitor.name}
                         </h1>
-                        <div className="mt-1 flex items-center gap-1 text-sm text-gray-500">
-                            <span className="truncate max-w-[35rem]">{monitor.raw_url}</span>
+                        <div className="mt-1 flex items-center gap-1 text-sm text-gray-600">
+                            <span className="truncate max-w-[35rem]">
+                                {monitor.raw_url}
+                            </span>
                             <a
                                 href={monitor.raw_url}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="text-gray-400 hover:text-gray-600"
+                                className="rounded text-gray-600 transition-colors duration-150 ease-out hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 motion-reduce:transition-none"
                                 title="Open monitor URL"
                             >
                                 <ArrowTopRightOnSquareIcon className="h-4 w-4" />
                             </a>
                         </div>
+                        <MonitorLiveStatus monitor={monitor} />
                     </div>
-                    <Link
-                        href={route("monitors.index")}
-                        className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
-                    >
-                        <ArrowLeftIcon className="h-4 w-4" />
-                        Back
-                    </Link>
                 </div>
             </PageHeader>
 
