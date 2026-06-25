@@ -156,8 +156,8 @@ export default function Show(props) {
                 </div>
 
                 <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-                    <div className="mb-2 flex items-baseline justify-between gap-4">
-                        <h2 className="text-sm font-semibold tracking-wide text-gray-500 uppercase">
+                    <div className="mb-4 flex items-baseline justify-between gap-4">
+                        <h2 className="text-lg font-semibold text-gray-900">
                             Monitor History
                         </h2>
                         {filters?.timezone ? (
@@ -179,7 +179,7 @@ export default function Show(props) {
                             this monitor yet.
                         </p>
                     ) : (
-                        <div className="space-y-6">
+                        <div className="divide-y divide-gray-200 [&>*]:py-6 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
                             {graph ? (
                                 <section aria-label="Yearly health graphs" className="space-y-6">
                                     <div className="flex items-center justify-between gap-4">
