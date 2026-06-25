@@ -229,17 +229,26 @@ export default function Show(props) {
 
                                             return (
                                                 <div key={type} className="space-y-3">
-                                                    <p className="text-sm font-medium text-gray-700 tabular-nums">
-                                                        {`${formatCheckTypeLabel(type)} · ${
-                                                            typeSummary
+                                                    <div className="flex items-baseline gap-x-2">
+                                                        <span className="text-sm font-medium text-gray-600">
+                                                            {formatCheckTypeLabel(type)}
+                                                        </span>
+                                                        <span className="text-lg font-semibold text-gray-900 tabular-nums">
+                                                            {typeSummary
                                                                 ? Number(
                                                                       typeSummary.success_ratio
                                                                   ).toFixed(1)
-                                                                : "0.0"
-                                                        }% · ${(
-                                                            typeSummary?.total_checks || 0
-                                                        ).toLocaleString()} checks`}
-                                                    </p>
+                                                                : "0.0"}
+                                                            %
+                                                        </span>
+                                                        <span className="text-xs text-gray-500 tabular-nums">
+                                                            ·{" "}
+                                                            {(
+                                                                typeSummary?.total_checks || 0
+                                                            ).toLocaleString()}{" "}
+                                                            checks
+                                                        </span>
+                                                    </div>
                                                     <MonitorTodayBar
                                                         checkType={type}
                                                         checks={series?.today_checks || []}
