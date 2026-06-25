@@ -11,16 +11,12 @@ import MonitorUptimeIcon from "@/Components/MonitorUptimeIcon";
 import MonitorDomainIcon from "@/Components/MonitorDomainIcon";
 import MonitorCheckIntervalIcon from "@/Components/MonitorCheckIntervalIcon";
 import PageHeader from "@/Components/PageHeader";
-import Badge from "@/Components/Badge";
 import MonitorHistoryHeatmap from "@/Components/MonitorHistoryHeatmap";
 import MonitorTodayBar from "@/Components/MonitorTodayBar";
+import RecentChecksPanel from "@/Components/RecentChecksPanel";
 import MonitorHistoryFilters from "@/Components/MonitorHistoryFilters";
 import SummaryStats from "@/Components/SummaryStats";
 import { buildHistoryParams } from "@/Utils/historyParams";
-import {
-    getCheckStatusBadgeColor,
-    normalizeCheckStatus,
-} from "@/Utils/checkStatusSeverity";
 
 const CHECK_TYPE_LABELS = {
     uptime: "Uptime",
@@ -33,24 +29,24 @@ function formatCheckTypeLabel(checkType) {
 }
 
 export default function Show(props) {
-    const { monitor, features, history, graph, filters, summary, recentChecks } = usePage().props;
+    const { monitor, features, graph, filters, summary, recentChecks } = usePage().props;
     const isHistoryEnabled = Boolean(features?.monitorHistory);
-    const selectedRange = history?.range || null;
     const [graphPending, setGraphPending] = useState(false);
 
     // The graph is driven solely by ?year and is decoupled from the filters.
     const currentParams = useMemo(
         () => ({
             year: graph?.year,
-            preset: filters?.preset ?? selectedRange?.preset,
-            from: filters?.from ?? selectedRange?.from,
-            to: filters?.to ?? selectedRange?.to,
+            preset: filters?.preset,
+            from: filters?.from,
+            to: filters?.to,
             recent_type: recentChecks?.type || "uptime",
             recent_page: recentChecks?.pagination?.current_page || 1,
         }),
-        [graph?.year, filters, selectedRange, recentChecks]
+        [graph?.year, filters, recentChecks]
     );
 
+    const [recentPending, setRecentPending] = useState(false);
     const [filtersPending, setFiltersPending] = useState(false);
 
     const handleApplyFilters = (change) => {
@@ -85,6 +81,29 @@ export default function Show(props) {
                 onFinish: () => setGraphPending(false),
             }
         );
+    };
+
+    const reloadRecentChecks = (overrides) => {
+        router.get(
+            route("monitors.show", monitor.id),
+            buildHistoryParams(currentParams, overrides),
+            {
+                only: ["recentChecks"],
+                preserveState: true,
+                preserveScroll: true,
+                replace: true,
+                onStart: () => setRecentPending(true),
+                onFinish: () => setRecentPending(false),
+            }
+        );
+    };
+
+    const handleRecentTabChange = (type) => {
+        reloadRecentChecks({ recent_type: type, recent_page: 1 });
+    };
+
+    const handleRecentPageChange = (page) => {
+        reloadRecentChecks({ recent_page: page });
     };
 
     return (
@@ -246,64 +265,13 @@ export default function Show(props) {
                                 onViewAllTime={() => handleApplyFilters({ preset: "all" })}
                             />
 
-                            <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-                                <h3 className="text-base font-semibold text-gray-900">
-                                    Recent Checks
-                                </h3>
-                                <div className="mt-4 overflow-x-auto">
-                                    <table className="min-w-full text-sm">
-                                        <thead>
-                                            <tr className="text-left text-gray-500 border-b border-gray-200">
-                                                <th className="py-2 pr-4 font-medium">Time</th>
-                                                <th className="py-2 pr-4 font-medium">Type</th>
-                                                <th className="py-2 pr-4 font-medium">Status</th>
-                                                <th className="py-2 pr-4 font-medium">Message</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {(history?.recent_checks || []).length === 0 ? (
-                                                <tr>
-                                                    <td className="py-4 text-gray-500" colSpan={4}>
-                                                        No checks recorded yet.
-                                                    </td>
-                                                </tr>
-                                            ) : (
-                                                (history?.recent_checks || []).map((check) => {
-                                                    const normalizedStatus =
-                                                        normalizeCheckStatus(check.status);
-
-                                                    return (
-                                                        <tr
-                                                            key={check.id}
-                                                            className="border-b border-gray-100 last:border-b-0"
-                                                        >
-                                                            <td className="py-2 pr-4 text-gray-700 whitespace-nowrap">
-                                                                {check.checked_at}
-                                                            </td>
-                                                            <td className="py-2 pr-4 text-gray-700">
-                                                                {formatCheckTypeLabel(check.check_type)}
-                                                            </td>
-                                                            <td className="py-2 pr-4">
-                                                                <Badge
-                                                                    text={normalizedStatus}
-                                                                    color={getCheckStatusBadgeColor(
-                                                                        normalizedStatus
-                                                                    )}
-                                                                />
-                                                            </td>
-                                                            <td className="py-2 pr-4 text-gray-700">
-                                                                {check.message ||
-                                                                    check.failure_reason ||
-                                                                    "No details"}
-                                                            </td>
-                                                        </tr>
-                                                    );
-                                                })
-                                            )}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
+                            <RecentChecksPanel
+                                recentChecks={recentChecks}
+                                checkTypes={graph?.check_types || []}
+                                pending={recentPending}
+                                onTabChange={handleRecentTabChange}
+                                onPageChange={handleRecentPageChange}
+                            />
                         </div>
                     )}
                 </div>
