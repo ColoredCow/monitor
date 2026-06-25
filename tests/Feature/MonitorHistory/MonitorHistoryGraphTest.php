@@ -174,7 +174,7 @@ class MonitorHistoryGraphTest extends TestCase
             ->where('graph.series.uptime.summary.total_checks', 2)
             ->where('graph.series.uptime.summary.status_totals.success', 1)
             ->where('graph.series.uptime.summary.status_totals.failed', 1)
-            ->where('graph.series.uptime.summary.success_ratio', 50.0)
+            ->where('graph.series.uptime.summary.success_ratio', 50)
         );
     }
 }
