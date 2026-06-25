@@ -1,28 +1,68 @@
-# Monitor History UI — review-feedback fixes (follow-up to PR #81)
+# Monitor History — Recent-checks strip redesign + heatmap/tooltip polish (spec)
 
-Branch: `feat/monitor-history-ui` (PR #81). All frontend; no backend/payload change.
+Rewritten from scratch. Branch: `feat/monitor-history-ui` (PR #81). Produced via superpowers brainstorming + the ui-ux-pro-max tool. Frontend + one small backend change. No change to the feature flag or the filter-driven `summary`/`recentChecks` table.
 
-Confirmed decisions: solid-indigo Today (overrides today's health hue); domain & certificate use ONE solid color per status (cells + legend), gradient kept ONLY for uptime; per-metric tooltip (uptime = + latency when present; domain/cert = no latency, status rows filtered to reachable statuses).
+## Status / context
 
-Core insight: ratio-based shading + latency/ratio tooltip metrics are meaningful only for high-frequency **uptime** (many checks/day). **Domain & certificate are once-daily single checks** → single solid color per status, slimmer tooltip.
+Round 1 of review fixes is already implemented and pushed (commits …`68d7936`): tooltip portal, per-metric heatmap tooltip, per-metric legend, **solid-indigo today cell**, heatmap hover-clip padding, prominent per-type headline stat, and single-solid-color domain/certificate cells.
 
-## Fixes
+Several round-2 reports are artifacts of a build not yet pulled/rebuilt, and are **already addressed** by round 1 — documented here for completeness, to be re-verified after rebuild (Node 22):
 
-1. **Tooltip clipping + width** (`Tooltip.jsx`). Render via React portal to `document.body` with fixed positioning computed from the trigger's `getBoundingClientRect()` (escapes the heatmap's `overflow-x-auto` clip). Position above-centered, flip below / clamp horizontally near viewport edges. Width: `w-max max-w-xs` so lines don't wrap into a thin column. Keep the `{content, children, className}` API (MonitorTodayBar reuses it). Hide on scroll/blur/mouseleave.
+- The "shadow on hover" on a today bar (item 1) was the **old tooltip being clipped** by the strip's `overflow-hidden`; the round-1 Tooltip portal fix renders it to `<body>` instead. We additionally remove the bar's odd `hover:scale-y-110` grow (below).
+- Tooltips on the strip bars (item 2) **already exist** (date+time via `formatDateTimeUTC`, status, message, response, failure) — they were just invisible behind `overflow-hidden`. Now visible via the portal.
+- Today's heatmap cell showing green-with-a-ring (item 5) is pre-round-1; it is now **solid indigo**.
 
-2. **Per-metric tooltip** (`Utils/heatmapCell.js` + heatmap). `cellMetricLines(point, checkType)`: Status, Total, then only the status-count rows for `statusesForCheckType(checkType)` (uptime: Success/Failed — no Warning; domain: Success/Warning/Failed; cert: Success/Failed), Success ratio; avg/p95 **only for uptime and only when non-null** (omitted, not "not measured"; dropped entirely for domain/cert).
+The genuinely new work this round is the **strip behavior (item 4)** plus a relabel and a color-consistency pass.
 
-3. **Solid-indigo Today** (heatmap). Today's cell → solid `bg-indigo-500 border-indigo-500` fill (replaces status fill + ring). Legend "Today" swatch → solid `bg-indigo-500` (was a ringed white box). Current-year-only, unchanged.
+## Confirmed decisions (item 4 + related)
 
-5. **Saturday hover clip** (heatmap). Add vertical/horizontal padding inside the `overflow-x-auto` scroll container (e.g. `p-1`) so the bottom-row hover `scale-110` + ring isn't clipped (can't use overflow-y:visible alongside overflow-x:auto).
+- **Window:** rolling **last 50 checks** per check type, **may span days**, newest on the right.
+- **Capacity:** **responsive** — as many fixed-width slots as fit the container, capped at 50. Unfilled capacity is gray-padded on the **left**.
+- **Refresh:** **static** — reflects data per page load / navigation. No background polling.
+- **Today cell:** **solid indigo**, independent of the day's aggregate status (granular detail now lives in the strip).
 
-6. **Headline prominence** (`Show.jsx`). Restyle the per-type headline ("Uptime · 100.0% · 1,399 checks") from `text-sm font-medium` body text into a compact stat: % as `text-base font-semibold text-gray-900 tabular-nums`, label + "N checks" smaller/muted. Subtle, not large.
+## Design (UI/UX-informed)
 
-7. **Single solid color for domain/cert** (`Utils/heatmapCell.js` + heatmap legend). `cellColorClass(point, checkType)`: uptime → existing graded 3-shade; domain/cert → single solid per worst status (success `green-600`, warning `orange-400`, failed `red-600`, unknown `gray-400`), no-data `gray-100`. Legend per-metric: uptime → 3-swatch gradient; domain/cert → one swatch per applicable status (matching the single colors).
+The strip is a **status-timeline / per-event activity strip**. Each bar = one check, a **single solid color by status** (a single check has no ratio, so there is no gradient — true for every check type). Gray placeholder bars (the heatmap's "no-checks" gray, `bg-gray-100`) fill unused capacity on the left so the strip is always full-width; a brand-new monitor shows mostly gray with a few colored bars on the right. Newest bar sits on the far right. Per-bar tooltip on hover **and** keyboard focus; decorative gray bars are `aria-hidden` with no tooltip. (UI/UX guidance applied: tooltip-on-interact with exact values, color-not-alone via text/aria, meaningful empty state, keyboard reachability.)
 
-(Item 4 — seed monitor 20 today data — already done.)
+## Changes
+
+### A. Backend — last-50 strip data (`app/Http/Controllers/MonitorsController.php`)
+
+- Rename `buildTodayChecks(Monitor $m, string $checkType, string $tz)` → `buildLatestChecks(Monitor $m, string $checkType, string $tz, int $limit = 50)`: `$m->checkLogs()->where('check_type', $checkType)->latest('checked_at')->limit($limit)->get()` mapped to the existing row shape `{id, checked_at (tz-converted 'Y-m-d H:i:s'), status, message, failure_reason, response_time_ms}`, newest-first. **No date bound** (was today-only).
+- In `buildGraphPayload`, rename the series field `today_checks` → `latest_checks`.
+- Update the Phase-2 graph feature test: assert `graph.series.<type>.latest_checks` is newest-first, capped at 50, and includes rows from prior days (no longer today-bounded). Keep all other graph assertions.
+
+### B. Frontend — `MonitorTodayBar.jsx` → `MonitorRecentStrip.jsx`
+
+- Rename the component + file; update the import + usage in `Show.jsx`; pass `checks={series?.latest_checks || []}`.
+- **Capacity** = `min(50, slotsThatFit(containerWidth))` (fixed-width slots via ResizeObserver, as today).
+- **Slot layout:** render `capacity` slots. The right-most `min(checks.length, capacity)` slots are the most-recent real checks (newest on the far right); the remaining left slots are gray placeholders. Extract the pure slot-building as `stripSlots(checks, capacity)` for unit testing (right-aligned real bars, gray-padded left).
+- **Bar color:** shared single-status solid palette (see D) — consistent with domain/cert heatmap cells.
+- **Tooltip:** keep the per-check tooltip (date+time, status, message, response **only for uptime / when non-null**, failure). Real bars: `tabIndex=0` + `aria-label` + Tooltip. Gray bars: `aria-hidden`, no tooltip, no focus.
+- **Item 1 — remove the hover "shadow":** delete `hover:scale-y-110`; remove `overflow-hidden`; add small vertical padding (`py-0.5`) so the focus ring isn't clipped; keep the `focus-visible` ring; the only hover affordance is the tooltip (optional subtle `hover:opacity-80`, no layout shift).
+- **Relabel:** "Today (N checks)" → "**Recent checks**" with a muted sub-label (e.g. "last {shown} checks"). No longer today-bound.
+- **Legend:** unchanged in spirit — one swatch per `statusesForCheckType(checkType)` using the shared solid palette.
+
+### C. Heatmap today cell (confirm — already implemented in round 1)
+
+Today's cell = solid `bg-indigo-500 border-indigo-500`, overriding the day's status hue; legend "Today" swatch solid indigo; current-year only. Documented here; re-verify after rebuild.
+
+### D. Shared single-status solid palette (item 3 — consistency)
+
+One source of truth (extend `Utils/heatmapCell.js`): success `green-600`, warning `orange-400`, failed `red-600`, unknown `gray-400`. Used by **both** the domain/certificate heatmap cells **and** every recent-strip bar, so the two views agree. (Uptime heatmap cells keep their 3-shade ratio gradient — the strip is always single-color since each bar is one check.)
+
+### Item 3 — "don't break the UI"
+
+Cross-cutting: the strip and the (domain/cert) heatmap share the solid palette; the portal tooltip serves both; `npm run build` (Node 22) must pass; one review pass; visual check on monitor 20 (which has seeded recent + today data).
+
+## Out of scope / deferred
+
+- Live polling / auto-refresh of the strip (decision: static).
+- Touch: tooltips appear on tap-driven focus; no dedicated tap-to-reveal layer this round.
 
 ## Verification
-- New `Utils/heatmapCell.js` pure functions (`cellColorClass`, `cellMetricLines`) covered by Vitest (TDD): uptime graded vs domain single-color; uptime tooltip omits Warning row + includes latency when present; domain/cert tooltip omits latency.
-- `npm run build` (Node 22) clean; existing Vitest suite green.
-- One adversarial review pass over the diff; then commit + push to PR #81.
+
+- **Vitest (TDD):** `stripSlots(checks, capacity)` (right-aligned real bars + gray left-pad; clamps to capacity); shared solid-palette mapping. Existing `heatmapCell` / util suites stay green.
+- **Backend:** graph feature test updated for `latest_checks` (last-50, newest-first, spans days).
+- **Build:** `npm run build` (Node 22) clean; one adversarial review; then `writing-plans` → implement.
