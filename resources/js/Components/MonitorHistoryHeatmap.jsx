@@ -88,11 +88,14 @@ function formatMetric(value, suffix) {
     return `${value}${suffix}`;
 }
 
-function buildCellTooltip(point, iso) {
+function buildCellTooltip(point, iso, isToday = false) {
     const dateLabel = formatDateUTC(iso);
+    const provisionalNote = isToday
+        ? "\nToday — partial, updates on next aggregation"
+        : "";
 
     if (!point || point.total_checks === 0) {
-        return `${dateLabel}\nNo checks`;
+        return `${dateLabel}\nNo checks${provisionalNote}`;
     }
 
     return [
@@ -105,7 +108,7 @@ function buildCellTooltip(point, iso) {
         `Success ratio: ${point.success_ratio}%`,
         `Avg response: ${formatMetric(point.avg_response_time_ms, "ms")}`,
         `P95 response: ${formatMetric(point.p95_response_time_ms, "ms")}`,
-    ].join("\n");
+    ].join("\n") + provisionalNote;
 }
 
 // Reduced-motion policy: this component animates only via CSS transitions, each of
@@ -257,14 +260,15 @@ export default function MonitorHistoryHeatmap({
                                         return (
                                             <Tooltip
                                                 key={day.iso}
-                                                content={buildCellTooltip(point, day.iso)}
+                                                content={buildCellTooltip(point, day.iso, isToday)}
                                             >
                                                 <div
                                                     role="gridcell"
                                                     tabIndex={0}
                                                     aria-label={buildCellTooltip(
                                                         point,
-                                                        day.iso
+                                                        day.iso,
+                                                        isToday
                                                     ).replace(/\n/g, ", ")}
                                                     className={[
                                                         "rounded-sm border transition-transform duration-150 ease-out",

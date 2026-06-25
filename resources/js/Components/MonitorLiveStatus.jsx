@@ -1,7 +1,6 @@
 import React from "react";
 import {
     CHECK_STATUS,
-    getCheckStatusMeta,
     mapUptimeStatusToCheckStatus,
 } from "@/Utils/checkStatusSeverity";
 import { formatRelative } from "@/Utils/formatDate";
