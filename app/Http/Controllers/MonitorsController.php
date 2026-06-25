@@ -101,6 +101,8 @@ class MonitorsController extends Controller
     {
         $history = null;
         $graph = null;
+        $filters = null;
+        $summary = null;
 
         if (config('monitor-history.enabled')) {
             $range = $this->resolveHistoryRange($request, $monitor);
@@ -117,6 +119,23 @@ class MonitorsController extends Controller
 
             $allTimeSummary = $this->buildSummary($monitor->checkLogs());
             $selectedRangeSummary = $this->buildSummary($selectedRangeQuery);
+
+            $firstCheckedAt = $monitor->checkLogs()->orderBy('checked_at')->value('checked_at');
+
+            $filters = [
+                'preset' => $range['preset'],
+                'from' => $range['from']->toDateString(),
+                'to' => $range['to']->toDateString(),
+                'timezone' => $timezone,
+            ];
+
+            $summary = [
+                'all_time' => $allTimeSummary,
+                'selected_range' => $selectedRangeSummary,
+                'first_checked_at' => $firstCheckedAt
+                    ? Carbon::parse($firstCheckedAt)->timezone($timezone)->toDateTimeString()
+                    : null,
+            ];
 
             $dailyMetrics = $monitor->dailyCheckMetrics()
                 ->forTimezone($timezone)
@@ -190,8 +209,10 @@ class MonitorsController extends Controller
 
         return Inertia::render('Monitors/Show', [
             'monitor' => $monitor,
-            'history' => $history,
             'graph' => $graph,
+            'filters' => $filters,
+            'summary' => $summary,
+            'history' => $history,
         ]);
     }
 
