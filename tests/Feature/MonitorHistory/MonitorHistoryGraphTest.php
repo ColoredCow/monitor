@@ -178,6 +178,22 @@ class MonitorHistoryGraphTest extends TestCase
         );
     }
 
+    public function test_graph_today_iso_equals_server_timezone_today(): void
+    {
+        $user = User::factory()->create();
+        $monitor = $this->makeMonitor();
+
+        $serverTz = config('monitor-history.timezone') ?: config('app.timezone', 'UTC');
+        $expectedTodayIso = Carbon::now($serverTz)->toDateString();
+
+        $response = $this->actingAs($user)->get(route('monitors.show', $monitor->id));
+
+        $response->assertInertia(fn ($page) => $page
+            ->component('Monitors/Show')
+            ->where('graph.today_iso', $expectedTodayIso)
+        );
+    }
+
     public function test_today_checks_contain_only_todays_rows_newest_first(): void
     {
         $user = User::factory()->create();

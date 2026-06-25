@@ -451,6 +451,7 @@ class MonitorsController extends Controller
             'year' => $year,
             'available_years' => $availableYears,
             'timezone' => $timezone,
+            'today_iso' => Carbon::now($timezone)->toDateString(),
             'check_types' => $checkTypes,
             'series' => $series,
         ];
