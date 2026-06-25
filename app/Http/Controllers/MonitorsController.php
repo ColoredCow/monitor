@@ -99,7 +99,6 @@ class MonitorsController extends Controller
      */
     public function show(Request $request, Monitor $monitor)
     {
-        $history = null;
         $graph = null;
         $filters = null;
         $summary = null;
@@ -144,75 +143,6 @@ class MonitorsController extends Controller
             }
 
             $recentChecks = $this->buildRecentChecks($monitor, $recentType, $fromUtc, $toUtc, $timezone);
-
-            $dailyMetrics = $monitor->dailyCheckMetrics()
-                ->forTimezone($timezone)
-                ->betweenDates($range['from']->toDateString(), $range['to']->toDateString())
-                ->orderBy('date')
-                ->get()
-                ->groupBy('check_type')
-                ->map(function ($rows) {
-                    return $rows->map(function ($row) {
-                        return [
-                            'date' => $row->date->toDateString(),
-                            'total_checks' => $row->total_checks,
-                            'successful_checks' => $row->successful_checks,
-                            'warning_checks' => $row->warning_checks,
-                            'failed_checks' => $row->failed_checks,
-                            'success_ratio' => (float) $row->success_ratio,
-                            'worst_status' => $row->worst_status,
-                            'avg_response_time_ms' => $row->avg_response_time_ms,
-                            'p95_response_time_ms' => $row->p95_response_time_ms,
-                        ];
-                    })->values();
-                });
-
-            $legacyRecentChecks = $monitor->checkLogs()
-                ->whereBetween('checked_at', [$fromUtc, $toUtc])
-                ->latest('checked_at')
-                ->limit((int) config('monitor-history.recent_checks_limit', 50))
-                ->get()
-                ->map(function (MonitorCheckLog $log) use ($timezone) {
-                    return [
-                        'id' => $log->id,
-                        'check_type' => $log->check_type,
-                        'status' => $log->status,
-                        'checked_at' => $log->checked_at->timezone($timezone)->toDateTimeString(),
-                        'message' => $log->message,
-                        'failure_reason' => $log->failure_reason,
-                        'response_time_ms' => $log->response_time_ms,
-                        'metadata' => $log->metadata,
-                    ];
-                });
-
-            $history = [
-                'range' => [
-                    'preset' => $range['preset'],
-                    'from' => $range['from']->toDateString(),
-                    'to' => $range['to']->toDateString(),
-                    'timezone' => $timezone,
-                ],
-                'check_types' => [
-                    [
-                        'type' => MonitorCheckLogService::CHECK_TYPE_UPTIME,
-                        'enabled' => (bool) $monitor->uptime_check_enabled,
-                    ],
-                    [
-                        'type' => MonitorCheckLogService::CHECK_TYPE_DOMAIN,
-                        'enabled' => (bool) $monitor->domain_check_enabled,
-                    ],
-                    [
-                        'type' => MonitorCheckLogService::CHECK_TYPE_CERTIFICATE,
-                        'enabled' => (bool) $monitor->certificate_check_enabled,
-                    ],
-                ],
-                'summary' => [
-                    'all_time' => $allTimeSummary,
-                    'selected_range' => $selectedRangeSummary,
-                ],
-                'daily_metrics' => $dailyMetrics,
-                'recent_checks' => $legacyRecentChecks,
-            ];
         }
 
         return Inertia::render('Monitors/Show', [
@@ -221,7 +151,6 @@ class MonitorsController extends Controller
             'filters' => $filters,
             'summary' => $summary,
             'recentChecks' => $recentChecks,
-            'history' => $history,
         ]);
     }
 

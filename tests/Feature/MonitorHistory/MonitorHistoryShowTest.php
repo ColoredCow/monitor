@@ -64,12 +64,13 @@ class MonitorHistoryShowTest extends TestCase
             'monitor' => $monitor->id,
             'preset' => 'all',
             'timezone' => 'Asia/Kolkata',
+            'year' => 2026,
         ]));
 
         $response->assertOk();
         $response->assertInertia(fn ($page) => $page
             ->component('Monitors/Show')
-            ->has('history.daily_metrics.uptime', 1)
+            ->has('graph.series.uptime.daily_metrics', 1)
         );
     }
 
@@ -86,9 +87,9 @@ class MonitorHistoryShowTest extends TestCase
 
         $response->assertInertia(fn ($page) => $page
             ->component('Monitors/Show')
-            ->where('history.check_types', fn ($types) => collect($types)->firstWhere('type', 'uptime')['enabled'] === true
+            ->where('graph.check_types', fn ($types) => collect($types)->pluck('type')->all() === ['uptime', 'domain']
+                && collect($types)->firstWhere('type', 'uptime')['enabled'] === true
                 && collect($types)->firstWhere('type', 'domain')['enabled'] === false
-                && collect($types)->firstWhere('type', 'certificate')['enabled'] === false
             )
         );
     }
@@ -110,7 +111,25 @@ class MonitorHistoryShowTest extends TestCase
 
         $response->assertInertia(fn ($page) => $page
             ->component('Monitors/Show')
-            ->has('history.recent_checks', 1)
+            ->where('recentChecks.pagination.total', 1)
+        );
+    }
+
+    public function test_history_props_are_null_when_feature_disabled(): void
+    {
+        config(['monitor-history.enabled' => false]);
+
+        $user = User::factory()->create();
+        $monitor = $this->makeMonitor();
+
+        $response = $this->actingAs($user)->get(route('monitors.show', $monitor->id));
+
+        $response->assertInertia(fn ($page) => $page
+            ->component('Monitors/Show')
+            ->where('graph', null)
+            ->where('filters', null)
+            ->where('summary', null)
+            ->where('recentChecks', null)
         );
     }
 }
