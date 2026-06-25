@@ -1,218 +1,277 @@
-import React, { useMemo } from "react";
-import { CHECK_STATUS, normalizeCheckStatus } from "@/Utils/checkStatusSeverity";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import {
+    buildYearGrid,
+    monthLabelColumns,
+    computeCellSize,
+} from "@/Utils/heatmapCalendar";
+import { formatDateUTC } from "@/Utils/formatDate";
+import {
+    CHECK_STATUS,
+    normalizeCheckStatus,
+    statusesForCheckType,
+} from "@/Utils/checkStatusSeverity";
+import {
+    cellColorClass,
+    cellMetricLines,
+    isGradedCheckType,
+    SINGLE_STATUS_CLASS,
+    UPTIME_BANDS,
+} from "@/Utils/heatmapCell";
+import Tooltip from "@/Components/Tooltip";
 
 const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const CELL_GAP = 3;
+const CELL_MIN = 10;
+const CELL_MAX = 16;
+// Fixed width of the weekday-label (Y-axis) column. The month-label row offsets
+// by this, and cell sizing reserves it, so labels, grid and months stay aligned.
+const WEEKDAY_LABEL_WIDTH = 28;
+// Today is a solid indigo fill (overrides the day's status hue — today is
+// provisional anyway), in both the grid and the legend.
+const TODAY_CLASS = "bg-indigo-500 border-indigo-500";
 
-// Mirrors the cell colors produced by getCellClasses(): healthy and failed cells
-// are graded by success ratio (lighter = lower volume/ratio, darker = higher), and
-// warning cells use yellow for high ratios and orange for low ones.
-const LEGEND_ITEMS = [
-    { label: "No checks", swatches: ["bg-gray-100 border-gray-200"] },
-    {
-        label: "Healthy",
-        swatches: [
-            "bg-green-300 border-green-300",
-            "bg-green-500 border-green-500",
-            "bg-green-700 border-green-700",
-        ],
-    },
-    {
-        label: "Warning",
-        swatches: [
-            "bg-yellow-300 border-yellow-300",
-            "bg-orange-400 border-orange-400",
-        ],
-    },
-    {
-        label: "Failed",
-        swatches: [
-            "bg-red-300 border-red-300",
-            "bg-red-500 border-red-500",
-            "bg-red-700 border-red-700",
-        ],
-    },
-    { label: "Unknown", swatches: ["bg-gray-300 border-gray-300"] },
-];
+// Uptime's legend is the 4-band percentage scale (UPTIME_BANDS). Domain &
+// certificate use a single solid swatch per status (SINGLE_STATUS_CLASS) with
+// these labels, since they are once-daily checks with no per-day ratio.
+const STATUS_LABEL = {
+    [CHECK_STATUS.SUCCESS]: "Healthy",
+    [CHECK_STATUS.WARNING]: "Warning",
+    [CHECK_STATUS.FAILED]: "Failed",
+    [CHECK_STATUS.UNKNOWN]: "Unknown",
+};
 
-function parseIsoDateUTC(isoDate) {
-    const [year, month, day] = isoDate.split("-").map(Number);
-    return new Date(Date.UTC(year, month - 1, day));
+function buildCellTooltip(point, iso, isToday, checkType) {
+    const note = isToday ? "\nToday — partial, updates on next aggregation" : "";
+
+    return (
+        [formatDateUTC(iso), ...cellMetricLines(point, checkType)].join("\n") + note
+    );
 }
 
-function formatDateUTC(date) {
-    const year = date.getUTCFullYear();
-    const month = String(date.getUTCMonth() + 1).padStart(2, "0");
-    const day = String(date.getUTCDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-}
-
-function addDaysUTC(date, days) {
-    return new Date(date.getTime() + days * 24 * 60 * 60 * 1000);
-}
-
-function startOfWeekUTC(date) {
-    return addDaysUTC(date, -date.getUTCDay());
-}
-
-function endOfWeekUTC(date) {
-    return addDaysUTC(date, 6 - date.getUTCDay());
-}
-
-function buildCalendarWeeks(fromDate, toDate) {
-    const rangeStart = startOfWeekUTC(parseIsoDateUTC(fromDate));
-    const rangeEnd = endOfWeekUTC(parseIsoDateUTC(toDate));
-
-    const allDays = [];
-    for (
-        let cursor = rangeStart;
-        cursor.getTime() <= rangeEnd.getTime();
-        cursor = addDaysUTC(cursor, 1)
-    ) {
-        allDays.push(new Date(cursor));
-    }
-
-    const weeks = [];
-    for (let index = 0; index < allDays.length; index += 7) {
-        weeks.push(allDays.slice(index, index + 7));
-    }
-
-    return weeks;
-}
-
-function getCellClasses(point) {
-    if (!point || point.total_checks === 0) {
-        return "bg-gray-100 border-gray-200";
-    }
-
-    const normalizedStatus = normalizeCheckStatus(point.worst_status);
-    const successRatio = Number(point.success_ratio || 0);
-
-    if (normalizedStatus === CHECK_STATUS.FAILED) {
-        if (successRatio < 30) return "bg-red-700 border-red-700";
-        if (successRatio < 70) return "bg-red-500 border-red-500";
-        return "bg-red-300 border-red-300";
-    }
-
-    if (normalizedStatus === CHECK_STATUS.WARNING) {
-        if (successRatio < 80) return "bg-orange-400 border-orange-400";
-        return "bg-yellow-300 border-yellow-300";
-    }
-
-    if (normalizedStatus === CHECK_STATUS.SUCCESS) {
-        if (successRatio >= 99) return "bg-green-700 border-green-700";
-        if (successRatio >= 95) return "bg-green-500 border-green-500";
-        return "bg-green-300 border-green-300";
-    }
-
-    return "bg-gray-300 border-gray-300";
-}
-
-function buildTooltip(point, isoDate) {
-    if (!point || point.total_checks === 0) {
-        return `${isoDate}\nNo checks recorded`;
-    }
-
-    return [
-        isoDate,
-        `Total checks: ${point.total_checks}`,
-        `Success: ${point.successful_checks}`,
-        `Warning: ${point.warning_checks}`,
-        `Failed: ${point.failed_checks}`,
-        `Success ratio: ${point.success_ratio}%`,
-        point.avg_response_time_ms
-            ? `Avg response: ${point.avg_response_time_ms}ms`
-            : null,
-        point.p95_response_time_ms
-            ? `P95 response: ${point.p95_response_time_ms}ms`
-            : null,
-    ]
-        .filter(Boolean)
-        .join("\n");
-}
-
+// Reduced-motion policy: this component animates only via CSS transitions, each of
+// which carries `motion-reduce:transition-none motion-reduce:transform-none`. There is
+// no JS-driven animation here, so no `matchMedia('(prefers-reduced-motion: reduce)')`
+// gate is required — the CSS variants fully satisfy the prefers-reduced-motion contract.
 export default function MonitorHistoryHeatmap({
+    checkType,
     title,
-    description,
-    fromDate,
-    toDate,
+    year,
     points = [],
+    todayIso = null,
 }) {
-    const pointMap = useMemo(() => {
-        return new Map(points.map((point) => [point.date, point]));
-    }, [points]);
+    const containerRef = useRef(null);
+    const [cellSize, setCellSize] = useState(CELL_MIN);
 
-    const weeks = useMemo(() => {
-        return buildCalendarWeeks(fromDate, toDate);
-    }, [fromDate, toDate]);
+    const pointMap = useMemo(
+        () => new Map(points.map((point) => [point.date, point])),
+        [points]
+    );
+
+    const grid = useMemo(() => buildYearGrid(year), [year]);
+    const weeks = grid.weeks;
+    const monthColumns = useMemo(() => monthLabelColumns(weeks), [weeks]);
+
+    // Responsive fit: size cells to the container width via ResizeObserver,
+    // clamped to [CELL_MIN, CELL_MAX]. Below CELL_MIN the wrapper scrolls.
+    useEffect(() => {
+        const element = containerRef.current;
+        if (!element) {
+            return undefined;
+        }
+
+        const measure = () => {
+            setCellSize(
+                computeCellSize(element.clientWidth, weeks.length, {
+                    gap: CELL_GAP,
+                    min: CELL_MIN,
+                    max: CELL_MAX,
+                    reserved: WEEKDAY_LABEL_WIDTH + CELL_GAP,
+                })
+            );
+        };
+
+        measure();
+        const observer = new ResizeObserver(measure);
+        observer.observe(element);
+        return () => observer.disconnect();
+    }, [weeks.length]);
+
+    const isCurrentYear =
+        todayIso !== null && todayIso.startsWith(String(year) + "-");
+    const graded = isGradedCheckType(checkType);
+    const legendStatuses = statusesForCheckType(checkType);
+
+    // Visually-hidden one-sentence summary for screen readers.
+    const daysWithData = points.length;
+    const failedDays = points.filter(
+        (point) => normalizeCheckStatus(point.worst_status) === CHECK_STATUS.FAILED
+    ).length;
+    const srSummary = `${title}: ${year} calendar. ${daysWithData} day${
+        daysWithData === 1 ? "" : "s"
+    } with recorded checks, ${failedDays} with a failed worst-status.`;
+
+    const cellStyle = { width: cellSize, height: cellSize };
+    const labelTrackStyle = { height: cellSize, width: WEEKDAY_LABEL_WIDTH };
 
     return (
         <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-            <div className="mb-4">
-                <h3 className="text-base font-semibold text-gray-900">{title}</h3>
-                {description ? (
-                    <p className="mt-1 text-sm text-gray-500">{description}</p>
-                ) : null}
-            </div>
+            {/* No visible heading here: the per-type headline above already names
+                the metric, and the year/timezone are shown in the year nav and the
+                global "All times in …" label — see Show.jsx. The `title` is still
+                used for the screen-reader summary and the grid's aria-label. */}
+            <p className="sr-only">{srSummary}</p>
 
-            <div className="overflow-x-auto">
-                <div className="inline-flex gap-2 items-start min-w-max">
-                    <div className="grid grid-rows-7 gap-1 pr-1">
-                        {WEEKDAY_LABELS.map((label) => (
-                            <span
-                                key={label}
-                                className="h-3.5 text-[10px] text-gray-400 leading-3"
-                            >
-                                {label}
-                            </span>
-                        ))}
+            {/* py padding gives the bottom/top row hover (scale + ring) room so it
+                isn't clipped — overflow-x-auto forces overflow-y to clip too. */}
+            <div ref={containerRef} className="overflow-x-auto py-1.5">
+                <div className="inline-flex flex-col gap-1 min-w-max">
+                    {/* Month label row, aligned to the first week-column of each month. */}
+                    <div
+                        className="flex"
+                        style={{
+                            gap: CELL_GAP,
+                            marginLeft: WEEKDAY_LABEL_WIDTH + CELL_GAP,
+                        }}
+                        aria-hidden="true"
+                    >
+                        {weeks.map((_, weekIndex) => {
+                            const month = monthColumns.find(
+                                (entry) => entry.colIndex === weekIndex
+                            );
+                            return (
+                                <span
+                                    key={weekIndex}
+                                    className="text-[10px] leading-3 text-gray-600 tabular-nums"
+                                    style={{ width: cellSize }}
+                                >
+                                    {month ? month.label : ""}
+                                </span>
+                            );
+                        })}
                     </div>
 
-                    <div className="flex gap-1">
-                        {weeks.map((week, weekIndex) => (
-                            <div key={weekIndex} className="grid grid-rows-7 gap-1">
-                                {week.map((day) => {
-                                    const isoDate = formatDateUTC(day);
-                                    const point = pointMap.get(isoDate);
-                                    const inRange =
-                                        isoDate >= fromDate && isoDate <= toDate;
+                    <div className="flex" style={{ gap: CELL_GAP }}>
+                        {/* Weekday labels (Y axis). */}
+                        <div className="flex flex-col" style={{ gap: CELL_GAP }}>
+                            {WEEKDAY_LABELS.map((label) => (
+                                <span
+                                    key={label}
+                                    className="flex items-center text-[10px] leading-3 text-gray-600 tabular-nums"
+                                    style={labelTrackStyle}
+                                >
+                                    {label}
+                                </span>
+                            ))}
+                        </div>
 
-                                    return (
-                                        <div
-                                            key={isoDate}
-                                            className={[
-                                                "h-3.5 w-3.5 rounded-sm border transition-transform",
-                                                inRange
-                                                    ? getCellClasses(point)
-                                                    : "bg-transparent border-transparent",
-                                            ].join(" ")}
-                                            title={
-                                                inRange
-                                                    ? buildTooltip(point, isoDate)
-                                                    : ""
-                                            }
-                                        />
-                                    );
-                                })}
-                            </div>
-                        ))}
+                        <div
+                            className="flex"
+                            style={{ gap: CELL_GAP }}
+                            role="grid"
+                            aria-label={`${title} ${year} daily health`}
+                        >
+                            {weeks.map((week, weekIndex) => (
+                                <div
+                                    key={weekIndex}
+                                    className="flex flex-col"
+                                    style={{ gap: CELL_GAP }}
+                                    role="row"
+                                >
+                                    {week.map((day) => {
+                                        // Pad days outside the year (leading/trailing
+                                        // week fill) are the ONLY transparent cells.
+                                        if (!day.inYear) {
+                                            return (
+                                                <div
+                                                    key={day.iso}
+                                                    className="rounded-sm bg-transparent"
+                                                    style={cellStyle}
+                                                    role="gridcell"
+                                                    aria-hidden="true"
+                                                />
+                                            );
+                                        }
+
+                                        const point = pointMap.get(day.iso);
+                                        const isToday =
+                                            isCurrentYear && day.iso === todayIso;
+
+                                        return (
+                                            <Tooltip
+                                                key={day.iso}
+                                                content={buildCellTooltip(
+                                                    point,
+                                                    day.iso,
+                                                    isToday,
+                                                    checkType
+                                                )}
+                                            >
+                                                <div
+                                                    role="gridcell"
+                                                    tabIndex={0}
+                                                    aria-label={buildCellTooltip(
+                                                        point,
+                                                        day.iso,
+                                                        isToday,
+                                                        checkType
+                                                    ).replace(/\n/g, ", ")}
+                                                    className={[
+                                                        "rounded-sm border transition-transform duration-150 ease-out",
+                                                        "hover:scale-110 hover:ring-1 hover:ring-gray-400",
+                                                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500",
+                                                        "motion-reduce:transition-none motion-reduce:transform-none",
+                                                        isToday
+                                                            ? TODAY_CLASS
+                                                            : cellColorClass(point, checkType),
+                                                    ].join(" ")}
+                                                    style={cellStyle}
+                                                />
+                                            </Tooltip>
+                                        );
+                                    })}
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div className="mt-4 flex items-center flex-wrap gap-x-4 gap-y-2 text-xs text-gray-500">
-                {LEGEND_ITEMS.map((item) => (
-                    <span key={item.label} className="flex items-center gap-1.5">
-                        <span className="flex gap-0.5">
-                            {item.swatches.map((swatch) => (
-                                <span
-                                    key={swatch}
-                                    className={`h-3.5 w-3.5 rounded-sm border ${swatch}`}
-                                />
-                            ))}
-                        </span>
-                        {item.label}
+            <div className="mt-4 flex items-center flex-wrap gap-x-4 gap-y-2 text-xs text-gray-600">
+                <span className="flex items-center gap-1.5">
+                    <span className="h-3.5 w-3.5 rounded-sm border bg-gray-100 border-gray-200" />
+                    No checks
+                </span>
+                {graded
+                    ? UPTIME_BANDS.map((band) => (
+                          <span
+                              key={band.label}
+                              className="flex items-center gap-1.5"
+                          >
+                              <span
+                                  className={`h-3.5 w-3.5 rounded-sm border ${band.class}`}
+                              />
+                              {band.label}
+                          </span>
+                      ))
+                    : legendStatuses
+                          .filter((status) => STATUS_LABEL[status])
+                          .map((status) => (
+                              <span
+                                  key={status}
+                                  className="flex items-center gap-1.5"
+                              >
+                                  <span
+                                      className={`h-3.5 w-3.5 rounded-sm border ${SINGLE_STATUS_CLASS[status]}`}
+                                  />
+                                  {STATUS_LABEL[status]}
+                              </span>
+                          ))}
+                {isCurrentYear ? (
+                    <span className="flex items-center gap-1.5">
+                        <span className={`h-3.5 w-3.5 rounded-sm border ${TODAY_CLASS}`} />
+                        Today
                     </span>
-                ))}
+                ) : null}
             </div>
         </div>
     );

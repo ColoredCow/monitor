@@ -23,9 +23,13 @@ return [
     ],
 
     /*
-     * Maximum recent check rows to return on monitor detail page.
+     * Maximum recent checks surfaced on the monitor detail page's recent strip.
+     * Single source of truth: the controller caps `latest_checks` to this value
+     * AND ships it in the graph payload, and the frontend strip uses the same
+     * number as its slot cap (MonitorRecentStrip maxSlots) — so the backend and
+     * frontend caps cannot drift apart.
      */
-    'recent_checks_limit' => 50,
+    'recent_checks_limit' => 150,
 
     /*
      * How many days of raw logs to keep before pruning.

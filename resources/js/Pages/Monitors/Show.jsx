@@ -1,22 +1,23 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import Authenticated from "@/Layouts/Authenticated";
 import { Head, Link, router, usePage } from "@inertiajs/react";
 import {
     ArrowTopRightOnSquareIcon,
     ArrowLeftIcon,
+    ChevronLeftIcon,
+    ChevronRightIcon,
 } from "@heroicons/react/24/outline";
 import MonitorUptimeIcon from "@/Components/MonitorUptimeIcon";
 import MonitorDomainIcon from "@/Components/MonitorDomainIcon";
 import MonitorCheckIntervalIcon from "@/Components/MonitorCheckIntervalIcon";
 import PageHeader from "@/Components/PageHeader";
-import Button from "@/Components/Button";
-import Input from "@/Components/Input";
-import Badge from "@/Components/Badge";
 import MonitorHistoryHeatmap from "@/Components/MonitorHistoryHeatmap";
-import {
-    getCheckStatusBadgeColor,
-    normalizeCheckStatus,
-} from "@/Utils/checkStatusSeverity";
+import MonitorLiveStatus from "@/Components/MonitorLiveStatus";
+import MonitorRecentStrip from "@/Components/MonitorRecentStrip";
+import RecentChecksPanel from "@/Components/RecentChecksPanel";
+import MonitorHistoryFilters from "@/Components/MonitorHistoryFilters";
+import SummaryStats from "@/Components/SummaryStats";
+import { buildHistoryParams } from "@/Utils/historyParams";
 
 const CHECK_TYPE_LABELS = {
     uptime: "Uptime",
@@ -29,100 +30,124 @@ function formatCheckTypeLabel(checkType) {
 }
 
 export default function Show(props) {
-    const { monitor, features, history } = usePage().props;
+    const { monitor, features, graph, filters, summary, recentChecks } = usePage().props;
     const isHistoryEnabled = Boolean(features?.monitorHistory);
-    const selectedRange = history?.range || null;
+    const [graphPending, setGraphPending] = useState(false);
 
-    const [customRange, setCustomRange] = useState({
-        from: selectedRange?.from || "",
-        to: selectedRange?.to || "",
-    });
+    // The graph is driven solely by ?year and is decoupled from the filters.
+    const currentParams = useMemo(
+        () => ({
+            year: graph?.year,
+            preset: filters?.preset,
+            from: filters?.from,
+            to: filters?.to,
+            recent_type: recentChecks?.type || "uptime",
+            recent_page: recentChecks?.pagination?.current_page || 1,
+        }),
+        [graph?.year, filters, recentChecks]
+    );
 
-    // Keep the custom-range inputs in sync with the range the server actually applied
-    // (it may clamp or swap the supplied dates) so the controls never misrepresent the view.
-    useEffect(() => {
-        setCustomRange({
-            from: selectedRange?.from || "",
-            to: selectedRange?.to || "",
-        });
-    }, [selectedRange?.from, selectedRange?.to]);
+    const [recentPending, setRecentPending] = useState(false);
+    const [filtersPending, setFiltersPending] = useState(false);
 
-    const applyRange = (params) => {
-        // Timezone is resolved server-side (it must match how metrics were aggregated),
-        // so we intentionally do not send the browser timezone here.
-        router.get(route("monitors.show", monitor.id), params, {
-            preserveScroll: true,
-            preserveState: true,
-            replace: true,
-        });
-    };
+    const handleApplyFilters = (change) => {
+        // Timezone is resolved server-side to match how metrics were aggregated,
+        // so we intentionally never send the browser timezone here.
+        const overrides = { ...change, recent_page: 1 };
 
-    const submitCustomRange = (event) => {
-        event.preventDefault();
-        applyRange({
-            preset: "custom",
-            from: customRange.from,
-            to: customRange.to,
-        });
-    };
-
-    const checkTypes = useMemo(() => {
-        if (history?.check_types?.length) {
-            return history.check_types;
-        }
-
-        // Fallback: derive enabled flags from the monitor when no payload is present.
-        return [
-            { type: "uptime", enabled: Boolean(monitor.uptime_check_enabled) },
-            { type: "domain", enabled: Boolean(monitor.domain_check_enabled) },
+        router.get(
+            route("monitors.show", monitor.id),
+            buildHistoryParams(currentParams, overrides),
             {
-                type: "certificate",
-                enabled: Boolean(monitor.certificate_check_enabled),
-            },
-        ];
-    }, [history, monitor]);
+                only: ["filters", "summary", "recentChecks"],
+                preserveState: true,
+                preserveScroll: true,
+                replace: true,
+                onStart: () => setFiltersPending(true),
+                onFinish: () => setFiltersPending(false),
+            }
+        );
+    };
 
-    const statusTotals = history?.summary?.selected_range?.status_totals || {};
-    const totalChecks = history?.summary?.selected_range?.total_checks || 0;
+    const goToYear = (targetYear) => {
+        router.get(
+            route("monitors.show", monitor.id),
+            buildHistoryParams(currentParams, { year: targetYear }),
+            {
+                only: ["graph"],
+                preserveState: true,
+                preserveScroll: true,
+                replace: true,
+                onStart: () => setGraphPending(true),
+                onFinish: () => setGraphPending(false),
+            }
+        );
+    };
+
+    const reloadRecentChecks = (overrides) => {
+        router.get(
+            route("monitors.show", monitor.id),
+            buildHistoryParams(currentParams, overrides),
+            {
+                only: ["recentChecks"],
+                preserveState: true,
+                preserveScroll: true,
+                replace: true,
+                onStart: () => setRecentPending(true),
+                onFinish: () => setRecentPending(false),
+            }
+        );
+    };
+
+    const handleRecentTabChange = (type) => {
+        reloadRecentChecks({ recent_type: type, recent_page: 1 });
+    };
+
+    const handleRecentPageChange = (page) => {
+        reloadRecentChecks({ recent_page: page });
+    };
 
     return (
         <Authenticated auth={props.auth} errors={props.errors}>
             <Head title={monitor.name || "Monitor Details"} />
 
             <PageHeader>
-                <div className="flex items-center justify-between gap-4">
-                    <div>
+                <div className="flex items-start gap-4">
+                    <Link
+                        href={route("monitors.index")}
+                        className="mt-1 inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm transition-colors duration-150 ease-out hover:bg-gray-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-2 motion-reduce:transition-none"
+                    >
+                        <ArrowLeftIcon className="h-4 w-4" />
+                        Back
+                    </Link>
+                    <div className="min-w-0">
                         <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
                             {monitor.name}
                         </h1>
-                        <div className="mt-1 flex items-center gap-1 text-sm text-gray-500">
-                            <span className="truncate max-w-[35rem]">{monitor.raw_url}</span>
+                        <div className="mt-1 flex items-center gap-1 text-sm text-gray-600">
+                            <span className="truncate max-w-[35rem]">
+                                {monitor.raw_url}
+                            </span>
                             <a
                                 href={monitor.raw_url}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="text-gray-400 hover:text-gray-600"
+                                className="rounded text-gray-600 transition-colors duration-150 ease-out hover:text-gray-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 motion-reduce:transition-none"
                                 title="Open monitor URL"
                             >
                                 <ArrowTopRightOnSquareIcon className="h-4 w-4" />
                             </a>
                         </div>
+                        <MonitorLiveStatus monitor={monitor} />
                     </div>
-                    <Link
-                        href={route("monitors.index")}
-                        className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
-                    >
-                        <ArrowLeftIcon className="h-4 w-4" />
-                        Back
-                    </Link>
                 </div>
             </PageHeader>
 
             <div className="max-w-7xl mx-auto py-8 px-6 lg:px-8 space-y-6">
-                <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-                    <h2 className="text-sm font-semibold tracking-wide text-gray-500 uppercase mb-4">
-                        Monitor Snapshot
-                    </h2>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-gray-200 bg-white px-5 py-3 shadow-sm">
+                    <span className="text-xs font-semibold uppercase tracking-wide text-gray-600">
+                        Snapshot
+                    </span>
                     <div className="flex items-center gap-2.5 flex-wrap">
                         <MonitorUptimeIcon monitor={monitor} />
                         <MonitorCheckIntervalIcon monitor={monitor} />
@@ -131,9 +156,16 @@ export default function Show(props) {
                 </div>
 
                 <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-                    <h2 className="text-sm font-semibold tracking-wide text-gray-500 uppercase mb-2">
-                        Monitor History
-                    </h2>
+                    <div className="mb-4 flex items-baseline justify-between gap-4">
+                        <h2 className="text-lg font-semibold text-gray-900">
+                            Monitor History
+                        </h2>
+                        {filters?.timezone ? (
+                            <span className="text-xs text-gray-600">
+                                All times in {filters.timezone}
+                            </span>
+                        ) : null}
+                    </div>
 
                     {!isHistoryEnabled ? (
                         <p className="text-sm text-gray-600">
@@ -141,211 +173,132 @@ export default function Show(props) {
                             <code>MONITOR_HISTORY_ENABLED=true</code> to enable rollout when
                             backend history ingestion is ready.
                         </p>
-                    ) : !history ? (
+                    ) : !graph && !filters && !summary ? (
                         <p className="text-sm text-gray-600">
                             History is enabled, but no history payload is available for
                             this monitor yet.
                         </p>
                     ) : (
-                        <div className="space-y-6">
-                            <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                                <div className="flex flex-wrap items-center gap-2">
-                                    <button
-                                        className={`px-3 py-1.5 rounded-lg border text-xs font-semibold ${
-                                            selectedRange?.preset === "7d"
-                                                ? "bg-purple-600 text-white border-purple-600"
-                                                : "bg-white text-gray-700 border-gray-300"
-                                        }`}
-                                        onClick={() => applyRange({ preset: "7d" })}
-                                        type="button"
-                                    >
-                                        Last 7 Days
-                                    </button>
-                                    <button
-                                        className={`px-3 py-1.5 rounded-lg border text-xs font-semibold ${
-                                            selectedRange?.preset === "30d"
-                                                ? "bg-purple-600 text-white border-purple-600"
-                                                : "bg-white text-gray-700 border-gray-300"
-                                        }`}
-                                        onClick={() => applyRange({ preset: "30d" })}
-                                        type="button"
-                                    >
-                                        Last 30 Days
-                                    </button>
-                                    <button
-                                        className={`px-3 py-1.5 rounded-lg border text-xs font-semibold ${
-                                            selectedRange?.preset === "all"
-                                                ? "bg-purple-600 text-white border-purple-600"
-                                                : "bg-white text-gray-700 border-gray-300"
-                                        }`}
-                                        onClick={() => applyRange({ preset: "all" })}
-                                        type="button"
-                                    >
-                                        All Time
-                                    </button>
-                                </div>
-
-                                <form
-                                    onSubmit={submitCustomRange}
-                                    className="mt-4 flex flex-wrap items-end gap-3"
-                                >
-                                    <div>
-                                        <label className="block text-xs text-gray-500 mb-1">
-                                            From
-                                        </label>
-                                        <Input
-                                            type="date"
-                                            name="from"
-                                            value={customRange.from}
-                                            handleChange={(event) =>
-                                                setCustomRange((previous) => ({
-                                                    ...previous,
-                                                    from: event.target.value,
-                                                }))
-                                            }
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs text-gray-500 mb-1">
-                                            To
-                                        </label>
-                                        <Input
-                                            type="date"
-                                            name="to"
-                                            value={customRange.to}
-                                            handleChange={(event) =>
-                                                setCustomRange((previous) => ({
-                                                    ...previous,
-                                                    to: event.target.value,
-                                                }))
-                                            }
-                                        />
-                                    </div>
-                                    <Button type="submit" className="px-4 py-2">
-                                        Apply
-                                    </Button>
-                                </form>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                                <div className="rounded-xl border border-gray-200 bg-white p-4">
-                                    <p className="text-xs uppercase tracking-wide text-gray-500">
-                                        Total Checks
-                                    </p>
-                                    <p className="mt-2 text-2xl font-bold text-gray-900">
-                                        {totalChecks}
-                                    </p>
-                                </div>
-                                <div className="rounded-xl border border-gray-200 bg-white p-4">
-                                    <p className="text-xs uppercase tracking-wide text-gray-500">
-                                        Success
-                                    </p>
-                                    <p className="mt-2 text-2xl font-bold text-green-700">
-                                        {statusTotals.success || 0}
-                                    </p>
-                                </div>
-                                <div className="rounded-xl border border-gray-200 bg-white p-4">
-                                    <p className="text-xs uppercase tracking-wide text-gray-500">
-                                        Warning
-                                    </p>
-                                    <p className="mt-2 text-2xl font-bold text-yellow-700">
-                                        {statusTotals.warning || 0}
-                                    </p>
-                                </div>
-                                <div className="rounded-xl border border-gray-200 bg-white p-4">
-                                    <p className="text-xs uppercase tracking-wide text-gray-500">
-                                        Failed
-                                    </p>
-                                    <p className="mt-2 text-2xl font-bold text-red-700">
-                                        {statusTotals.failed || 0}
-                                    </p>
-                                </div>
-                            </div>
-
-                            {checkTypes.map(({ type, enabled }) =>
-                                enabled ? (
-                                    <MonitorHistoryHeatmap
-                                        key={type}
-                                        title={`${formatCheckTypeLabel(type)} Health`}
-                                        description={`${selectedRange?.from} to ${selectedRange?.to} (${selectedRange?.timezone})`}
-                                        fromDate={selectedRange?.from}
-                                        toDate={selectedRange?.to}
-                                        points={history.daily_metrics?.[type] || []}
-                                    />
-                                ) : (
-                                    <div
-                                        key={type}
-                                        className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-5"
-                                    >
-                                        <h3 className="text-base font-semibold text-gray-700">
-                                            {`${formatCheckTypeLabel(type)} Health`}
+                        <div className="divide-y divide-gray-200 [&>*]:py-6 [&>*:first-child]:pt-0 [&>*:last-child]:pb-0">
+                            {graph ? (
+                                <section aria-label="Yearly health graphs" className="space-y-6">
+                                    <div className="flex items-center justify-between gap-4">
+                                        <h3 className="text-base font-semibold text-gray-900">
+                                            Health by year
                                         </h3>
-                                        <p className="mt-1 text-sm text-gray-500">
-                                            {formatCheckTypeLabel(type)} checks are not enabled
-                                            for this monitor.
-                                        </p>
+                                        <div className="flex items-center gap-2" aria-busy={graphPending}>
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    goToYear(graph.year - 1)
+                                                }
+                                                disabled={
+                                                    graphPending ||
+                                                    graph.year <= Math.min(...graph.available_years)
+                                                }
+                                                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 shadow-sm hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+                                                aria-label="Previous year"
+                                            >
+                                                <ChevronLeftIcon className="h-4 w-4" />
+                                            </button>
+                                            <span className="min-w-[3.5rem] text-center text-sm font-semibold text-gray-900 tabular-nums">
+                                                {graph.year}
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    goToYear(graph.year + 1)
+                                                }
+                                                disabled={
+                                                    graphPending ||
+                                                    graph.year >= Math.max(...graph.available_years)
+                                                }
+                                                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 shadow-sm hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+                                                aria-label="Next year"
+                                            >
+                                                <ChevronRightIcon className="h-4 w-4" />
+                                            </button>
+                                        </div>
                                     </div>
-                                )
-                            )}
 
-                            <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-                                <h3 className="text-base font-semibold text-gray-900">
-                                    Recent Checks
-                                </h3>
-                                <div className="mt-4 overflow-x-auto">
-                                    <table className="min-w-full text-sm">
-                                        <thead>
-                                            <tr className="text-left text-gray-500 border-b border-gray-200">
-                                                <th className="py-2 pr-4 font-medium">Time</th>
-                                                <th className="py-2 pr-4 font-medium">Type</th>
-                                                <th className="py-2 pr-4 font-medium">Status</th>
-                                                <th className="py-2 pr-4 font-medium">Message</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {(history.recent_checks || []).length === 0 ? (
-                                                <tr>
-                                                    <td className="py-4 text-gray-500" colSpan={4}>
-                                                        No checks recorded yet.
-                                                    </td>
-                                                </tr>
-                                            ) : (
-                                                (history.recent_checks || []).map((check) => {
-                                                    const normalizedStatus =
-                                                        normalizeCheckStatus(check.status);
+                                    {graph.check_types
+                                        .filter(({ enabled }) => enabled)
+                                        .map(({ type }) => {
+                                            const series = graph.series?.[type];
+                                            const typeSummary = series?.summary;
 
-                                                    return (
-                                                        <tr
-                                                            key={check.id}
-                                                            className="border-b border-gray-100 last:border-b-0"
-                                                        >
-                                                            <td className="py-2 pr-4 text-gray-700 whitespace-nowrap">
-                                                                {check.checked_at}
-                                                            </td>
-                                                            <td className="py-2 pr-4 text-gray-700">
-                                                                {formatCheckTypeLabel(check.check_type)}
-                                                            </td>
-                                                            <td className="py-2 pr-4">
-                                                                <Badge
-                                                                    text={normalizedStatus}
-                                                                    color={getCheckStatusBadgeColor(
-                                                                        normalizedStatus
-                                                                    )}
-                                                                />
-                                                            </td>
-                                                            <td className="py-2 pr-4 text-gray-700">
-                                                                {check.message ||
-                                                                    check.failure_reason ||
-                                                                    "No details"}
-                                                            </td>
-                                                        </tr>
-                                                    );
-                                                })
-                                            )}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
+                                            return (
+                                                <div key={type} className="space-y-3">
+                                                    <div className="flex items-baseline gap-x-2">
+                                                        <span className="text-sm font-medium text-gray-600">
+                                                            {formatCheckTypeLabel(type)}
+                                                        </span>
+                                                        <span className="text-lg font-semibold text-gray-900 tabular-nums">
+                                                            {typeSummary
+                                                                ? Number(
+                                                                      typeSummary.success_ratio
+                                                                  ).toFixed(1)
+                                                                : "0.0"}
+                                                            %
+                                                        </span>
+                                                        <span className="text-xs text-gray-500 tabular-nums">
+                                                            ·{" "}
+                                                            {(
+                                                                typeSummary?.total_checks || 0
+                                                            ).toLocaleString()}{" "}
+                                                            checks
+                                                        </span>
+                                                    </div>
+                                                    <MonitorRecentStrip
+                                                        checkType={type}
+                                                        checks={series?.latest_checks || []}
+                                                        maxSlots={graph.recent_checks_limit}
+                                                    />
+                                                    <MonitorHistoryHeatmap
+                                                        checkType={type}
+                                                        title={`${formatCheckTypeLabel(type)} Health`}
+                                                        year={graph.year}
+                                                        points={series?.daily_metrics || []}
+                                                        todayIso={graph.today_iso || null}
+                                                    />
+                                                </div>
+                                            );
+                                        })}
+
+                                    {graph.check_types.some(({ enabled }) => !enabled) ? (
+                                        <p className="text-xs text-gray-600">
+                                            {graph.check_types
+                                                .filter(({ enabled }) => !enabled)
+                                                .map(({ type }) => formatCheckTypeLabel(type))
+                                                .join(", ")}{" "}
+                                            {graph.check_types.filter(({ enabled }) => !enabled)
+                                                .length === 1
+                                                ? "check is"
+                                                : "checks are"}{" "}
+                                            not enabled for this monitor.
+                                        </p>
+                                    ) : null}
+                                </section>
+                            ) : null}
+
+                            <MonitorHistoryFilters
+                                filters={filters}
+                                pending={filtersPending}
+                                onApply={handleApplyFilters}
+                            />
+
+                            <SummaryStats
+                                summary={summary}
+                                onViewAllTime={() => handleApplyFilters({ preset: "all" })}
+                            />
+
+                            <RecentChecksPanel
+                                recentChecks={recentChecks}
+                                checkTypes={graph?.check_types || []}
+                                pending={recentPending}
+                                onTabChange={handleRecentTabChange}
+                                onPageChange={handleRecentPageChange}
+                            />
                         </div>
                     )}
                 </div>
