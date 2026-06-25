@@ -177,4 +177,32 @@ class MonitorHistoryGraphTest extends TestCase
             ->where('graph.series.uptime.summary.success_ratio', 50)
         );
     }
+
+    public function test_today_checks_contain_only_todays_rows_newest_first(): void
+    {
+        $user = User::factory()->create();
+        $monitor = $this->makeMonitor();
+
+        $todayMorning = Carbon::now('UTC')->startOfDay()->addHours(8);
+        $todayNoon = Carbon::now('UTC')->startOfDay()->addHours(12);
+        $yesterday = Carbon::now('UTC')->subDay()->setTime(10, 0);
+
+        $this->seedUptimeLog($monitor, MonitorCheckLogService::STATUS_SUCCESS, $todayMorning->toDateTimeString());
+        $this->seedUptimeLog($monitor, MonitorCheckLogService::STATUS_FAILED, $todayNoon->toDateTimeString());
+        $this->seedUptimeLog($monitor, MonitorCheckLogService::STATUS_SUCCESS, $yesterday->toDateTimeString());
+
+        $currentYear = (int) Carbon::now('UTC')->format('Y');
+
+        $response = $this->actingAs($user)->get(route('monitors.show', [
+            'monitor' => $monitor->id,
+            'year' => $currentYear,
+        ]));
+
+        $response->assertInertia(fn ($page) => $page
+            ->component('Monitors/Show')
+            ->has('graph.series.uptime.today_checks', 2)
+            ->where('graph.series.uptime.today_checks.0.status', MonitorCheckLogService::STATUS_FAILED)
+            ->where('graph.series.uptime.today_checks.1.status', MonitorCheckLogService::STATUS_SUCCESS)
+        );
+    }
 }

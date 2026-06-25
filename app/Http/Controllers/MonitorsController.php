@@ -499,6 +499,25 @@ class MonitorsController extends Controller
 
     protected function buildTodayChecks(Monitor $monitor, string $checkType, string $timezone): array
     {
-        return [];
+        $todayStartUtc = Carbon::now($timezone)->startOfDay()->utc();
+        $todayEndUtc = Carbon::now($timezone)->endOfDay()->utc();
+
+        return $monitor->checkLogs()
+            ->where('check_type', $checkType)
+            ->whereBetween('checked_at', [$todayStartUtc, $todayEndUtc])
+            ->latest('checked_at')
+            ->limit(200)
+            ->get()
+            ->map(function (MonitorCheckLog $log) use ($timezone) {
+                return [
+                    'id' => $log->id,
+                    'checked_at' => $log->checked_at->timezone($timezone)->toDateTimeString(),
+                    'status' => $log->status,
+                    'message' => $log->message,
+                    'failure_reason' => $log->failure_reason,
+                    'response_time_ms' => $log->response_time_ms,
+                ];
+            })
+            ->all();
     }
 }
