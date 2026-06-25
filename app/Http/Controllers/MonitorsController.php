@@ -491,7 +491,7 @@ class MonitorsController extends Controller
         ];
     }
 
-    protected function buildLatestChecks(Monitor $monitor, string $checkType, string $timezone, int $limit = 50): array
+    protected function buildLatestChecks(Monitor $monitor, string $checkType, string $timezone, int $limit = 150): array
     {
         return $monitor->checkLogs()
             ->where('check_type', $checkType)

@@ -11,7 +11,7 @@ import Tooltip from "@/Components/Tooltip";
 
 const SEGMENT_WIDTH = 8;
 const SEGMENT_GAP = 2;
-const MAX_SLOTS = 50;
+const MAX_SLOTS = 150;
 
 function buildSegmentTooltip(check) {
     return [

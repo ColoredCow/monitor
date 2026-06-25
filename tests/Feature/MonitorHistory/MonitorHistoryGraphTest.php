@@ -222,13 +222,13 @@ class MonitorHistoryGraphTest extends TestCase
         );
     }
 
-    public function test_latest_checks_are_capped_at_fifty(): void
+    public function test_latest_checks_are_capped_at_one_hundred_fifty(): void
     {
         $user = User::factory()->create();
         $monitor = $this->makeMonitor();
 
         $base = Carbon::now('UTC')->startOfDay()->addHours(1);
-        for ($i = 0; $i < 60; $i++) {
+        for ($i = 0; $i < 160; $i++) {
             $this->seedUptimeLog(
                 $monitor,
                 MonitorCheckLogService::STATUS_SUCCESS,
@@ -243,7 +243,7 @@ class MonitorHistoryGraphTest extends TestCase
 
         $response->assertInertia(fn ($page) => $page
             ->component('Monitors/Show')
-            ->has('graph.series.uptime.latest_checks', 50)
+            ->has('graph.series.uptime.latest_checks', 150)
         );
     }
 }
