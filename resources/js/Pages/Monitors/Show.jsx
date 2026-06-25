@@ -144,10 +144,10 @@ export default function Show(props) {
             </PageHeader>
 
             <div className="max-w-7xl mx-auto py-8 px-6 lg:px-8 space-y-6">
-                <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-                    <h2 className="text-sm font-semibold tracking-wide text-gray-500 uppercase mb-4">
-                        Monitor Snapshot
-                    </h2>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-gray-200 bg-white px-5 py-3 shadow-sm">
+                    <span className="text-xs font-semibold uppercase tracking-wide text-gray-600">
+                        Snapshot
+                    </span>
                     <div className="flex items-center gap-2.5 flex-wrap">
                         <MonitorUptimeIcon monitor={monitor} />
                         <MonitorCheckIntervalIcon monitor={monitor} />
