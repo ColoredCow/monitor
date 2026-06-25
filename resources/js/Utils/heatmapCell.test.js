@@ -22,22 +22,47 @@ describe("cellColorClass", () => {
         );
     });
 
-    it("grades uptime by success ratio (3 shades per status)", () => {
+    it("colors uptime by success ratio in 4 bands (100 / 95+ / 90+ / <90)", () => {
         expect(cellColorClass(upDay({ success_ratio: 100 }), "uptime")).toBe(
-            "bg-green-700 border-green-700"
+            "bg-green-600 border-green-600"
         );
-        expect(cellColorClass(upDay({ success_ratio: 96 }), "uptime")).toBe(
-            "bg-green-500 border-green-500"
+        expect(cellColorClass(upDay({ success_ratio: 95 }), "uptime")).toBe(
+            "bg-green-400 border-green-400"
         );
-        expect(cellColorClass(upDay({ success_ratio: 80 }), "uptime")).toBe(
-            "bg-green-300 border-green-300"
+        expect(cellColorClass(upDay({ success_ratio: 99.9 }), "uptime")).toBe(
+            "bg-green-400 border-green-400"
+        );
+        expect(cellColorClass(upDay({ success_ratio: 90 }), "uptime")).toBe(
+            "bg-amber-400 border-amber-400"
+        );
+        expect(cellColorClass(upDay({ success_ratio: 94.9 }), "uptime")).toBe(
+            "bg-amber-400 border-amber-400"
         );
         expect(
+            cellColorClass(upDay({ worst_status: "failed", success_ratio: 89.9 }), "uptime")
+        ).toBe("bg-red-500 border-red-500");
+        expect(
             cellColorClass(upDay({ worst_status: "failed", success_ratio: 0 }), "uptime")
-        ).toBe("bg-red-700 border-red-700");
+        ).toBe("bg-red-500 border-red-500");
     });
 
-    it("uses a SINGLE solid color per status for domain (no gradient)", () => {
+    it("keeps an all-unknown uptime day gray, not red", () => {
+        expect(
+            cellColorClass(
+                {
+                    total_checks: 2,
+                    successful_checks: 0,
+                    warning_checks: 0,
+                    failed_checks: 0,
+                    success_ratio: 0,
+                    worst_status: "unknown",
+                },
+                "uptime"
+            )
+        ).toBe("bg-gray-300 border-gray-300");
+    });
+
+    it("uses a SINGLE solid color per status for domain (no bands)", () => {
         expect(
             cellColorClass({ total_checks: 1, worst_status: "success", success_ratio: 100 }, "domain")
         ).toBe("bg-green-600 border-green-600");
@@ -65,13 +90,14 @@ describe("cellMetricLines", () => {
         expect(cellMetricLines({ total_checks: 0 }, "domain")).toEqual(["No checks"]);
     });
 
-    it("uptime omits the Warning row and includes latency when present", () => {
+    it("uptime omits the Warning row, labels the ratio 'Uptime', and includes latency when present", () => {
         const lines = cellMetricLines(upDay(), "uptime");
         expect(lines).toContain("Total checks: 8");
         expect(lines).toContain("Success: 8");
         expect(lines).toContain("Failed: 0");
         expect(lines.some((l) => l.startsWith("Warning:"))).toBe(false);
-        expect(lines).toContain("Success ratio: 100%");
+        expect(lines).toContain("Uptime: 100%");
+        expect(lines.some((l) => l.startsWith("Success ratio"))).toBe(false);
         expect(lines).toContain("Avg response: 157ms");
         expect(lines).toContain("P95 response: 205ms");
     });
@@ -85,7 +111,7 @@ describe("cellMetricLines", () => {
         expect(lines.some((l) => l.startsWith("P95 response"))).toBe(false);
     });
 
-    it("domain includes the Warning row and NEVER shows latency", () => {
+    it("domain includes the Warning row, labels the ratio 'Success ratio', and NEVER shows latency", () => {
         const lines = cellMetricLines(
             {
                 total_checks: 1,
@@ -102,6 +128,8 @@ describe("cellMetricLines", () => {
         expect(lines).toContain("Warning: 1");
         expect(lines).toContain("Success: 0");
         expect(lines).toContain("Failed: 0");
+        expect(lines).toContain("Success ratio: 0%");
+        expect(lines.some((l) => l.startsWith("Uptime:"))).toBe(false);
         expect(lines.some((l) => l.startsWith("Avg response"))).toBe(false);
         expect(lines.some((l) => l.startsWith("P95 response"))).toBe(false);
     });

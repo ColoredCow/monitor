@@ -15,6 +15,7 @@ import {
     cellMetricLines,
     isGradedCheckType,
     SINGLE_STATUS_CLASS,
+    UPTIME_BANDS,
 } from "@/Utils/heatmapCell";
 import Tooltip from "@/Components/Tooltip";
 
@@ -26,37 +27,14 @@ const CELL_MAX = 16;
 // provisional anyway), in both the grid and the legend.
 const TODAY_CLASS = "bg-indigo-500 border-indigo-500";
 
-// Legend labels + the graded (uptime) swatch sets. Domain/certificate use a
-// single solid swatch per status instead (SINGLE_STATUS_CLASS), since they are
-// once-daily checks with no meaningful per-day ratio.
-const LEGEND_DEFS = {
-    [CHECK_STATUS.SUCCESS]: {
-        label: "Healthy",
-        swatches: [
-            "bg-green-300 border-green-300",
-            "bg-green-500 border-green-500",
-            "bg-green-700 border-green-700",
-        ],
-    },
-    [CHECK_STATUS.WARNING]: {
-        label: "Warning",
-        swatches: [
-            "bg-yellow-300 border-yellow-300",
-            "bg-orange-400 border-orange-400",
-        ],
-    },
-    [CHECK_STATUS.FAILED]: {
-        label: "Failed",
-        swatches: [
-            "bg-red-300 border-red-300",
-            "bg-red-500 border-red-500",
-            "bg-red-700 border-red-700",
-        ],
-    },
-    [CHECK_STATUS.UNKNOWN]: {
-        label: "Unknown",
-        swatches: ["bg-gray-300 border-gray-300"],
-    },
+// Uptime's legend is the 4-band percentage scale (UPTIME_BANDS). Domain &
+// certificate use a single solid swatch per status (SINGLE_STATUS_CLASS) with
+// these labels, since they are once-daily checks with no per-day ratio.
+const STATUS_LABEL = {
+    [CHECK_STATUS.SUCCESS]: "Healthy",
+    [CHECK_STATUS.WARNING]: "Warning",
+    [CHECK_STATUS.FAILED]: "Failed",
+    [CHECK_STATUS.UNKNOWN]: "Unknown",
 };
 
 function buildCellTooltip(point, iso, isToday, checkType) {
@@ -260,26 +238,31 @@ export default function MonitorHistoryHeatmap({
                     <span className="h-3.5 w-3.5 rounded-sm border bg-gray-100 border-gray-200" />
                     No checks
                 </span>
-                {legendStatuses
-                    .filter((status) => LEGEND_DEFS[status])
-                    .map((status) => {
-                        const swatches = graded
-                            ? LEGEND_DEFS[status].swatches
-                            : [SINGLE_STATUS_CLASS[status]];
-                        return (
-                            <span key={status} className="flex items-center gap-1.5">
-                                <span className="flex gap-0.5">
-                                    {swatches.map((swatch) => (
-                                        <span
-                                            key={swatch}
-                                            className={`h-3.5 w-3.5 rounded-sm border ${swatch}`}
-                                        />
-                                    ))}
-                                </span>
-                                {LEGEND_DEFS[status].label}
-                            </span>
-                        );
-                    })}
+                {graded
+                    ? UPTIME_BANDS.map((band) => (
+                          <span
+                              key={band.label}
+                              className="flex items-center gap-1.5"
+                          >
+                              <span
+                                  className={`h-3.5 w-3.5 rounded-sm border ${band.class}`}
+                              />
+                              {band.label}
+                          </span>
+                      ))
+                    : legendStatuses
+                          .filter((status) => STATUS_LABEL[status])
+                          .map((status) => (
+                              <span
+                                  key={status}
+                                  className="flex items-center gap-1.5"
+                              >
+                                  <span
+                                      className={`h-3.5 w-3.5 rounded-sm border ${SINGLE_STATUS_CLASS[status]}`}
+                                  />
+                                  {STATUS_LABEL[status]}
+                              </span>
+                          ))}
                 {isCurrentYear ? (
                     <span className="flex items-center gap-1.5">
                         <span className={`h-3.5 w-3.5 rounded-sm border ${TODAY_CLASS}`} />

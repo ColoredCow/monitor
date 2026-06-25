@@ -14,26 +14,29 @@ export function isGradedCheckType(checkType) {
     return checkType === "uptime";
 }
 
-// Graded (uptime): three shades per status, by the day's success ratio.
-function gradedClass(point) {
-    const status = normalizeCheckStatus(point.worst_status);
-    const ratio = Number(point.success_ratio || 0);
+// Uptime: one 4-band scale by the day's success percentage (highest band first).
+// Shared by the cells AND the legend so they always agree.
+export const UPTIME_BANDS = [
+    { min: 100, label: "100%", class: "bg-green-600 border-green-600" },
+    { min: 95, label: "95%+", class: "bg-green-400 border-green-400" },
+    { min: 90, label: "90%+", class: "bg-amber-400 border-amber-400" },
+    { min: 0, label: "<90%", class: "bg-red-500 border-red-500" },
+];
 
-    if (status === CHECK_STATUS.FAILED) {
-        if (ratio < 30) return "bg-red-700 border-red-700";
-        if (ratio < 70) return "bg-red-500 border-red-500";
-        return "bg-red-300 border-red-300";
+// A day with only "unknown" checks (e.g. never-checked) has a 0% ratio but no
+// real failures — keep it gray rather than letting it fall into the red band.
+const UNKNOWN_DAY_CLASS = "bg-gray-300 border-gray-300";
+
+function uptimeBandClass(point) {
+    if (normalizeCheckStatus(point.worst_status) === CHECK_STATUS.UNKNOWN) {
+        return UNKNOWN_DAY_CLASS;
     }
-    if (status === CHECK_STATUS.WARNING) {
-        if (ratio < 80) return "bg-orange-400 border-orange-400";
-        return "bg-yellow-300 border-yellow-300";
-    }
-    if (status === CHECK_STATUS.SUCCESS) {
-        if (ratio >= 99) return "bg-green-700 border-green-700";
-        if (ratio >= 95) return "bg-green-500 border-green-500";
-        return "bg-green-300 border-green-300";
-    }
-    return "bg-gray-300 border-gray-300";
+    const ratio = Number(point.success_ratio || 0);
+    const band =
+        UPTIME_BANDS.find((entry) => ratio >= entry.min) ||
+        UPTIME_BANDS[UPTIME_BANDS.length - 1];
+
+    return band.class;
 }
 
 // Single solid color per status (domain / certificate). Shared by cells + legend.
@@ -49,7 +52,7 @@ export function cellColorClass(point, checkType) {
         return NO_DATA_CLASS;
     }
     if (isGradedCheckType(checkType)) {
-        return gradedClass(point);
+        return uptimeBandClass(point);
     }
     return (
         SINGLE_STATUS_CLASS[normalizeCheckStatus(point.worst_status)] ||
@@ -85,7 +88,9 @@ export function cellMetricLines(point, checkType) {
         }
     });
 
-    lines.push(`Success ratio: ${point.success_ratio}%`);
+    // For uptime the success ratio IS the day's uptime %; label it as such.
+    const ratioLabel = isGradedCheckType(checkType) ? "Uptime" : "Success ratio";
+    lines.push(`${ratioLabel}: ${point.success_ratio}%`);
 
     // Latency only for uptime, and only when actually measured.
     if (isGradedCheckType(checkType)) {
