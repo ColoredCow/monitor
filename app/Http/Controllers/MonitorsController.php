@@ -103,6 +103,7 @@ class MonitorsController extends Controller
         $graph = null;
         $filters = null;
         $summary = null;
+        $recentChecks = null;
 
         if (config('monitor-history.enabled')) {
             $range = $this->resolveHistoryRange($request, $monitor);
@@ -137,6 +138,13 @@ class MonitorsController extends Controller
                     : null,
             ];
 
+            $recentType = $request->string('recent_type')->toString() ?: MonitorCheckLogService::CHECK_TYPE_UPTIME;
+            if (! in_array($recentType, [MonitorCheckLogService::CHECK_TYPE_UPTIME, MonitorCheckLogService::CHECK_TYPE_DOMAIN], true)) {
+                $recentType = MonitorCheckLogService::CHECK_TYPE_UPTIME;
+            }
+
+            $recentChecks = $this->buildRecentChecks($monitor, $recentType, $fromUtc, $toUtc, $timezone);
+
             $dailyMetrics = $monitor->dailyCheckMetrics()
                 ->forTimezone($timezone)
                 ->betweenDates($range['from']->toDateString(), $range['to']->toDateString())
@@ -159,7 +167,7 @@ class MonitorsController extends Controller
                     })->values();
                 });
 
-            $recentChecks = $monitor->checkLogs()
+            $legacyRecentChecks = $monitor->checkLogs()
                 ->whereBetween('checked_at', [$fromUtc, $toUtc])
                 ->latest('checked_at')
                 ->limit((int) config('monitor-history.recent_checks_limit', 50))
@@ -203,7 +211,7 @@ class MonitorsController extends Controller
                     'selected_range' => $selectedRangeSummary,
                 ],
                 'daily_metrics' => $dailyMetrics,
-                'recent_checks' => $recentChecks,
+                'recent_checks' => $legacyRecentChecks,
             ];
         }
 
@@ -212,6 +220,7 @@ class MonitorsController extends Controller
             'graph' => $graph,
             'filters' => $filters,
             'summary' => $summary,
+            'recentChecks' => $recentChecks,
             'history' => $history,
         ]);
     }
@@ -515,6 +524,40 @@ class MonitorsController extends Controller
             'timezone' => $timezone,
             'check_types' => $checkTypes,
             'series' => $series,
+        ];
+    }
+
+    protected function buildRecentChecks(Monitor $monitor, string $type, Carbon $fromUtc, Carbon $toUtc, string $timezone): array
+    {
+        $paginator = $monitor->checkLogs()
+            ->where('check_type', $type)
+            ->whereBetween('checked_at', [$fromUtc, $toUtc])
+            ->latest('checked_at')
+            ->paginate(25, ['*'], 'recent_page');
+
+        $data = collect($paginator->items())
+            ->map(function (MonitorCheckLog $log) use ($timezone) {
+                return [
+                    'id' => $log->id,
+                    'check_type' => $log->check_type,
+                    'status' => $log->status,
+                    'checked_at' => $log->checked_at->timezone($timezone)->toDateTimeString(),
+                    'message' => $log->message,
+                    'failure_reason' => $log->failure_reason,
+                    'response_time_ms' => $log->response_time_ms,
+                ];
+            })
+            ->all();
+
+        return [
+            'type' => $type,
+            'data' => $data,
+            'pagination' => [
+                'current_page' => $paginator->currentPage(),
+                'last_page' => $paginator->lastPage(),
+                'per_page' => $paginator->perPage(),
+                'total' => $paginator->total(),
+            ],
         ];
     }
 
