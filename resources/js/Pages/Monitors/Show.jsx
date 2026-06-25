@@ -261,14 +261,14 @@ export default function Show(props) {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            {(history.recent_checks || []).length === 0 ? (
+                                            {(history?.recent_checks || []).length === 0 ? (
                                                 <tr>
                                                     <td className="py-4 text-gray-500" colSpan={4}>
                                                         No checks recorded yet.
                                                     </td>
                                                 </tr>
                                             ) : (
-                                                (history.recent_checks || []).map((check) => {
+                                                (history?.recent_checks || []).map((check) => {
                                                     const normalizedStatus =
                                                         normalizeCheckStatus(check.status);
 
