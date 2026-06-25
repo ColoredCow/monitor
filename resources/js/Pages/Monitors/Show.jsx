@@ -13,7 +13,7 @@ import MonitorCheckIntervalIcon from "@/Components/MonitorCheckIntervalIcon";
 import PageHeader from "@/Components/PageHeader";
 import MonitorHistoryHeatmap from "@/Components/MonitorHistoryHeatmap";
 import MonitorLiveStatus from "@/Components/MonitorLiveStatus";
-import MonitorTodayBar from "@/Components/MonitorTodayBar";
+import MonitorRecentStrip from "@/Components/MonitorRecentStrip";
 import RecentChecksPanel from "@/Components/RecentChecksPanel";
 import MonitorHistoryFilters from "@/Components/MonitorHistoryFilters";
 import SummaryStats from "@/Components/SummaryStats";
@@ -249,9 +249,9 @@ export default function Show(props) {
                                                             checks
                                                         </span>
                                                     </div>
-                                                    <MonitorTodayBar
+                                                    <MonitorRecentStrip
                                                         checkType={type}
-                                                        checks={series?.today_checks || []}
+                                                        checks={series?.latest_checks || []}
                                                     />
                                                     <MonitorHistoryHeatmap
                                                         checkType={type}

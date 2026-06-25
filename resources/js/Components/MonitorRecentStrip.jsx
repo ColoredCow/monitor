@@ -2,19 +2,16 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { formatDateTimeUTC } from "@/Utils/formatDate";
 import {
     getCheckStatusMeta,
+    normalizeCheckStatus,
     statusesForCheckType,
 } from "@/Utils/checkStatusSeverity";
+import { SINGLE_STATUS_CLASS } from "@/Utils/heatmapCell";
+import { stripSlots } from "@/Utils/recentStrip";
 import Tooltip from "@/Components/Tooltip";
 
 const SEGMENT_WIDTH = 8;
 const SEGMENT_GAP = 2;
-
-const LEGEND_SWATCH = {
-    success: "bg-green-500",
-    warning: "bg-yellow-400",
-    failed: "bg-red-500",
-    unknown: "bg-gray-300",
-};
+const MAX_SLOTS = 50;
 
 function buildSegmentTooltip(check) {
     return [
@@ -30,11 +27,11 @@ function buildSegmentTooltip(check) {
         .join("\n");
 }
 
-export default function MonitorTodayBar({ checkType, checks = [] }) {
+export default function MonitorRecentStrip({ checkType, checks = [] }) {
     const containerRef = useRef(null);
-    const [maxSegments, setMaxSegments] = useState(checks.length);
+    const [capacity, setCapacity] = useState(MAX_SLOTS);
 
-    // Measure how many newest-first segments fit; show the most recent that fit.
+    // How many fixed-width slots fit, capped at MAX_SLOTS.
     useEffect(() => {
         const element = containerRef.current;
         if (!element) {
@@ -44,8 +41,11 @@ export default function MonitorTodayBar({ checkType, checks = [] }) {
         const measure = () => {
             const width = element.clientWidth;
             const perSegment = SEGMENT_WIDTH + SEGMENT_GAP;
-            const fit = Math.max(1, Math.floor((width + SEGMENT_GAP) / perSegment));
-            setMaxSegments(fit);
+            const fit = Math.max(
+                1,
+                Math.floor((width + SEGMENT_GAP) / perSegment)
+            );
+            setCapacity(Math.min(MAX_SLOTS, fit));
         };
 
         measure();
@@ -54,28 +54,28 @@ export default function MonitorTodayBar({ checkType, checks = [] }) {
         return () => observer.disconnect();
     }, [checks.length]);
 
-    // checks are newest-first; keep the most recent that fit, then render
-    // oldest->newest left-to-right so the newest sits on the right edge.
-    const visible = useMemo(() => {
-        return checks.slice(0, maxSegments).reverse();
-    }, [checks, maxSegments]);
-
+    const slots = useMemo(
+        () => stripSlots(checks, capacity),
+        [checks, capacity]
+    );
+    const shown = slots.filter(Boolean).length;
     const legendStatuses = statusesForCheckType(checkType);
 
     return (
         <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-            <p className="mb-2 text-xs font-medium text-gray-600 tabular-nums">
-                {`Today (${checks.length} checks)`}
-            </p>
+            <div className="mb-2 flex items-baseline gap-x-2">
+                <span className="text-sm font-medium text-gray-900">
+                    Recent checks
+                </span>
+                <span className="text-xs text-gray-500 tabular-nums">
+                    last {shown}
+                </span>
+            </div>
 
-            <div ref={containerRef} className="flex items-stretch overflow-hidden">
-                {visible.length === 0 ? (
-                    <span className="text-xs text-gray-600">
-                        No checks recorded today.
-                    </span>
-                ) : (
-                    <div className="flex" style={{ gap: SEGMENT_GAP }}>
-                        {visible.map((check) => (
+            <div ref={containerRef} className="flex items-stretch py-0.5">
+                <div className="flex" style={{ gap: SEGMENT_GAP }}>
+                    {slots.map((check, index) =>
+                        check ? (
                             <Tooltip
                                 key={check.id}
                                 content={buildSegmentTooltip(check)}
@@ -87,26 +87,33 @@ export default function MonitorTodayBar({ checkType, checks = [] }) {
                                         ", "
                                     )}
                                     className={[
-                                        "h-8 rounded-sm transition-transform duration-150 ease-out",
-                                        "hover:scale-y-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500",
-                                        "motion-reduce:transition-none motion-reduce:transform-none",
-                                        getCheckStatusMeta(check.status).heatmapClass,
+                                        "h-8 rounded-sm border transition-opacity duration-150 ease-out",
+                                        "hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500",
+                                        "motion-reduce:transition-none",
+                                        SINGLE_STATUS_CLASS[
+                                            normalizeCheckStatus(check.status)
+                                        ],
                                     ].join(" ")}
                                     style={{ width: SEGMENT_WIDTH }}
                                 />
                             </Tooltip>
-                        ))}
-                    </div>
-                )}
+                        ) : (
+                            <div
+                                key={`gap-${index}`}
+                                aria-hidden="true"
+                                className="h-8 rounded-sm border bg-gray-100 border-gray-200"
+                                style={{ width: SEGMENT_WIDTH }}
+                            />
+                        )
+                    )}
+                </div>
             </div>
 
             <div className="mt-3 flex items-center flex-wrap gap-x-4 gap-y-2 text-xs text-gray-600">
                 {legendStatuses.map((status) => (
                     <span key={status} className="flex items-center gap-1.5">
                         <span
-                            className={`h-3 w-3 rounded-sm ${
-                                LEGEND_SWATCH[status] || "bg-gray-300"
-                            }`}
+                            className={`h-3 w-3 rounded-sm border ${SINGLE_STATUS_CLASS[status]}`}
                         />
                         {getCheckStatusMeta(status).label}
                     </span>
