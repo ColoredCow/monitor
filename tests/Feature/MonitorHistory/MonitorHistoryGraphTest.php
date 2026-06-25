@@ -194,7 +194,7 @@ class MonitorHistoryGraphTest extends TestCase
         );
     }
 
-    public function test_today_checks_contain_only_todays_rows_newest_first(): void
+    public function test_latest_checks_are_newest_first_and_span_days(): void
     {
         $user = User::factory()->create();
         $monitor = $this->makeMonitor();
@@ -207,18 +207,43 @@ class MonitorHistoryGraphTest extends TestCase
         $this->seedUptimeLog($monitor, MonitorCheckLogService::STATUS_FAILED, $todayNoon->toDateTimeString());
         $this->seedUptimeLog($monitor, MonitorCheckLogService::STATUS_SUCCESS, $yesterday->toDateTimeString());
 
-        $currentYear = (int) Carbon::now('UTC')->format('Y');
+        $response = $this->actingAs($user)->get(route('monitors.show', [
+            'monitor' => $monitor->id,
+            'year' => (int) Carbon::now('UTC')->format('Y'),
+        ]));
+
+        // All three rows (incl. yesterday) — not today-bounded — newest first.
+        $response->assertInertia(fn ($page) => $page
+            ->component('Monitors/Show')
+            ->has('graph.series.uptime.latest_checks', 3)
+            ->where('graph.series.uptime.latest_checks.0.status', MonitorCheckLogService::STATUS_FAILED)
+            ->where('graph.series.uptime.latest_checks.1.status', MonitorCheckLogService::STATUS_SUCCESS)
+            ->where('graph.series.uptime.latest_checks.2.status', MonitorCheckLogService::STATUS_SUCCESS)
+        );
+    }
+
+    public function test_latest_checks_are_capped_at_fifty(): void
+    {
+        $user = User::factory()->create();
+        $monitor = $this->makeMonitor();
+
+        $base = Carbon::now('UTC')->startOfDay()->addHours(1);
+        for ($i = 0; $i < 60; $i++) {
+            $this->seedUptimeLog(
+                $monitor,
+                MonitorCheckLogService::STATUS_SUCCESS,
+                $base->copy()->addMinutes($i)->toDateTimeString()
+            );
+        }
 
         $response = $this->actingAs($user)->get(route('monitors.show', [
             'monitor' => $monitor->id,
-            'year' => $currentYear,
+            'year' => (int) Carbon::now('UTC')->format('Y'),
         ]));
 
         $response->assertInertia(fn ($page) => $page
             ->component('Monitors/Show')
-            ->has('graph.series.uptime.today_checks', 2)
-            ->where('graph.series.uptime.today_checks.0.status', MonitorCheckLogService::STATUS_FAILED)
-            ->where('graph.series.uptime.today_checks.1.status', MonitorCheckLogService::STATUS_SUCCESS)
+            ->has('graph.series.uptime.latest_checks', 50)
         );
     }
 }

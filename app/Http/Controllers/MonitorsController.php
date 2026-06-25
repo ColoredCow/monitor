@@ -443,7 +443,7 @@ class MonitorsController extends Controller
                     ],
                 ],
                 'daily_metrics' => $dailyMetricsByType->get($type, collect())->values()->all(),
-                'today_checks' => $this->buildTodayChecks($monitor, $type, $timezone),
+                'latest_checks' => $this->buildLatestChecks($monitor, $type, $timezone),
             ];
         }
 
@@ -491,16 +491,12 @@ class MonitorsController extends Controller
         ];
     }
 
-    protected function buildTodayChecks(Monitor $monitor, string $checkType, string $timezone): array
+    protected function buildLatestChecks(Monitor $monitor, string $checkType, string $timezone, int $limit = 50): array
     {
-        $todayStartUtc = Carbon::now($timezone)->startOfDay()->utc();
-        $todayEndUtc = Carbon::now($timezone)->endOfDay()->utc();
-
         return $monitor->checkLogs()
             ->where('check_type', $checkType)
-            ->whereBetween('checked_at', [$todayStartUtc, $todayEndUtc])
             ->latest('checked_at')
-            ->limit(200)
+            ->limit($limit)
             ->get()
             ->map(function (MonitorCheckLog $log) use ($timezone) {
                 return [
