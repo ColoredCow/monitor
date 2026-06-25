@@ -4,6 +4,8 @@ import { Head, Link, router, usePage } from "@inertiajs/react";
 import {
     ArrowTopRightOnSquareIcon,
     ArrowLeftIcon,
+    ChevronLeftIcon,
+    ChevronRightIcon,
 } from "@heroicons/react/24/outline";
 import MonitorUptimeIcon from "@/Components/MonitorUptimeIcon";
 import MonitorDomainIcon from "@/Components/MonitorDomainIcon";
@@ -13,6 +15,8 @@ import Button from "@/Components/Button";
 import Input from "@/Components/Input";
 import Badge from "@/Components/Badge";
 import MonitorHistoryHeatmap from "@/Components/MonitorHistoryHeatmap";
+import MonitorTodayBar from "@/Components/MonitorTodayBar";
+import { buildHistoryParams } from "@/Utils/historyParams";
 import {
     getCheckStatusBadgeColor,
     normalizeCheckStatus,
@@ -29,9 +33,23 @@ function formatCheckTypeLabel(checkType) {
 }
 
 export default function Show(props) {
-    const { monitor, features, history } = usePage().props;
+    const { monitor, features, history, graph, recentChecks } = usePage().props;
     const isHistoryEnabled = Boolean(features?.monitorHistory);
     const selectedRange = history?.range || null;
+    const [graphPending, setGraphPending] = useState(false);
+
+    // The graph is driven solely by ?year and is decoupled from the filters.
+    const currentParams = useMemo(
+        () => ({
+            year: graph?.year,
+            preset: selectedRange?.preset,
+            from: selectedRange?.from,
+            to: selectedRange?.to,
+            recent_type: recentChecks?.type || "uptime",
+            recent_page: recentChecks?.pagination?.current_page || 1,
+        }),
+        [graph?.year, selectedRange, recentChecks]
+    );
 
     const [customRange, setCustomRange] = useState({
         from: selectedRange?.from || "",
@@ -64,6 +82,21 @@ export default function Show(props) {
             from: customRange.from,
             to: customRange.to,
         });
+    };
+
+    const goToYear = (targetYear) => {
+        router.get(
+            route("monitors.show", monitor.id),
+            buildHistoryParams(currentParams, { year: targetYear }),
+            {
+                only: ["graph"],
+                preserveState: true,
+                preserveScroll: true,
+                replace: true,
+                onStart: () => setGraphPending(true),
+                onFinish: () => setGraphPending(false),
+            }
+        );
     };
 
     const checkTypes = useMemo(() => {
@@ -148,6 +181,84 @@ export default function Show(props) {
                         </p>
                     ) : (
                         <div className="space-y-6">
+                            {graph ? (
+                                <section aria-label="Yearly health graphs" className="space-y-6">
+                                    <div className="flex items-center justify-between gap-4">
+                                        <h3 className="text-base font-semibold text-gray-900">
+                                            Health by year
+                                        </h3>
+                                        <div className="flex items-center gap-2" aria-busy={graphPending}>
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    goToYear(graph.year - 1)
+                                                }
+                                                disabled={
+                                                    graphPending ||
+                                                    graph.year <= Math.min(...graph.available_years)
+                                                }
+                                                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 shadow-sm hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+                                                aria-label="Previous year"
+                                            >
+                                                <ChevronLeftIcon className="h-4 w-4" />
+                                            </button>
+                                            <span className="min-w-[3.5rem] text-center text-sm font-semibold text-gray-900 tabular-nums">
+                                                {graph.year}
+                                            </span>
+                                            <button
+                                                type="button"
+                                                onClick={() =>
+                                                    goToYear(graph.year + 1)
+                                                }
+                                                disabled={
+                                                    graphPending ||
+                                                    graph.year >= Math.max(...graph.available_years)
+                                                }
+                                                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-300 bg-white text-gray-700 shadow-sm hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+                                                aria-label="Next year"
+                                            >
+                                                <ChevronRightIcon className="h-4 w-4" />
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {graph.check_types
+                                        .filter(({ enabled }) => enabled)
+                                        .map(({ type }) => {
+                                            const series = graph.series?.[type];
+                                            const typeSummary = series?.summary;
+
+                                            return (
+                                                <div key={type} className="space-y-3">
+                                                    <p className="text-sm font-medium text-gray-700 tabular-nums">
+                                                        {`${formatCheckTypeLabel(type)} · ${
+                                                            typeSummary
+                                                                ? Number(
+                                                                      typeSummary.success_ratio
+                                                                  ).toFixed(1)
+                                                                : "0.0"
+                                                        }% · ${(
+                                                            typeSummary?.total_checks || 0
+                                                        ).toLocaleString()} checks`}
+                                                    </p>
+                                                    <MonitorTodayBar
+                                                        checkType={type}
+                                                        checks={series?.today_checks || []}
+                                                    />
+                                                    <MonitorHistoryHeatmap
+                                                        checkType={type}
+                                                        title={`${formatCheckTypeLabel(type)} Health`}
+                                                        description={`${graph.year} (${graph.timezone})`}
+                                                        year={graph.year}
+                                                        points={series?.daily_metrics || []}
+                                                        todayIso={graph.today_iso || null}
+                                                    />
+                                                </div>
+                                            );
+                                        })}
+                                </section>
+                            ) : null}
+
                             <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
                                 <div className="flex flex-wrap items-center gap-2">
                                     <button
@@ -261,32 +372,6 @@ export default function Show(props) {
                                     </p>
                                 </div>
                             </div>
-
-                            {checkTypes.map(({ type, enabled }) =>
-                                enabled ? (
-                                    <MonitorHistoryHeatmap
-                                        key={type}
-                                        title={`${formatCheckTypeLabel(type)} Health`}
-                                        description={`${selectedRange?.from} to ${selectedRange?.to} (${selectedRange?.timezone})`}
-                                        fromDate={selectedRange?.from}
-                                        toDate={selectedRange?.to}
-                                        points={history.daily_metrics?.[type] || []}
-                                    />
-                                ) : (
-                                    <div
-                                        key={type}
-                                        className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-5"
-                                    >
-                                        <h3 className="text-base font-semibold text-gray-700">
-                                            {`${formatCheckTypeLabel(type)} Health`}
-                                        </h3>
-                                        <p className="mt-1 text-sm text-gray-500">
-                                            {formatCheckTypeLabel(type)} checks are not enabled
-                                            for this monitor.
-                                        </p>
-                                    </div>
-                                )
-                            )}
 
                             <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
                                 <h3 className="text-base font-semibold text-gray-900">
