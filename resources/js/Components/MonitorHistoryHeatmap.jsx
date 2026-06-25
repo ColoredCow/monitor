@@ -8,49 +8,29 @@ import { formatDateUTC } from "@/Utils/formatDate";
 import {
     CHECK_STATUS,
     normalizeCheckStatus,
-    getCheckStatusMeta,
     statusesForCheckType,
 } from "@/Utils/checkStatusSeverity";
+import {
+    cellColorClass,
+    cellMetricLines,
+    isGradedCheckType,
+    SINGLE_STATUS_CLASS,
+} from "@/Utils/heatmapCell";
 import Tooltip from "@/Components/Tooltip";
 
 const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const CELL_GAP = 3;
 const CELL_MIN = 10;
 const CELL_MAX = 16;
+// Today is a solid indigo fill (overrides the day's status hue — today is
+// provisional anyway), in both the grid and the legend.
+const TODAY_CLASS = "bg-indigo-500 border-indigo-500";
 
-// Graded cell color by worst status + success ratio. Mirrors the locked status
-// palette. "No checks" days are an explicit gray fill (never transparent).
-function getCellClasses(point) {
-    if (!point || point.total_checks === 0) {
-        return "bg-gray-100 border-gray-200";
-    }
-
-    const normalizedStatus = normalizeCheckStatus(point.worst_status);
-    const successRatio = Number(point.success_ratio || 0);
-
-    if (normalizedStatus === CHECK_STATUS.FAILED) {
-        if (successRatio < 30) return "bg-red-700 border-red-700";
-        if (successRatio < 70) return "bg-red-500 border-red-500";
-        return "bg-red-300 border-red-300";
-    }
-
-    if (normalizedStatus === CHECK_STATUS.WARNING) {
-        if (successRatio < 80) return "bg-orange-400 border-orange-400";
-        return "bg-yellow-300 border-yellow-300";
-    }
-
-    if (normalizedStatus === CHECK_STATUS.SUCCESS) {
-        if (successRatio >= 99) return "bg-green-700 border-green-700";
-        if (successRatio >= 95) return "bg-green-500 border-green-500";
-        return "bg-green-300 border-green-300";
-    }
-
-    return "bg-gray-300 border-gray-300";
-}
-
-// Per-status legend swatches, filtered to the statuses this check type can emit.
+// Legend labels + the graded (uptime) swatch sets. Domain/certificate use a
+// single solid swatch per status instead (SINGLE_STATUS_CLASS), since they are
+// once-daily checks with no meaningful per-day ratio.
 const LEGEND_DEFS = {
-    success: {
+    [CHECK_STATUS.SUCCESS]: {
         label: "Healthy",
         swatches: [
             "bg-green-300 border-green-300",
@@ -58,14 +38,14 @@ const LEGEND_DEFS = {
             "bg-green-700 border-green-700",
         ],
     },
-    warning: {
+    [CHECK_STATUS.WARNING]: {
         label: "Warning",
         swatches: [
             "bg-yellow-300 border-yellow-300",
             "bg-orange-400 border-orange-400",
         ],
     },
-    failed: {
+    [CHECK_STATUS.FAILED]: {
         label: "Failed",
         swatches: [
             "bg-red-300 border-red-300",
@@ -73,42 +53,18 @@ const LEGEND_DEFS = {
             "bg-red-700 border-red-700",
         ],
     },
-    unknown: {
+    [CHECK_STATUS.UNKNOWN]: {
         label: "Unknown",
         swatches: ["bg-gray-300 border-gray-300"],
     },
 };
 
-// Explicit null -> "not measured" so a real 0ms value is never hidden by a
-// falsy check (fixes the 0ms-falsy bug in the previous tooltip builder).
-function formatMetric(value, suffix) {
-    if (value === null || value === undefined) {
-        return "not measured";
-    }
-    return `${value}${suffix}`;
-}
+function buildCellTooltip(point, iso, isToday, checkType) {
+    const note = isToday ? "\nToday — partial, updates on next aggregation" : "";
 
-function buildCellTooltip(point, iso, isToday = false) {
-    const dateLabel = formatDateUTC(iso);
-    const provisionalNote = isToday
-        ? "\nToday — partial, updates on next aggregation"
-        : "";
-
-    if (!point || point.total_checks === 0) {
-        return `${dateLabel}\nNo checks${provisionalNote}`;
-    }
-
-    return [
-        dateLabel,
-        `Status: ${getCheckStatusMeta(point.worst_status).label}`,
-        `Total checks: ${point.total_checks}`,
-        `Success: ${point.successful_checks}`,
-        `Warning: ${point.warning_checks}`,
-        `Failed: ${point.failed_checks}`,
-        `Success ratio: ${point.success_ratio}%`,
-        `Avg response: ${formatMetric(point.avg_response_time_ms, "ms")}`,
-        `P95 response: ${formatMetric(point.p95_response_time_ms, "ms")}`,
-    ].join("\n") + provisionalNote;
+    return (
+        [formatDateUTC(iso), ...cellMetricLines(point, checkType)].join("\n") + note
+    );
 }
 
 // Reduced-motion policy: this component animates only via CSS transitions, each of
@@ -161,7 +117,7 @@ export default function MonitorHistoryHeatmap({
 
     const isCurrentYear =
         todayIso !== null && todayIso.startsWith(String(year) + "-");
-
+    const graded = isGradedCheckType(checkType);
     const legendStatuses = statusesForCheckType(checkType);
 
     // Visually-hidden one-sentence summary for screen readers.
@@ -187,7 +143,9 @@ export default function MonitorHistoryHeatmap({
 
             <p className="sr-only">{srSummary}</p>
 
-            <div ref={containerRef} className="overflow-x-auto">
+            {/* py padding gives the bottom/top row hover (scale + ring) room so it
+                isn't clipped — overflow-x-auto forces overflow-y to clip too. */}
+            <div ref={containerRef} className="overflow-x-auto py-1.5">
                 <div className="inline-flex flex-col gap-1 min-w-max">
                     {/* Month label row, aligned to the first week-column of each month. */}
                     <div
@@ -260,7 +218,12 @@ export default function MonitorHistoryHeatmap({
                                         return (
                                             <Tooltip
                                                 key={day.iso}
-                                                content={buildCellTooltip(point, day.iso, isToday)}
+                                                content={buildCellTooltip(
+                                                    point,
+                                                    day.iso,
+                                                    isToday,
+                                                    checkType
+                                                )}
                                             >
                                                 <div
                                                     role="gridcell"
@@ -268,17 +231,17 @@ export default function MonitorHistoryHeatmap({
                                                     aria-label={buildCellTooltip(
                                                         point,
                                                         day.iso,
-                                                        isToday
+                                                        isToday,
+                                                        checkType
                                                     ).replace(/\n/g, ", ")}
                                                     className={[
                                                         "rounded-sm border transition-transform duration-150 ease-out",
                                                         "hover:scale-110 hover:ring-1 hover:ring-gray-400",
                                                         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500",
                                                         "motion-reduce:transition-none motion-reduce:transform-none",
-                                                        getCellClasses(point),
                                                         isToday
-                                                            ? "ring-2 ring-indigo-500"
-                                                            : "",
+                                                            ? TODAY_CLASS
+                                                            : cellColorClass(point, checkType),
                                                     ].join(" ")}
                                                     style={cellStyle}
                                                 />
@@ -300,27 +263,26 @@ export default function MonitorHistoryHeatmap({
                 {legendStatuses
                     .filter((status) => LEGEND_DEFS[status])
                     .map((status) => {
-                        const def = LEGEND_DEFS[status];
+                        const swatches = graded
+                            ? LEGEND_DEFS[status].swatches
+                            : [SINGLE_STATUS_CLASS[status]];
                         return (
-                            <span
-                                key={status}
-                                className="flex items-center gap-1.5"
-                            >
+                            <span key={status} className="flex items-center gap-1.5">
                                 <span className="flex gap-0.5">
-                                    {def.swatches.map((swatch) => (
+                                    {swatches.map((swatch) => (
                                         <span
                                             key={swatch}
                                             className={`h-3.5 w-3.5 rounded-sm border ${swatch}`}
                                         />
                                     ))}
                                 </span>
-                                {def.label}
+                                {LEGEND_DEFS[status].label}
                             </span>
                         );
                     })}
                 {isCurrentYear ? (
                     <span className="flex items-center gap-1.5">
-                        <span className="h-3.5 w-3.5 rounded-sm border border-gray-200 bg-white ring-2 ring-indigo-500" />
+                        <span className={`h-3.5 w-3.5 rounded-sm border ${TODAY_CLASS}`} />
                         Today
                     </span>
                 ) : null}
