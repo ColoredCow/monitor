@@ -105,22 +105,26 @@ class MonitorsController extends Controller
         $recentChecks = null;
 
         if (config('monitor-history.enabled')) {
-            $range = $this->resolveHistoryRange($request, $monitor);
+            // The monitor's earliest check feeds the 'all' preset range, the
+            // available-years list and the summary's first_checked_at. Resolve it
+            // once here and thread it through, rather than re-running the same
+            // MIN(checked_at) lookup inside each consumer.
+            $firstCheckedAt = $monitor->checkLogs()->orderBy('checked_at')->value('checked_at');
+
+            $range = $this->resolveHistoryRange($request, $firstCheckedAt);
             $fromUtc = $range['from']->copy()->startOfDay()->utc();
             $toUtc = $range['to']->copy()->endOfDay()->utc();
             $timezone = $range['timezone'];
 
-            $availableYears = $this->availableYears($monitor, $timezone);
+            $availableYears = $this->availableYears($timezone, $firstCheckedAt);
             $graphYear = $this->resolveGraphYear($request, $availableYears);
-            $graph = $this->buildGraphPayload($monitor, $graphYear, $timezone);
+            $graph = $this->buildGraphPayload($monitor, $graphYear, $timezone, $availableYears);
 
             $selectedRangeQuery = $monitor->checkLogs()
                 ->whereBetween('checked_at', [$fromUtc, $toUtc]);
 
             $allTimeSummary = $this->buildSummary($monitor->checkLogs());
             $selectedRangeSummary = $this->buildSummary($selectedRangeQuery);
-
-            $firstCheckedAt = $monitor->checkLogs()->orderBy('checked_at')->value('checked_at');
 
             $filters = [
                 'preset' => $range['preset'],
@@ -207,7 +211,7 @@ class MonitorsController extends Controller
         return redirect()->route('monitors.index');
     }
 
-    protected function resolveHistoryRange(Request $request, Monitor $monitor): array
+    protected function resolveHistoryRange(Request $request, $firstCheckedAt = null): array
     {
         // The daily metrics are aggregated server-side under this single timezone,
         // so the detail page must read them back under the same one. We deliberately
@@ -221,8 +225,6 @@ class MonitorsController extends Controller
         $preset = $request->string('preset')->toString() ?: '30d';
 
         if ($preset === 'all') {
-            $firstCheckedAt = $monitor->checkLogs()->orderBy('checked_at')->value('checked_at');
-
             $from = $firstCheckedAt
                 ? Carbon::parse($firstCheckedAt)->timezone($timezone)->startOfDay()
                 : Carbon::now($timezone)->subDays(30)->startOfDay();
@@ -356,11 +358,9 @@ class MonitorsController extends Controller
         ];
     }
 
-    protected function availableYears(Monitor $monitor, string $timezone): array
+    protected function availableYears(string $timezone, $firstCheckedAt = null): array
     {
         $currentYear = (int) Carbon::now($timezone)->format('Y');
-
-        $firstCheckedAt = $monitor->checkLogs()->orderBy('checked_at')->value('checked_at');
 
         if (! $firstCheckedAt) {
             return [$currentYear];
@@ -388,10 +388,10 @@ class MonitorsController extends Controller
         return (int) $requested;
     }
 
-    protected function buildGraphPayload(Monitor $monitor, int $year, string $timezone): array
+    protected function buildGraphPayload(Monitor $monitor, int $year, string $timezone, array $availableYears): array
     {
-        $availableYears = $this->availableYears($monitor, $timezone);
         $checkTypes = $this->graphCheckTypes($monitor);
+        $recentChecksLimit = (int) config('monitor-history.recent_checks_limit', 150);
 
         $yearStartUtc = Carbon::create($year, 1, 1, 0, 0, 0, $timezone)->startOfDay()->utc();
         $yearEndUtc = Carbon::create($year, 12, 31, 0, 0, 0, $timezone)->endOfDay()->utc();
@@ -443,7 +443,7 @@ class MonitorsController extends Controller
                     ],
                 ],
                 'daily_metrics' => $dailyMetricsByType->get($type, collect())->values()->all(),
-                'latest_checks' => $this->buildLatestChecks($monitor, $type, $timezone),
+                'latest_checks' => $this->buildLatestChecks($monitor, $type, $timezone, $recentChecksLimit),
             ];
         }
 
@@ -453,6 +453,7 @@ class MonitorsController extends Controller
             'timezone' => $timezone,
             'today_iso' => Carbon::now($timezone)->toDateString(),
             'check_types' => $checkTypes,
+            'recent_checks_limit' => $recentChecksLimit,
             'series' => $series,
         ];
     }
@@ -491,7 +492,7 @@ class MonitorsController extends Controller
         ];
     }
 
-    protected function buildLatestChecks(Monitor $monitor, string $checkType, string $timezone, int $limit = 150): array
+    protected function buildLatestChecks(Monitor $monitor, string $checkType, string $timezone, int $limit): array
     {
         return $monitor->checkLogs()
             ->where('check_type', $checkType)

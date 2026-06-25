@@ -252,11 +252,11 @@ export default function Show(props) {
                                                     <MonitorRecentStrip
                                                         checkType={type}
                                                         checks={series?.latest_checks || []}
+                                                        maxSlots={graph.recent_checks_limit}
                                                     />
                                                     <MonitorHistoryHeatmap
                                                         checkType={type}
                                                         title={`${formatCheckTypeLabel(type)} Health`}
-                                                        description={`${graph.year} (${graph.timezone})`}
                                                         year={graph.year}
                                                         points={series?.daily_metrics || []}
                                                         todayIso={graph.today_iso || null}

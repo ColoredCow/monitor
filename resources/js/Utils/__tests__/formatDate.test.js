@@ -34,6 +34,10 @@ describe("formatDateUTC", () => {
     it("returns empty string for malformed input (non-numeric date part)", () => {
         expect(formatDateUTC("abcd-ef-gh")).toBe("");
     });
+
+    it("parses Laravel ISO-8601 with microseconds and Z suffix", () => {
+        expect(formatDateUTC("2026-03-27T15:00:00.000000Z")).toBe("27 Mar 2026");
+    });
 });
 
 describe("formatDateTimeUTC", () => {
@@ -61,6 +65,18 @@ describe("formatDateTimeUTC", () => {
 
     it("returns empty string for malformed input (garbage after date)", () => {
         expect(formatDateTimeUTC("2026-03-27 garbage")).toBe("");
+    });
+
+    it("parses Laravel ISO-8601 with microseconds and Z suffix", () => {
+        expect(formatDateTimeUTC("2026-03-27T15:00:00.000000Z")).toBe(
+            "27 Mar 2026, 15:00"
+        );
+    });
+
+    it("parses ISO-8601 with a Z suffix but no fractional seconds", () => {
+        expect(formatDateTimeUTC("2026-03-27T15:00:00Z")).toBe(
+            "27 Mar 2026, 15:00"
+        );
     });
 });
 
@@ -93,5 +109,13 @@ describe("formatRelative", () => {
 
     it("returns empty string for malformed input (non-date string)", () => {
         expect(formatRelative("not-a-date", base)).toBe("");
+    });
+
+    it("parses Laravel ISO-8601 timestamps (microseconds + Z) for the live-status label", () => {
+        // The monitor model's datetime cast serializes uptime_last_check_date
+        // as e.g. '2026-03-27T14:55:00.000000Z' — this must not resolve to "".
+        expect(formatRelative("2026-03-27T14:55:00.000000Z", base)).toBe(
+            "5m ago"
+        );
     });
 });

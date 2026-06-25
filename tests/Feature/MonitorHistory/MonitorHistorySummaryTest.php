@@ -111,4 +111,26 @@ class MonitorHistorySummaryTest extends TestCase
             ->where('summary.first_checked_at', null)
         );
     }
+
+    public function test_never_monitored_monitor_returns_a_zeroed_empty_state_payload(): void
+    {
+        $user = User::factory()->create();
+        $monitor = $this->makeMonitor();
+
+        $response = $this->actingAs($user)->get(route('monitors.show', $monitor->id));
+
+        // Pins the empty-state contract the SummaryStats / RecentChecks UI relies on
+        // to distinguish "never monitored" from "no checks in range": the props are
+        // present and zeroed, not null and not absent.
+        $response->assertInertia(fn ($page) => $page
+            ->component('Monitors/Show')
+            ->where('summary.first_checked_at', null)
+            ->where('summary.all_time.total_checks', 0)
+            ->where('summary.selected_range.total_checks', 0)
+            ->where('graph.series.uptime.summary.total_checks', 0)
+            ->has('graph.series.uptime.daily_metrics', 0)
+            ->where('recentChecks.pagination.total', 0)
+            ->has('recentChecks.data', 0)
+        );
+    }
 }

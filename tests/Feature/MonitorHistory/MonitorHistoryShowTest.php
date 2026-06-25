@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\MonitorCheckLogService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class MonitorHistoryShowTest extends TestCase
@@ -112,6 +113,35 @@ class MonitorHistoryShowTest extends TestCase
         $response->assertInertia(fn ($page) => $page
             ->component('Monitors/Show')
             ->where('recentChecks.pagination.total', 1)
+        );
+    }
+
+    public function test_show_resolves_earliest_check_with_a_single_query(): void
+    {
+        $user = User::factory()->create();
+        $monitor = $this->makeMonitor();
+        $this->seedUptimeLog($monitor, MonitorCheckLogService::STATUS_SUCCESS, '2024-01-15 10:00:00');
+
+        DB::enableQueryLog();
+
+        $this->actingAs($user)->get(route('monitors.show', $monitor->id))->assertOk();
+
+        // The earliest-check (MIN checked_at) lookup is `order by checked_at asc limit 1`.
+        // The range, available-years and summary all derive from it, so it must be
+        // resolved once and threaded through — not re-queried per consumer.
+        $earliestCheckQueries = collect(DB::getQueryLog())
+            ->filter(fn ($entry) => str_contains(
+                strtolower($entry['query']),
+                'order by `checked_at` asc'
+            ))
+            ->count();
+
+        DB::disableQueryLog();
+
+        $this->assertSame(
+            1,
+            $earliestCheckQueries,
+            'show() should resolve the earliest check exactly once per request.'
         );
     }
 

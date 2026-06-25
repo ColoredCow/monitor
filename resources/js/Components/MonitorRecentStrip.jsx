@@ -11,7 +11,10 @@ import Tooltip from "@/Components/Tooltip";
 
 const SEGMENT_WIDTH = 8;
 const SEGMENT_GAP = 2;
-const MAX_SLOTS = 150;
+// Fallback slot cap if the backend doesn't supply one. The authoritative value
+// is config('monitor-history.recent_checks_limit'), shipped as graph.recent_checks_limit
+// and passed in via the maxSlots prop — keep this in sync with that config default.
+const DEFAULT_MAX_SLOTS = 150;
 
 function buildSegmentTooltip(check) {
     return [
@@ -27,11 +30,15 @@ function buildSegmentTooltip(check) {
         .join("\n");
 }
 
-export default function MonitorRecentStrip({ checkType, checks = [] }) {
+export default function MonitorRecentStrip({
+    checkType,
+    checks = [],
+    maxSlots = DEFAULT_MAX_SLOTS,
+}) {
     const containerRef = useRef(null);
-    const [capacity, setCapacity] = useState(MAX_SLOTS);
+    const [capacity, setCapacity] = useState(maxSlots);
 
-    // How many fixed-width slots fit, capped at MAX_SLOTS.
+    // How many fixed-width slots fit, capped at maxSlots.
     useEffect(() => {
         const element = containerRef.current;
         if (!element) {
@@ -45,14 +52,14 @@ export default function MonitorRecentStrip({ checkType, checks = [] }) {
                 1,
                 Math.floor((width + SEGMENT_GAP) / perSegment)
             );
-            setCapacity(Math.min(MAX_SLOTS, fit));
+            setCapacity(Math.min(maxSlots, fit));
         };
 
         measure();
         const observer = new ResizeObserver(measure);
         observer.observe(element);
         return () => observer.disconnect();
-    }, [checks.length]);
+    }, [checks.length, maxSlots]);
 
     const slots = useMemo(
         () => stripSlots(checks, capacity),

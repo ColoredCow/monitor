@@ -222,6 +222,50 @@ class MonitorHistoryGraphTest extends TestCase
         );
     }
 
+    public function test_graph_exposes_the_recent_checks_limit_from_config(): void
+    {
+        config(['monitor-history.recent_checks_limit' => 120]);
+
+        $user = User::factory()->create();
+        $monitor = $this->makeMonitor();
+
+        $response = $this->actingAs($user)->get(route('monitors.show', $monitor->id));
+
+        // The cap is shipped so the frontend strip uses the same number as its
+        // slot cap — backend latest_checks limit and frontend maxSlots stay in sync.
+        $response->assertInertia(fn ($page) => $page
+            ->component('Monitors/Show')
+            ->where('graph.recent_checks_limit', 120)
+        );
+    }
+
+    public function test_latest_checks_are_capped_at_the_configured_limit(): void
+    {
+        config(['monitor-history.recent_checks_limit' => 120]);
+
+        $user = User::factory()->create();
+        $monitor = $this->makeMonitor();
+
+        $base = Carbon::now('UTC')->startOfDay()->addHours(1);
+        for ($i = 0; $i < 130; $i++) {
+            $this->seedUptimeLog(
+                $monitor,
+                MonitorCheckLogService::STATUS_SUCCESS,
+                $base->copy()->addMinutes($i)->toDateTimeString()
+            );
+        }
+
+        $response = $this->actingAs($user)->get(route('monitors.show', [
+            'monitor' => $monitor->id,
+            'year' => (int) Carbon::now('UTC')->format('Y'),
+        ]));
+
+        $response->assertInertia(fn ($page) => $page
+            ->component('Monitors/Show')
+            ->has('graph.series.uptime.latest_checks', 120)
+        );
+    }
+
     public function test_latest_checks_are_capped_at_one_hundred_fifty(): void
     {
         $user = User::factory()->create();

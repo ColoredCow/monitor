@@ -120,4 +120,16 @@ describe("computeCellSize", () => {
     it("falls back to min for non-positive width", () => {
         expect(computeCellSize(0, 53, opts)).toBe(8);
     });
+
+    it("reserves the weekday-label offset so cells + offset fit the container", () => {
+        const reserved = 30;
+        const size = computeCellSize(900, 53, { ...opts, reserved });
+
+        // The grid plus the reserved left offset must fit inside the container.
+        expect((size + opts.gap) * 53 - opts.gap + reserved).toBeLessThanOrEqual(
+            900
+        );
+        // And reserving space must not produce a larger cell than ignoring it.
+        expect(size).toBeLessThanOrEqual(computeCellSize(900, 53, opts));
+    });
 });

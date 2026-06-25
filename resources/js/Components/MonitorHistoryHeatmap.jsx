@@ -23,6 +23,9 @@ const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const CELL_GAP = 3;
 const CELL_MIN = 10;
 const CELL_MAX = 16;
+// Fixed width of the weekday-label (Y-axis) column. The month-label row offsets
+// by this, and cell sizing reserves it, so labels, grid and months stay aligned.
+const WEEKDAY_LABEL_WIDTH = 28;
 // Today is a solid indigo fill (overrides the day's status hue — today is
 // provisional anyway), in both the grid and the legend.
 const TODAY_CLASS = "bg-indigo-500 border-indigo-500";
@@ -52,7 +55,6 @@ function buildCellTooltip(point, iso, isToday, checkType) {
 export default function MonitorHistoryHeatmap({
     checkType,
     title,
-    description,
     year,
     points = [],
     todayIso = null,
@@ -83,6 +85,7 @@ export default function MonitorHistoryHeatmap({
                     gap: CELL_GAP,
                     min: CELL_MIN,
                     max: CELL_MAX,
+                    reserved: WEEKDAY_LABEL_WIDTH + CELL_GAP,
                 })
             );
         };
@@ -108,17 +111,14 @@ export default function MonitorHistoryHeatmap({
     } with recorded checks, ${failedDays} with a failed worst-status.`;
 
     const cellStyle = { width: cellSize, height: cellSize };
-    const labelTrackStyle = { height: cellSize };
+    const labelTrackStyle = { height: cellSize, width: WEEKDAY_LABEL_WIDTH };
 
     return (
         <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
-            <div className="mb-4">
-                <h3 className="text-base font-semibold text-gray-900">{title}</h3>
-                {description ? (
-                    <p className="mt-1 text-sm text-gray-600">{description}</p>
-                ) : null}
-            </div>
-
+            {/* No visible heading here: the per-type headline above already names
+                the metric, and the year/timezone are shown in the year nav and the
+                global "All times in …" label — see Show.jsx. The `title` is still
+                used for the screen-reader summary and the grid's aria-label. */}
             <p className="sr-only">{srSummary}</p>
 
             {/* py padding gives the bottom/top row hover (scale + ring) room so it
@@ -128,7 +128,10 @@ export default function MonitorHistoryHeatmap({
                     {/* Month label row, aligned to the first week-column of each month. */}
                     <div
                         className="flex"
-                        style={{ gap: CELL_GAP, marginLeft: cellSize + CELL_GAP }}
+                        style={{
+                            gap: CELL_GAP,
+                            marginLeft: WEEKDAY_LABEL_WIDTH + CELL_GAP,
+                        }}
                         aria-hidden="true"
                     >
                         {weeks.map((_, weekIndex) => {

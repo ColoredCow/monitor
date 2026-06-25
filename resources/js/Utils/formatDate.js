@@ -7,13 +7,20 @@ function toUTCDate(iso) {
         return null;
     }
 
-    // Accept 'YYYY-MM-DD' and 'YYYY-MM-DD HH:mm:ss' (the checked_at payload shape).
-    const normalized = String(iso).trim().replace(" ", "T");
+    // Accept 'YYYY-MM-DD', 'YYYY-MM-DD HH:mm:ss' (the checked_at payload shape),
+    // and full ISO-8601 instants with fractional seconds + a zone designator
+    // (e.g. '2026-06-25T10:00:00.000000Z', the shape Laravel's datetime cast
+    // serializes uptime_last_check_date as). We read the wall-clock components
+    // directly and never re-shift into the browser timezone (Global Constraint).
+    let normalized = String(iso).trim().replace(" ", "T");
+    // Drop a trailing zone designator: 'Z' or a '+HH:mm' / '-HHmm' offset.
+    normalized = normalized.replace(/(?:Z|[+-]\d{2}:?\d{2})$/, "");
     const [datePart, timePart = "00:00:00"] = normalized.split("T");
     const [year, month, day] = datePart.split("-").map(Number);
+    // Drop fractional seconds (e.g. '00.000000' -> '00') before parsing.
     const [hour = 0, minute = 0, second = 0] = timePart
         .split(":")
-        .map(Number);
+        .map((part) => Number(part.split(".")[0]));
 
     if (!year || !month || !day) {
         return null;

@@ -92,14 +92,17 @@ export function monthLabelColumns(weeks) {
 }
 
 export function computeCellSize(containerWidth, weekCount, opts) {
-    const { gap, min, max } = opts;
+    const { gap, min, max, reserved = 0 } = opts;
 
     if (!containerWidth || containerWidth <= 0 || weekCount <= 0) {
         return min;
     }
 
-    // Total width = (size + gap) * weekCount - gap; solve for size.
-    const raw = Math.floor((containerWidth + gap) / weekCount) - gap;
+    // Subtract space the grid does not get: the weekday-label column and its
+    // trailing gap sit to the left of the week columns. Then total grid width =
+    // (size + gap) * weekCount - gap; solve for size.
+    const available = containerWidth - reserved;
+    const raw = Math.floor((available + gap) / weekCount) - gap;
 
     return Math.max(min, Math.min(max, raw));
 }
