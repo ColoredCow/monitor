@@ -11,11 +11,11 @@ import MonitorUptimeIcon from "@/Components/MonitorUptimeIcon";
 import MonitorDomainIcon from "@/Components/MonitorDomainIcon";
 import MonitorCheckIntervalIcon from "@/Components/MonitorCheckIntervalIcon";
 import PageHeader from "@/Components/PageHeader";
-import Button from "@/Components/Button";
-import Input from "@/Components/Input";
 import Badge from "@/Components/Badge";
 import MonitorHistoryHeatmap from "@/Components/MonitorHistoryHeatmap";
 import MonitorTodayBar from "@/Components/MonitorTodayBar";
+import MonitorHistoryFilters from "@/Components/MonitorHistoryFilters";
+import SummaryStats from "@/Components/SummaryStats";
 import { buildHistoryParams } from "@/Utils/historyParams";
 import {
     getCheckStatusBadgeColor,
@@ -33,7 +33,7 @@ function formatCheckTypeLabel(checkType) {
 }
 
 export default function Show(props) {
-    const { monitor, features, history, graph, recentChecks } = usePage().props;
+    const { monitor, features, history, graph, filters, summary, recentChecks } = usePage().props;
     const isHistoryEnabled = Boolean(features?.monitorHistory);
     const selectedRange = history?.range || null;
     const [graphPending, setGraphPending] = useState(false);
@@ -42,47 +42,46 @@ export default function Show(props) {
     const currentParams = useMemo(
         () => ({
             year: graph?.year,
-            preset: selectedRange?.preset,
-            from: selectedRange?.from,
-            to: selectedRange?.to,
+            preset: filters?.preset ?? selectedRange?.preset,
+            from: filters?.from ?? selectedRange?.from,
+            to: filters?.to ?? selectedRange?.to,
             recent_type: recentChecks?.type || "uptime",
             recent_page: recentChecks?.pagination?.current_page || 1,
         }),
-        [graph?.year, selectedRange, recentChecks]
+        [graph?.year, filters, selectedRange, recentChecks]
     );
 
-    const [customRange, setCustomRange] = useState({
-        from: selectedRange?.from || "",
-        to: selectedRange?.to || "",
-    });
+    const [filtersPending, setFiltersPending] = useState(false);
 
-    // Keep the custom-range inputs in sync with the range the server actually applied
-    // (it may clamp or swap the supplied dates) so the controls never misrepresent the view.
+    const handleApplyFilters = (change) => {
+        // Timezone is resolved server-side to match how metrics were aggregated,
+        // so we intentionally never send the browser timezone here.
+        const overrides = { ...change, recent_page: 1 };
+
+        router.get(
+            route("monitors.show", monitor.id),
+            buildHistoryParams(currentParams, overrides),
+            {
+                only: ["filters", "summary", "recentChecks"],
+                preserveState: true,
+                preserveScroll: true,
+                replace: true,
+                onStart: () => setFiltersPending(true),
+                onFinish: () => setFiltersPending(false),
+            }
+        );
+    };
+
     useEffect(() => {
-        setCustomRange({
-            from: selectedRange?.from || "",
-            to: selectedRange?.to || "",
-        });
-    }, [selectedRange?.from, selectedRange?.to]);
-
-    const applyRange = (params) => {
-        // Timezone is resolved server-side (it must match how metrics were aggregated),
-        // so we intentionally do not send the browser timezone here.
-        router.get(route("monitors.show", monitor.id), params, {
-            preserveScroll: true,
-            preserveState: true,
-            replace: true,
-        });
-    };
-
-    const submitCustomRange = (event) => {
-        event.preventDefault();
-        applyRange({
-            preset: "custom",
-            from: customRange.from,
-            to: customRange.to,
-        });
-    };
+        const onViewAllTime = () => handleApplyFilters({ preset: "all" });
+        window.addEventListener("monitor-history:view-all-time", onViewAllTime);
+        return () =>
+            window.removeEventListener(
+                "monitor-history:view-all-time",
+                onViewAllTime
+            );
+        // handleApplyFilters closes over `monitor.id` and `currentParams`, both stable per render.
+    }, [currentParams]);
 
     const goToYear = (targetYear) => {
         router.get(
@@ -98,25 +97,6 @@ export default function Show(props) {
             }
         );
     };
-
-    const checkTypes = useMemo(() => {
-        if (history?.check_types?.length) {
-            return history.check_types;
-        }
-
-        // Fallback: derive enabled flags from the monitor when no payload is present.
-        return [
-            { type: "uptime", enabled: Boolean(monitor.uptime_check_enabled) },
-            { type: "domain", enabled: Boolean(monitor.domain_check_enabled) },
-            {
-                type: "certificate",
-                enabled: Boolean(monitor.certificate_check_enabled),
-            },
-        ];
-    }, [history, monitor]);
-
-    const statusTotals = history?.summary?.selected_range?.status_totals || {};
-    const totalChecks = history?.summary?.selected_range?.total_checks || 0;
 
     return (
         <Authenticated auth={props.auth} errors={props.errors}>
@@ -164,9 +144,16 @@ export default function Show(props) {
                 </div>
 
                 <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-                    <h2 className="text-sm font-semibold tracking-wide text-gray-500 uppercase mb-2">
-                        Monitor History
-                    </h2>
+                    <div className="mb-2 flex items-baseline justify-between gap-4">
+                        <h2 className="text-sm font-semibold tracking-wide text-gray-500 uppercase">
+                            Monitor History
+                        </h2>
+                        {filters?.timezone ? (
+                            <span className="text-xs text-gray-500">
+                                All times in {filters.timezone}
+                            </span>
+                        ) : null}
+                    </div>
 
                     {!isHistoryEnabled ? (
                         <p className="text-sm text-gray-600">
@@ -174,7 +161,7 @@ export default function Show(props) {
                             <code>MONITOR_HISTORY_ENABLED=true</code> to enable rollout when
                             backend history ingestion is ready.
                         </p>
-                    ) : !history ? (
+                    ) : !graph && !filters && !summary ? (
                         <p className="text-sm text-gray-600">
                             History is enabled, but no history payload is available for
                             this monitor yet.
@@ -259,119 +246,16 @@ export default function Show(props) {
                                 </section>
                             ) : null}
 
-                            <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
-                                <div className="flex flex-wrap items-center gap-2">
-                                    <button
-                                        className={`px-3 py-1.5 rounded-lg border text-xs font-semibold ${
-                                            selectedRange?.preset === "7d"
-                                                ? "bg-purple-600 text-white border-purple-600"
-                                                : "bg-white text-gray-700 border-gray-300"
-                                        }`}
-                                        onClick={() => applyRange({ preset: "7d" })}
-                                        type="button"
-                                    >
-                                        Last 7 Days
-                                    </button>
-                                    <button
-                                        className={`px-3 py-1.5 rounded-lg border text-xs font-semibold ${
-                                            selectedRange?.preset === "30d"
-                                                ? "bg-purple-600 text-white border-purple-600"
-                                                : "bg-white text-gray-700 border-gray-300"
-                                        }`}
-                                        onClick={() => applyRange({ preset: "30d" })}
-                                        type="button"
-                                    >
-                                        Last 30 Days
-                                    </button>
-                                    <button
-                                        className={`px-3 py-1.5 rounded-lg border text-xs font-semibold ${
-                                            selectedRange?.preset === "all"
-                                                ? "bg-purple-600 text-white border-purple-600"
-                                                : "bg-white text-gray-700 border-gray-300"
-                                        }`}
-                                        onClick={() => applyRange({ preset: "all" })}
-                                        type="button"
-                                    >
-                                        All Time
-                                    </button>
-                                </div>
+                            <MonitorHistoryFilters
+                                filters={filters}
+                                pending={filtersPending}
+                                onApply={handleApplyFilters}
+                            />
 
-                                <form
-                                    onSubmit={submitCustomRange}
-                                    className="mt-4 flex flex-wrap items-end gap-3"
-                                >
-                                    <div>
-                                        <label className="block text-xs text-gray-500 mb-1">
-                                            From
-                                        </label>
-                                        <Input
-                                            type="date"
-                                            name="from"
-                                            value={customRange.from}
-                                            handleChange={(event) =>
-                                                setCustomRange((previous) => ({
-                                                    ...previous,
-                                                    from: event.target.value,
-                                                }))
-                                            }
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs text-gray-500 mb-1">
-                                            To
-                                        </label>
-                                        <Input
-                                            type="date"
-                                            name="to"
-                                            value={customRange.to}
-                                            handleChange={(event) =>
-                                                setCustomRange((previous) => ({
-                                                    ...previous,
-                                                    to: event.target.value,
-                                                }))
-                                            }
-                                        />
-                                    </div>
-                                    <Button type="submit" className="px-4 py-2">
-                                        Apply
-                                    </Button>
-                                </form>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                                <div className="rounded-xl border border-gray-200 bg-white p-4">
-                                    <p className="text-xs uppercase tracking-wide text-gray-500">
-                                        Total Checks
-                                    </p>
-                                    <p className="mt-2 text-2xl font-bold text-gray-900">
-                                        {totalChecks}
-                                    </p>
-                                </div>
-                                <div className="rounded-xl border border-gray-200 bg-white p-4">
-                                    <p className="text-xs uppercase tracking-wide text-gray-500">
-                                        Success
-                                    </p>
-                                    <p className="mt-2 text-2xl font-bold text-green-700">
-                                        {statusTotals.success || 0}
-                                    </p>
-                                </div>
-                                <div className="rounded-xl border border-gray-200 bg-white p-4">
-                                    <p className="text-xs uppercase tracking-wide text-gray-500">
-                                        Warning
-                                    </p>
-                                    <p className="mt-2 text-2xl font-bold text-yellow-700">
-                                        {statusTotals.warning || 0}
-                                    </p>
-                                </div>
-                                <div className="rounded-xl border border-gray-200 bg-white p-4">
-                                    <p className="text-xs uppercase tracking-wide text-gray-500">
-                                        Failed
-                                    </p>
-                                    <p className="mt-2 text-2xl font-bold text-red-700">
-                                        {statusTotals.failed || 0}
-                                    </p>
-                                </div>
-                            </div>
+                            <SummaryStats
+                                summary={summary}
+                                onViewAllTime={() => handleApplyFilters({ preset: "all" })}
+                            />
 
                             <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
                                 <h3 className="text-base font-semibold text-gray-900">
