@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import Authenticated from "@/Layouts/Authenticated";
 import { Head, Link, router, usePage } from "@inertiajs/react";
 import {
@@ -71,17 +71,6 @@ export default function Show(props) {
             }
         );
     };
-
-    useEffect(() => {
-        const onViewAllTime = () => handleApplyFilters({ preset: "all" });
-        window.addEventListener("monitor-history:view-all-time", onViewAllTime);
-        return () =>
-            window.removeEventListener(
-                "monitor-history:view-all-time",
-                onViewAllTime
-            );
-        // handleApplyFilters closes over `monitor.id` and `currentParams`, both stable per render.
-    }, [currentParams]);
 
     const goToYear = (targetYear) => {
         router.get(
