@@ -20,7 +20,7 @@ const COUNT_ITEMS = [
     { key: "unknown", label: "Unknown", className: "text-gray-600" },
 ];
 
-export default function SummaryStats({ summary }) {
+export default function SummaryStats({ summary, onViewAllTime }) {
     const selected = summary?.selected_range || null;
     const allTime = summary?.all_time || null;
     const selectedTotal = selected?.total_checks || 0;
@@ -61,7 +61,7 @@ export default function SummaryStats({ summary }) {
                     reliability.{" "}
                     <button
                         type="button"
-                        onClick={() => sendViewAllTime()}
+                        onClick={() => onViewAllTime?.()}
                         className="font-semibold text-purple-600 hover:text-purple-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:ring-offset-1 rounded"
                     >
                         View All Time
@@ -69,14 +69,6 @@ export default function SummaryStats({ summary }) {
                 </p>
             </div>
         );
-
-        function sendViewAllTime() {
-            // Bridge to Show.jsx's preset handler via a CustomEvent so this
-            // presentational component stays free of router/onApply coupling.
-            window.dispatchEvent(
-                new CustomEvent("monitor-history:view-all-time")
-            );
-        }
     }
 
     const selectedRatio = Number(selected?.success_ratio || 0);
