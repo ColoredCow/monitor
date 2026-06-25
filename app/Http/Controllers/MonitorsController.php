@@ -110,13 +110,7 @@ class MonitorsController extends Controller
 
             $availableYears = $this->availableYears($monitor, $timezone);
             $graphYear = $this->resolveGraphYear($request, $availableYears);
-            $graph = [
-                'year' => $graphYear,
-                'available_years' => $availableYears,
-                'timezone' => $timezone,
-                'check_types' => $this->graphCheckTypes($monitor),
-                'series' => [],
-            ];
+            $graph = $this->buildGraphPayload($monitor, $graphYear, $timezone);
 
             $selectedRangeQuery = $monitor->checkLogs()
                 ->whereBetween('checked_at', [$fromUtc, $toUtc]);
@@ -433,5 +427,78 @@ class MonitorsController extends Controller
         }
 
         return (int) $requested;
+    }
+
+    protected function buildGraphPayload(Monitor $monitor, int $year, string $timezone): array
+    {
+        $availableYears = $this->availableYears($monitor, $timezone);
+        $checkTypes = $this->graphCheckTypes($monitor);
+
+        $yearStartUtc = Carbon::create($year, 1, 1, 0, 0, 0, $timezone)->startOfDay()->utc();
+        $yearEndUtc = Carbon::create($year, 12, 31, 0, 0, 0, $timezone)->endOfDay()->utc();
+        $yearStartDate = Carbon::create($year, 1, 1, 0, 0, 0, $timezone)->toDateString();
+        $yearEndDate = Carbon::create($year, 12, 31, 0, 0, 0, $timezone)->toDateString();
+
+        $dailyMetricsByType = $monitor->dailyCheckMetrics()
+            ->forTimezone($timezone)
+            ->betweenDates($yearStartDate, $yearEndDate)
+            ->orderBy('date')
+            ->get()
+            ->groupBy('check_type')
+            ->map(function ($rows) {
+                return $rows->map(function ($row) {
+                    return [
+                        'date' => $row->date->toDateString(),
+                        'total_checks' => $row->total_checks,
+                        'successful_checks' => $row->successful_checks,
+                        'warning_checks' => $row->warning_checks,
+                        'failed_checks' => $row->failed_checks,
+                        'success_ratio' => (float) $row->success_ratio,
+                        'worst_status' => $row->worst_status,
+                        'avg_response_time_ms' => $row->avg_response_time_ms,
+                        'p95_response_time_ms' => $row->p95_response_time_ms,
+                    ];
+                })->values();
+            });
+
+        $series = [];
+
+        foreach ($checkTypes as $checkType) {
+            $type = $checkType['type'];
+
+            $typeSummary = $this->buildSummary(
+                $monitor->checkLogs()
+                    ->where('check_type', $type)
+                    ->whereBetween('checked_at', [$yearStartUtc, $yearEndUtc])
+            );
+
+            $series[$type] = [
+                'summary' => [
+                    'total_checks' => $typeSummary['by_type'][$type]['total_checks'] ?? 0,
+                    'success_ratio' => (float) ($typeSummary['by_type'][$type]['success_ratio'] ?? 0),
+                    'status_totals' => $typeSummary['by_type'][$type]['status_totals'] ?? [
+                        MonitorCheckLogService::STATUS_SUCCESS => 0,
+                        MonitorCheckLogService::STATUS_WARNING => 0,
+                        MonitorCheckLogService::STATUS_FAILED => 0,
+                        MonitorCheckLogService::STATUS_UNKNOWN => 0,
+                    ],
+                ],
+                'daily_metrics' => $dailyMetricsByType->get($type, collect())->values()->all(),
+                'today_checks' => $this->buildTodayChecks($monitor, $type, $timezone),
+            ];
+        }
+
+        return [
+            'year' => $year,
+            'available_years' => $availableYears,
+            'timezone' => $timezone,
+            'check_types' => $checkTypes,
+            'series' => $series,
+        ];
+    }
+
+    protected function buildTodayChecks(Monitor $monitor, string $checkType, string $timezone): array
+    {
+        return [];
     }
 }

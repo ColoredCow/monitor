@@ -120,4 +120,61 @@ class MonitorHistoryGraphTest extends TestCase
             ->where('graph.available_years', [(int) Carbon::now('UTC')->format('Y')])
         );
     }
+
+    public function test_graph_daily_metrics_are_scoped_to_the_graph_year_not_the_filter_range(): void
+    {
+        $user = User::factory()->create();
+        $monitor = $this->makeMonitor();
+
+        $this->seedUptimeLog($monitor, MonitorCheckLogService::STATUS_SUCCESS, '2024-02-01 10:00:00');
+        $this->seedUptimeLog($monitor, MonitorCheckLogService::STATUS_SUCCESS, '2024-11-20 10:00:00');
+
+        $this->artisan('monitor:aggregate-check-metrics', [
+            '--from' => '2024-02-01',
+            '--to' => '2024-02-01',
+        ])->assertSuccessful();
+        $this->artisan('monitor:aggregate-check-metrics', [
+            '--from' => '2024-11-20',
+            '--to' => '2024-11-20',
+        ])->assertSuccessful();
+
+        // Filter range (preset/from/to) is narrow and in a different year — graph must ignore it.
+        $response = $this->actingAs($user)->get(route('monitors.show', [
+            'monitor' => $monitor->id,
+            'year' => 2024,
+            'preset' => 'custom',
+            'from' => '2026-03-01',
+            'to' => '2026-03-31',
+        ]));
+
+        $response->assertInertia(fn ($page) => $page
+            ->component('Monitors/Show')
+            ->has('graph.series.uptime.daily_metrics', 2)
+            ->where('graph.series.uptime.daily_metrics.0.date', '2024-02-01')
+            ->where('graph.series.uptime.daily_metrics.1.date', '2024-11-20')
+        );
+    }
+
+    public function test_graph_per_type_summary_counts_only_that_years_logs(): void
+    {
+        $user = User::factory()->create();
+        $monitor = $this->makeMonitor();
+
+        $this->seedUptimeLog($monitor, MonitorCheckLogService::STATUS_SUCCESS, '2024-04-10 10:00:00');
+        $this->seedUptimeLog($monitor, MonitorCheckLogService::STATUS_FAILED, '2024-04-11 10:00:00');
+        $this->seedUptimeLog($monitor, MonitorCheckLogService::STATUS_SUCCESS, '2025-04-10 10:00:00');
+
+        $response = $this->actingAs($user)->get(route('monitors.show', [
+            'monitor' => $monitor->id,
+            'year' => 2024,
+        ]));
+
+        $response->assertInertia(fn ($page) => $page
+            ->component('Monitors/Show')
+            ->where('graph.series.uptime.summary.total_checks', 2)
+            ->where('graph.series.uptime.summary.status_totals.success', 1)
+            ->where('graph.series.uptime.summary.status_totals.failed', 1)
+            ->where('graph.series.uptime.summary.success_ratio', 50.0)
+        );
+    }
 }
