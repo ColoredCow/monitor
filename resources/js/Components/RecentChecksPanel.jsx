@@ -133,7 +133,7 @@ export default function RecentChecksPanel({
                                 "-mb-px border-b-2 px-1 pb-2 text-sm font-medium transition-colors duration-150 motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 focus-visible:rounded-sm disabled:cursor-not-allowed disabled:opacity-60",
                                 isActive
                                     ? "border-purple-600 text-purple-700"
-                                    : "border-transparent text-gray-500 hover:text-gray-700",
+                                    : "border-transparent text-gray-600 hover:text-gray-700",
                             ].join(" ")}
                         >
                             {CHECK_TYPE_LABELS[type] || type}
@@ -165,7 +165,7 @@ export default function RecentChecksPanel({
                         {rows.length === 0 ? (
                             <tr>
                                 <td
-                                    className="py-4 text-gray-500"
+                                    className="py-4 text-gray-600"
                                     colSpan={5}
                                 >
                                     No checks recorded for this range.

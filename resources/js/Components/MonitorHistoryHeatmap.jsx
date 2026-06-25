@@ -108,6 +108,10 @@ function buildCellTooltip(point, iso) {
     ].join("\n");
 }
 
+// Reduced-motion policy: this component animates only via CSS transitions, each of
+// which carries `motion-reduce:transition-none motion-reduce:transform-none`. There is
+// no JS-driven animation here, so no `matchMedia('(prefers-reduced-motion: reduce)')`
+// gate is required — the CSS variants fully satisfy the prefers-reduced-motion contract.
 export default function MonitorHistoryHeatmap({
     checkType,
     title,
@@ -174,7 +178,7 @@ export default function MonitorHistoryHeatmap({
             <div className="mb-4">
                 <h3 className="text-base font-semibold text-gray-900">{title}</h3>
                 {description ? (
-                    <p className="mt-1 text-sm text-gray-500">{description}</p>
+                    <p className="mt-1 text-sm text-gray-600">{description}</p>
                 ) : null}
             </div>
 

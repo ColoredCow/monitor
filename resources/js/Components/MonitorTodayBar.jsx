@@ -70,7 +70,7 @@ export default function MonitorTodayBar({ checkType, checks = [] }) {
 
             <div ref={containerRef} className="flex items-stretch overflow-hidden">
                 {visible.length === 0 ? (
-                    <span className="text-xs text-gray-500">
+                    <span className="text-xs text-gray-600">
                         No checks recorded today.
                     </span>
                 ) : (

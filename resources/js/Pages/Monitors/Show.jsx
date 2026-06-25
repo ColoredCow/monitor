@@ -161,7 +161,7 @@ export default function Show(props) {
                             Monitor History
                         </h2>
                         {filters?.timezone ? (
-                            <span className="text-xs text-gray-500">
+                            <span className="text-xs text-gray-600">
                                 All times in {filters.timezone}
                             </span>
                         ) : null}

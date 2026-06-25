@@ -33,7 +33,7 @@ export default function SummaryStats({ summary, onViewAllTime }) {
                 <p className="text-sm font-medium text-gray-700">
                     No checks have been recorded yet
                 </p>
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-1 text-sm text-gray-600">
                     {summary?.first_checked_at
                         ? `First check expected around ${formatDateTimeUTC(summary.first_checked_at)}.`
                         : "Reliability stats will appear once this monitor runs its first check."}
@@ -49,7 +49,7 @@ export default function SummaryStats({ summary, onViewAllTime }) {
                 <p className="text-sm font-medium text-gray-700">
                     No checks in this range
                 </p>
-                <p className="mt-1 text-sm text-gray-500">
+                <p className="mt-1 text-sm text-gray-600">
                     This monitor has{" "}
                     <span className="tabular-nums font-semibold text-gray-700">
                         {allTimeTotal}
@@ -77,7 +77,7 @@ export default function SummaryStats({ summary, onViewAllTime }) {
     return (
         <div className="flex flex-col gap-4 lg:flex-row lg:items-stretch">
             <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm lg:w-64">
-                <p className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                <p className="text-xs font-medium uppercase tracking-wide text-gray-600">
                     Reliability
                 </p>
                 <p
@@ -87,7 +87,7 @@ export default function SummaryStats({ summary, onViewAllTime }) {
                 >
                     {formatRatio(selectedRatio)}
                 </p>
-                <p className="mt-1 text-xs text-gray-500">
+                <p className="mt-1 text-xs text-gray-600">
                     <span className="tabular-nums">{selectedTotal}</span> checks in
                     range · all-time{" "}
                     <span className="tabular-nums font-medium text-gray-600">
@@ -102,7 +102,7 @@ export default function SummaryStats({ summary, onViewAllTime }) {
                         key={item.key}
                         className="rounded-xl border border-gray-200 bg-white p-4"
                     >
-                        <p className="text-xs uppercase tracking-wide text-gray-500">
+                        <p className="text-xs uppercase tracking-wide text-gray-600">
                             {item.label}
                         </p>
                         <p
