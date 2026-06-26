@@ -1,8 +1,5 @@
 <?php
 
-use App\Http\Controllers\GroupsController;
-use App\Http\Controllers\MonitorsController;
-use App\Http\Controllers\OrganizationSwitchController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -14,6 +11,9 @@ use App\Http\Controllers\OrganizationSwitchController;
 |
 */
 
+use App\Http\Controllers\GroupsController;
+use App\Http\Controllers\MonitorsController;
+use App\Http\Controllers\OrganizationSwitchController;
 use App\Http\Controllers\UsersController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;

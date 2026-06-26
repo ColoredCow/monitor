@@ -3,14 +3,13 @@ import ApplicationLogo from "@/Components/ApplicationLogo";
 import Dropdown from "@/Components/Dropdown";
 import NavLink from "@/Components/NavLink";
 import ResponsiveNavLink from "@/Components/ResponsiveNavLink";
-import { Link, router, usePage } from "@inertiajs/react";
+import { Link, router } from "@inertiajs/react";
 
 export default function Authenticated({ auth, children }) {
     const [showingNavigationDropdown, setShowingNavigationDropdown] =
         useState(false);
 
-    const { organizations = [], activeOrganization, isSuperAdmin } =
-        usePage().props.auth;
+    const { organizations = [], activeOrganization = null, isSuperAdmin = false } = auth;
 
     const switchOrganization = (id) => {
         router.post(route("organizations.switch"), { organization_id: id });

@@ -35,4 +35,15 @@ class OrganizationSwitchTest extends TestCase
 
         $this->assertSame($orgA->id, session('active_organization_id'));
     }
+
+    public function test_super_admin_can_switch_to_any_org(): void
+    {
+        $org = $this->createOrganization();
+        $this->actingAsSuperAdmin();
+
+        $this->post(route('organizations.switch'), ['organization_id' => $org->id])
+            ->assertRedirect();
+
+        $this->assertSame($org->id, session('active_organization_id'));
+    }
 }
