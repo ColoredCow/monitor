@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Monitor;
+use App\Models\Organization;
 use App\Services\DomainService;
 use App\Services\MonitorCheckLogService;
 use App\Services\MonitorDailyCheckMetricsAggregator;
@@ -25,6 +26,8 @@ class MonitorHistorySeeder extends Seeder
      * Number of uptime checks fabricated per day (spread across the day).
      */
     private const UPTIME_CHECKS_PER_DAY = 8;
+
+    private ?Organization $organization = null;
 
     /**
      * Demo monitors and the health profile used to fabricate their history.
@@ -75,6 +78,11 @@ class MonitorHistorySeeder extends Seeder
 
             return;
         }
+
+        $this->organization = Organization::firstOrCreate(
+            ['slug' => 'coloredcow'],
+            ['name' => 'ColoredCow']
+        );
 
         $days = max(1, (int) config('monitor-history.seed_days', 90));
         $timezone = config('monitor-history.timezone') ?: config('app.timezone', 'UTC');
@@ -138,6 +146,7 @@ class MonitorHistorySeeder extends Seeder
                 'domain_check_enabled' => (bool) $spec['domain'],
                 'certificate_check_enabled' => (bool) $spec['certificate'],
                 'domain_expires_at' => $domainExpiresAt,
+                'organization_id' => $this->organization->id,
             ]
         );
     }

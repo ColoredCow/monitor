@@ -4,12 +4,21 @@ namespace Tests\Feature\MonitorHistory;
 
 use App\Models\Monitor;
 use App\Models\MonitorCheckLog;
+use App\Models\Organization;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class BackfillMonitorCheckHistoryTest extends TestCase
 {
     use RefreshDatabase;
+
+    private Organization $organization;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->organization = Organization::factory()->create();
+    }
 
     public function test_it_writes_one_current_state_snapshot_per_enabled_check_type(): void
     {
@@ -20,6 +29,7 @@ class BackfillMonitorCheckHistoryTest extends TestCase
             'uptime_check_enabled' => true,
             'domain_check_enabled' => true,
             'certificate_check_enabled' => true,
+            'organization_id' => $this->organization->id,
         ]);
 
         $this->artisan('monitor:backfill-check-history', ['--monitor-id' => $monitor->id])
@@ -45,6 +55,7 @@ class BackfillMonitorCheckHistoryTest extends TestCase
             'uptime_check_enabled' => true,
             'domain_check_enabled' => false,
             'certificate_check_enabled' => false,
+            'organization_id' => $this->organization->id,
         ]);
 
         $this->artisan('monitor:backfill-check-history', ['--monitor-id' => $monitor->id])
@@ -59,6 +70,7 @@ class BackfillMonitorCheckHistoryTest extends TestCase
         $monitor = Monitor::create([
             'url' => 'https://example-'.uniqid().'.com',
             'uptime_check_enabled' => true,
+            'organization_id' => $this->organization->id,
         ]);
 
         $this->artisan('monitor:backfill-check-history', [
