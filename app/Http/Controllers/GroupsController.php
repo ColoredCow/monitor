@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\GroupRequest;
 use App\Models\Group;
+use App\Support\CurrentOrganization;
 use Illuminate\Contracts\Support\Renderable;
 use Inertia\Inertia;
 
@@ -27,7 +28,8 @@ class GroupsController extends Controller
     public function index()
     {
         return Inertia::render('Groups/Index', [
-            'groups' => Group::with('monitors')->orderBy('name')->get(),
+            'groups' => Group::forOrganization(app(CurrentOrganization::class)->id())
+                ->with('monitors')->orderBy('name')->get(),
         ]);
     }
 

@@ -8,6 +8,7 @@ use App\Models\Monitor;
 use App\Models\MonitorCheckLog;
 use App\Services\DomainService;
 use App\Services\MonitorCheckLogService;
+use App\Support\CurrentOrganization;
 use Carbon\Carbon;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\Request;
@@ -32,13 +33,17 @@ class MonitorsController extends Controller
      */
     public function index()
     {
-        $groups = Group::with(['monitors' => function ($query) {
-            $query->orderBy('name');
-        }])
+        $organizationId = app(CurrentOrganization::class)->id();
+
+        $groups = Group::forOrganization($organizationId)
+            ->with(['monitors' => function ($query) use ($organizationId) {
+                $query->forOrganization($organizationId)->orderBy('name');
+            }])
             ->has('monitors')
             ->orderBy('name')->get();
 
-        $monitorWithNoGroups = Monitor::whereNull('group_id')->orderBy('name')->get();
+        $monitorWithNoGroups = Monitor::forOrganization($organizationId)
+            ->whereNull('group_id')->orderBy('name')->get();
 
         if ($monitorWithNoGroups->count()) {
             $groups = collect($groups);
@@ -61,7 +66,7 @@ class MonitorsController extends Controller
      */
     public function create()
     {
-        $groups = Group::orderBy('name')->get();
+        $groups = Group::forOrganization(app(CurrentOrganization::class)->id())->orderBy('name')->get();
 
         return Inertia::render('Monitors/Create', [
             'groups' => $groups,
@@ -165,7 +170,7 @@ class MonitorsController extends Controller
      */
     public function edit(Monitor $monitor)
     {
-        $groups = Group::orderBy('name')->get();
+        $groups = Group::forOrganization(app(CurrentOrganization::class)->id())->orderBy('name')->get();
 
         return Inertia::render('Monitors/Edit', [
             'monitor' => $monitor,

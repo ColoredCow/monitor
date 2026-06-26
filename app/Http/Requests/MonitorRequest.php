@@ -22,13 +22,19 @@ class MonitorRequest extends FormRequest
      */
     public function rules(): array
     {
+        $organizationId = app(\App\Support\CurrentOrganization::class)->id();
+
         return [
             'name' => 'required|string',
             'url' => 'required|url',
             'monitorUptime' => 'required',
             'monitorDomain' => 'required',
             'uptimeCheckInterval' => 'required',
-            'monitorGroupId' => 'nullable',
+            'monitorGroupId' => [
+                'nullable',
+                \Illuminate\Validation\Rule::exists('groups', 'id')
+                    ->where('organization_id', $organizationId),
+            ],
         ];
     }
 }
