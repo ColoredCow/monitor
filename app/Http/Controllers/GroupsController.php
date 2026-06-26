@@ -41,6 +41,8 @@ class GroupsController extends Controller
      */
     public function create()
     {
+        $this->authorize('create', Group::class);
+
         return Inertia::render('Groups/Create', []);
     }
 
@@ -51,6 +53,7 @@ class GroupsController extends Controller
      */
     public function store(GroupRequest $request)
     {
+        $this->authorize('create', Group::class);
         $validated = $request->validated();
         Group::create([
             'name' => $validated['name'],
@@ -66,6 +69,8 @@ class GroupsController extends Controller
      */
     public function show(Group $group)
     {
+        $this->authorize('view', $group);
+
         return Inertia::render('Groups/Show', [
             'group' => $group,
         ]);
@@ -78,6 +83,8 @@ class GroupsController extends Controller
      */
     public function edit(Group $group)
     {
+        $this->authorize('update', $group);
+
         return Inertia::render('Groups/Edit', [
             'group' => $group,
         ]);
@@ -90,6 +97,7 @@ class GroupsController extends Controller
      */
     public function update(GroupRequest $request, Group $group)
     {
+        $this->authorize('update', $group);
         $validated = $request->validated();
         $currentDomainCheck = $group->domain_check_enabled;
 
@@ -107,6 +115,7 @@ class GroupsController extends Controller
      */
     public function destroy(Group $group)
     {
+        $this->authorize('delete', $group);
         $group->delete();
 
         return redirect()->route('groups.index');

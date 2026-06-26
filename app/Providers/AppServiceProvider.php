@@ -6,10 +6,12 @@ use App\Listeners\LogCertificateCheckFailed;
 use App\Listeners\LogCertificateCheckSucceeded;
 use App\Models\Group;
 use App\Models\Monitor;
+use App\Models\User;
 use App\Support\CurrentOrganization;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\ServiceProvider;
 use Spatie\UptimeMonitor\Events\CertificateCheckFailed;
@@ -56,5 +58,15 @@ class AppServiceProvider extends ServiceProvider
 
         Route::bind('monitor', fn ($value) => Monitor::forOrganization($resolveOrganizationId())->findOrFail($value));
         Route::bind('group', fn ($value) => Group::forOrganization($resolveOrganizationId())->findOrFail($value));
+
+        Gate::before(fn (User $user) => $user->isSuperAdmin() ? true : null);
+
+        Gate::define('manage-organizations', fn (User $user) => false);
+
+        Gate::define('manage-org-users', function (User $user) {
+            $organization = app(CurrentOrganization::class)->get();
+
+            return $organization !== null && $user->isAdminOf($organization);
+        });
     }
 }

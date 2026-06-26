@@ -66,6 +66,7 @@ class MonitorsController extends Controller
      */
     public function create()
     {
+        $this->authorize('create', Monitor::class);
         $groups = Group::forOrganization(app(CurrentOrganization::class)->id())->orderBy('name')->get();
 
         return Inertia::render('Monitors/Create', [
@@ -80,6 +81,7 @@ class MonitorsController extends Controller
      */
     public function store(MonitorRequest $request)
     {
+        $this->authorize('create', Monitor::class);
         $validated = $request->validated();
         $monitor = Monitor::create([
             'name' => $validated['name'],
@@ -104,6 +106,7 @@ class MonitorsController extends Controller
      */
     public function show(Request $request, Monitor $monitor)
     {
+        $this->authorize('view', $monitor);
         $graph = null;
         $filters = null;
         $summary = null;
@@ -170,6 +173,7 @@ class MonitorsController extends Controller
      */
     public function edit(Monitor $monitor)
     {
+        $this->authorize('update', $monitor);
         $groups = Group::forOrganization(app(CurrentOrganization::class)->id())->orderBy('name')->get();
 
         return Inertia::render('Monitors/Edit', [
@@ -185,6 +189,7 @@ class MonitorsController extends Controller
      */
     public function update(MonitorRequest $request, Monitor $monitor)
     {
+        $this->authorize('update', $monitor);
         $validated = $request->validated();
         $currentDomainCheck = $monitor->domain_check_enabled;
 
@@ -211,6 +216,7 @@ class MonitorsController extends Controller
      */
     public function destroy(Monitor $monitor)
     {
+        $this->authorize('delete', $monitor);
         $monitor->delete();
 
         return redirect()->route('monitors.index');
