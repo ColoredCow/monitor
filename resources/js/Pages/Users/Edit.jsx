@@ -14,6 +14,7 @@ export default function Edit(props) {
         name: user.name,
         email: user.email,
         password: "",
+        role: user.role,
     });
 
     const handleChange = (e) => {
@@ -79,6 +80,18 @@ export default function Edit(props) {
                                     handleChange={handleChange}
                                     placeholder="Leave blank to keep current"
                                 />
+                            </div>
+                            <div>
+                                <Label forInput="role" value="Role" />
+                                <select
+                                    name="role"
+                                    value={form.role}
+                                    onChange={handleChange}
+                                    className="mt-1 block w-full rounded-lg border-gray-300 focus:border-purple-500 focus:ring-purple-500 text-sm"
+                                >
+                                    <option value="member">Member (view only)</option>
+                                    <option value="admin">Admin (full access)</option>
+                                </select>
                             </div>
                             <div className="pt-6 border-t border-gray-200">
                                 <Button>
