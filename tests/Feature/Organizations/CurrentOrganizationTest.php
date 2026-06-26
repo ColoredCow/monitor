@@ -40,4 +40,23 @@ class CurrentOrganizationTest extends TestCase
         // No session org -> first membership.
         $this->assertSame($orgA->id, $current->resolveFor($user, null)?->id);
     }
+
+    public function test_super_admin_can_resolve_to_org_they_are_not_a_member_of(): void
+    {
+        $current = app(CurrentOrganization::class);
+        $org = Organization::factory()->create();
+        $superAdmin = User::factory()->superAdmin()->create();
+
+        // Super-admin has no memberships but should resolve to the requested org.
+        $this->assertSame($org->id, $current->resolveFor($superAdmin, $org->id)?->id);
+    }
+
+    public function test_regular_user_with_no_memberships_and_no_session_org_resolves_to_null(): void
+    {
+        $current = app(CurrentOrganization::class);
+        $user = User::factory()->create();
+
+        // No memberships, no session org -> null.
+        $this->assertNull($current->resolveFor($user, null));
+    }
 }
