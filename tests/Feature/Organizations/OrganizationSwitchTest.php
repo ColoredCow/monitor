@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Organizations;
 
+use App\Models\Organization;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\InteractsWithOrganizations;
 use Tests\TestCase;
@@ -16,7 +17,7 @@ class OrganizationSwitchTest extends TestCase
         $orgA = $this->createOrganization();
         $orgB = $this->createOrganization();
         $user = $this->actingAsMember($orgA);
-        $orgB->users()->attach($user->id, ['role' => \App\Models\Organization::ROLE_MEMBER]);
+        $orgB->users()->attach($user->id, ['role' => Organization::ROLE_MEMBER]);
 
         $this->post(route('organizations.switch'), ['organization_id' => $orgB->id])
             ->assertRedirect();

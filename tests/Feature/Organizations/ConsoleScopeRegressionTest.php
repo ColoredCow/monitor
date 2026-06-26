@@ -3,6 +3,7 @@
 namespace Tests\Feature\Organizations;
 
 use App\Models\Monitor;
+use App\Models\Organization;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\UptimeMonitor\MonitorRepository;
 use Tests\TestCase;
@@ -31,8 +32,8 @@ class ConsoleScopeRegressionTest extends TestCase
         // Create two separate organizations with one enabled monitor each.
         // We use Monitor::factory() with state directly to avoid relying on
         // an active organization — no user is authenticated, no CurrentOrganization bound.
-        $orgA = \App\Models\Organization::factory()->create(['name' => 'Org A', 'slug' => 'org-a']);
-        $orgB = \App\Models\Organization::factory()->create(['name' => 'Org B', 'slug' => 'org-b']);
+        $orgA = Organization::factory()->create(['name' => 'Org A', 'slug' => 'org-a']);
+        $orgB = Organization::factory()->create(['name' => 'Org B', 'slug' => 'org-b']);
 
         $monitorA = Monitor::factory()->forOrganization($orgA)->create(['uptime_check_enabled' => true]);
         $monitorB = Monitor::factory()->forOrganization($orgB)->create(['uptime_check_enabled' => true]);

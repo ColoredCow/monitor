@@ -26,7 +26,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->singleton(\App\Support\CurrentOrganization::class);
+        $this->app->singleton(CurrentOrganization::class);
     }
 
     /**

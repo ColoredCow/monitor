@@ -13,16 +13,17 @@
 
 use App\Http\Controllers\GroupsController;
 use App\Http\Controllers\MonitorsController;
-use App\Http\Controllers\OrganizationSwitchController;
 use App\Http\Controllers\OrganizationsController;
+use App\Http\Controllers\OrganizationSwitchController;
 use App\Http\Controllers\UsersController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
+use Inertia\Inertia;
 
 Route::permanentRedirect('/', '/login');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/no-organization', fn () => \Inertia\Inertia::render('NoOrganization'))
+    Route::get('/no-organization', fn () => Inertia::render('NoOrganization'))
         ->name('no-organization');
 
     Route::post('/organizations/switch', OrganizationSwitchController::class)

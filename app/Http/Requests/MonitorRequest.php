@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Support\CurrentOrganization;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class MonitorRequest extends FormRequest
 {
@@ -33,7 +34,7 @@ class MonitorRequest extends FormRequest
             'uptimeCheckInterval' => 'required',
             'monitorGroupId' => [
                 'nullable',
-                \Illuminate\Validation\Rule::exists('groups', 'id')
+                Rule::exists('groups', 'id')
                     ->where('organization_id', $organizationId),
             ],
         ];
