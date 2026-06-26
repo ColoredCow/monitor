@@ -66,14 +66,14 @@ class UsersController extends Controller
     {
         $this->authorize('manage-org-users');
         $organization = app(CurrentOrganization::class)->get();
-        abort_unless($organization->users()->whereKey($user->id)->exists(), 404);
+        $member = $organization->users()->whereKey($user->id)->firstOrFail();
 
         return Inertia::render('Users/Edit', [
             'user' => [
                 'id' => $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
-                'role' => $organization->users()->whereKey($user->id)->first()->pivot->role,
+                'role' => $member->pivot->role,
             ],
         ]);
     }
@@ -88,7 +88,7 @@ class UsersController extends Controller
         $user->update([
             'name' => $validated['name'],
             'email' => $validated['email'],
-            'password' => $validated['password'] ? bcrypt($validated['password']) : $user->password,
+            'password' => $request->filled('password') ? bcrypt($validated['password']) : $user->password,
         ]);
 
         $organization->users()->updateExistingPivot($user->id, ['role' => $validated['role']]);

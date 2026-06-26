@@ -70,4 +70,67 @@ class OrgUserManagementTest extends TestCase
 
         $this->get(route('users.index'))->assertForbidden();
     }
+
+    public function test_admin_cannot_edit_user_from_another_org(): void
+    {
+        $orgA = $this->createOrganization();
+        $orgB = $this->createOrganization();
+        $userInB = User::factory()->create();
+        $orgB->users()->attach($userInB->id, ['role' => Organization::ROLE_MEMBER]);
+        $this->actingAsAdmin($orgA);
+
+        $this->get(route('users.edit', $userInB))->assertNotFound();
+    }
+
+    public function test_admin_cannot_update_user_from_another_org(): void
+    {
+        $orgA = $this->createOrganization();
+        $orgB = $this->createOrganization();
+        $userInB = User::factory()->create();
+        $orgB->users()->attach($userInB->id, ['role' => Organization::ROLE_MEMBER]);
+        $this->actingAsAdmin($orgA);
+
+        $this->put(route('users.update', $userInB), [
+            'name' => 'Hacked Name',
+            'email' => $userInB->email,
+            'role' => Organization::ROLE_ADMIN,
+        ])->assertNotFound();
+
+        $this->assertDatabaseHas('organization_user', [
+            'organization_id' => $orgB->id,
+            'user_id' => $userInB->id,
+            'role' => Organization::ROLE_MEMBER,
+        ]);
+    }
+
+    public function test_admin_cannot_remove_user_from_another_org(): void
+    {
+        $orgA = $this->createOrganization();
+        $orgB = $this->createOrganization();
+        $userInB = User::factory()->create();
+        $orgB->users()->attach($userInB->id, ['role' => Organization::ROLE_MEMBER]);
+        $this->actingAsAdmin($orgA);
+
+        $this->delete(route('users.destroy', $userInB))->assertNotFound();
+
+        $this->assertDatabaseHas('organization_user', [
+            'organization_id' => $orgB->id,
+            'user_id' => $userInB->id,
+        ]);
+    }
+
+    public function test_member_cannot_create_user(): void
+    {
+        $orgA = $this->createOrganization();
+        $this->actingAsMember($orgA);
+
+        $this->post(route('users.store'), [
+            'name' => 'New Person',
+            'email' => 'newperson@test.example',
+            'password' => 'secret123',
+            'role' => Organization::ROLE_MEMBER,
+        ])->assertForbidden();
+
+        $this->assertDatabaseMissing('users', ['email' => 'newperson@test.example']);
+    }
 }
