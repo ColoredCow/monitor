@@ -17,7 +17,7 @@ class TenantIsolationTest extends TestCase
     {
         $orgA = $this->createOrganization();
         $orgB = $this->createOrganization();
-        $mine = Monitor::factory()->forOrganization($orgA)->create(['name' => 'Mine']);
+        Monitor::factory()->forOrganization($orgA)->create(['name' => 'Mine']);
         Monitor::factory()->forOrganization($orgB)->create(['name' => 'Theirs']);
 
         $this->actingAsMember($orgA);
@@ -48,5 +48,21 @@ class TenantIsolationTest extends TestCase
         $this->actingAsMember($orgA);
 
         $this->get("/groups/{$theirs->id}")->assertNotFound();
+    }
+
+    public function test_groups_index_only_shows_active_org_groups(): void
+    {
+        $orgA = $this->createOrganization();
+        $orgB = $this->createOrganization();
+        Group::factory()->forOrganization($orgA)->create(['name' => 'Mine']);
+        Group::factory()->forOrganization($orgB)->create(['name' => 'Theirs']);
+
+        $this->actingAsMember($orgA);
+
+        $this->get('/groups')
+            ->assertInertia(fn ($page) => $page
+                ->component('Groups/Index')
+                ->has('groups', 1)
+                ->where('groups.0.name', 'Mine'));
     }
 }

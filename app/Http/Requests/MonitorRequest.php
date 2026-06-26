@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Support\CurrentOrganization;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -22,7 +23,7 @@ class MonitorRequest extends FormRequest
      */
     public function rules(): array
     {
-        $organizationId = app(\App\Support\CurrentOrganization::class)->id();
+        $organizationId = app(CurrentOrganization::class)->id();
 
         return [
             'name' => 'required|string',

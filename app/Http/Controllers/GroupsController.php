@@ -29,7 +29,8 @@ class GroupsController extends Controller
     {
         return Inertia::render('Groups/Index', [
             'groups' => Group::forOrganization(app(CurrentOrganization::class)->id())
-                ->with('monitors')->orderBy('name')->get(),
+                ->with(['monitors' => fn ($q) => $q->forOrganization(app(CurrentOrganization::class)->id())])
+                ->orderBy('name')->get(),
         ]);
     }
 
