@@ -3,20 +3,25 @@
 namespace Tests\Feature\MonitorHistory;
 
 use App\Models\Monitor;
-use App\Models\User;
+use App\Models\Organization;
 use App\Services\MonitorCheckLogService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\InteractsWithOrganizations;
 use Tests\TestCase;
 
 class MonitorHistoryGraphTest extends TestCase
 {
+    use InteractsWithOrganizations;
     use RefreshDatabase;
+
+    protected Organization $organization;
 
     protected function setUp(): void
     {
         parent::setUp();
         config(['monitor-history.enabled' => true]);
+        $this->organization = Organization::factory()->create();
     }
 
     private function makeMonitor(array $attributes = []): Monitor
@@ -26,6 +31,7 @@ class MonitorHistoryGraphTest extends TestCase
             'uptime_check_enabled' => true,
             'domain_check_enabled' => false,
             'certificate_check_enabled' => false,
+            'organization_id' => $this->organization->id,
         ], $attributes));
     }
 
@@ -41,14 +47,14 @@ class MonitorHistoryGraphTest extends TestCase
 
     public function test_graph_check_types_exclude_certificate(): void
     {
-        $user = User::factory()->create();
+        $this->actingAsMember($this->organization);
         $monitor = $this->makeMonitor([
             'uptime_check_enabled' => true,
             'domain_check_enabled' => true,
             'certificate_check_enabled' => true,
         ]);
 
-        $response = $this->actingAs($user)->get(route('monitors.show', $monitor->id));
+        $response = $this->get(route('monitors.show', $monitor->id));
 
         $response->assertInertia(fn ($page) => $page
             ->component('Monitors/Show')
@@ -61,10 +67,10 @@ class MonitorHistoryGraphTest extends TestCase
 
     public function test_graph_year_defaults_to_current_year_when_no_param(): void
     {
-        $user = User::factory()->create();
+        $this->actingAsMember($this->organization);
         $monitor = $this->makeMonitor();
 
-        $response = $this->actingAs($user)->get(route('monitors.show', $monitor->id));
+        $response = $this->get(route('monitors.show', $monitor->id));
 
         $response->assertInertia(fn ($page) => $page
             ->component('Monitors/Show')
@@ -74,12 +80,12 @@ class MonitorHistoryGraphTest extends TestCase
 
     public function test_graph_year_param_overrides_default(): void
     {
-        $user = User::factory()->create();
+        $this->actingAsMember($this->organization);
         $monitor = $this->makeMonitor();
 
         $this->seedUptimeLog($monitor, MonitorCheckLogService::STATUS_SUCCESS, '2024-05-10 10:00:00');
 
-        $response = $this->actingAs($user)->get(route('monitors.show', [
+        $response = $this->get(route('monitors.show', [
             'monitor' => $monitor->id,
             'year' => 2024,
         ]));
@@ -92,7 +98,7 @@ class MonitorHistoryGraphTest extends TestCase
 
     public function test_available_years_span_earliest_data_year_through_current_year(): void
     {
-        $user = User::factory()->create();
+        $this->actingAsMember($this->organization);
         $monitor = $this->makeMonitor();
 
         $this->seedUptimeLog($monitor, MonitorCheckLogService::STATUS_SUCCESS, '2024-01-15 10:00:00');
@@ -100,7 +106,7 @@ class MonitorHistoryGraphTest extends TestCase
         $currentYear = (int) Carbon::now('UTC')->format('Y');
         $expected = range(2024, $currentYear);
 
-        $response = $this->actingAs($user)->get(route('monitors.show', $monitor->id));
+        $response = $this->get(route('monitors.show', $monitor->id));
 
         $response->assertInertia(fn ($page) => $page
             ->component('Monitors/Show')
@@ -110,10 +116,10 @@ class MonitorHistoryGraphTest extends TestCase
 
     public function test_available_years_falls_back_to_current_year_when_no_data(): void
     {
-        $user = User::factory()->create();
+        $this->actingAsMember($this->organization);
         $monitor = $this->makeMonitor();
 
-        $response = $this->actingAs($user)->get(route('monitors.show', $monitor->id));
+        $response = $this->get(route('monitors.show', $monitor->id));
 
         $response->assertInertia(fn ($page) => $page
             ->component('Monitors/Show')
@@ -123,7 +129,7 @@ class MonitorHistoryGraphTest extends TestCase
 
     public function test_graph_daily_metrics_are_scoped_to_the_graph_year_not_the_filter_range(): void
     {
-        $user = User::factory()->create();
+        $this->actingAsMember($this->organization);
         $monitor = $this->makeMonitor();
 
         $this->seedUptimeLog($monitor, MonitorCheckLogService::STATUS_SUCCESS, '2024-02-01 10:00:00');
@@ -139,7 +145,7 @@ class MonitorHistoryGraphTest extends TestCase
         ])->assertSuccessful();
 
         // Filter range (preset/from/to) is narrow and in a different year — graph must ignore it.
-        $response = $this->actingAs($user)->get(route('monitors.show', [
+        $response = $this->get(route('monitors.show', [
             'monitor' => $monitor->id,
             'year' => 2024,
             'preset' => 'custom',
@@ -157,14 +163,14 @@ class MonitorHistoryGraphTest extends TestCase
 
     public function test_graph_per_type_summary_counts_only_that_years_logs(): void
     {
-        $user = User::factory()->create();
+        $this->actingAsMember($this->organization);
         $monitor = $this->makeMonitor();
 
         $this->seedUptimeLog($monitor, MonitorCheckLogService::STATUS_SUCCESS, '2024-04-10 10:00:00');
         $this->seedUptimeLog($monitor, MonitorCheckLogService::STATUS_FAILED, '2024-04-11 10:00:00');
         $this->seedUptimeLog($monitor, MonitorCheckLogService::STATUS_SUCCESS, '2025-04-10 10:00:00');
 
-        $response = $this->actingAs($user)->get(route('monitors.show', [
+        $response = $this->get(route('monitors.show', [
             'monitor' => $monitor->id,
             'year' => 2024,
         ]));
@@ -180,13 +186,13 @@ class MonitorHistoryGraphTest extends TestCase
 
     public function test_graph_today_iso_equals_server_timezone_today(): void
     {
-        $user = User::factory()->create();
+        $this->actingAsMember($this->organization);
         $monitor = $this->makeMonitor();
 
         $serverTz = config('monitor-history.timezone') ?: config('app.timezone', 'UTC');
         $expectedTodayIso = Carbon::now($serverTz)->toDateString();
 
-        $response = $this->actingAs($user)->get(route('monitors.show', $monitor->id));
+        $response = $this->get(route('monitors.show', $monitor->id));
 
         $response->assertInertia(fn ($page) => $page
             ->component('Monitors/Show')
@@ -196,7 +202,7 @@ class MonitorHistoryGraphTest extends TestCase
 
     public function test_latest_checks_are_newest_first_and_span_days(): void
     {
-        $user = User::factory()->create();
+        $this->actingAsMember($this->organization);
         $monitor = $this->makeMonitor();
 
         $todayMorning = Carbon::now('UTC')->startOfDay()->addHours(8);
@@ -207,7 +213,7 @@ class MonitorHistoryGraphTest extends TestCase
         $this->seedUptimeLog($monitor, MonitorCheckLogService::STATUS_FAILED, $todayNoon->toDateTimeString());
         $this->seedUptimeLog($monitor, MonitorCheckLogService::STATUS_SUCCESS, $yesterday->toDateTimeString());
 
-        $response = $this->actingAs($user)->get(route('monitors.show', [
+        $response = $this->get(route('monitors.show', [
             'monitor' => $monitor->id,
             'year' => (int) Carbon::now('UTC')->format('Y'),
         ]));
@@ -226,10 +232,10 @@ class MonitorHistoryGraphTest extends TestCase
     {
         config(['monitor-history.recent_checks_limit' => 120]);
 
-        $user = User::factory()->create();
+        $this->actingAsMember($this->organization);
         $monitor = $this->makeMonitor();
 
-        $response = $this->actingAs($user)->get(route('monitors.show', $monitor->id));
+        $response = $this->get(route('monitors.show', $monitor->id));
 
         // The cap is shipped so the frontend strip uses the same number as its
         // slot cap — backend latest_checks limit and frontend maxSlots stay in sync.
@@ -243,7 +249,7 @@ class MonitorHistoryGraphTest extends TestCase
     {
         config(['monitor-history.recent_checks_limit' => 120]);
 
-        $user = User::factory()->create();
+        $this->actingAsMember($this->organization);
         $monitor = $this->makeMonitor();
 
         $base = Carbon::now('UTC')->startOfDay()->addHours(1);
@@ -255,7 +261,7 @@ class MonitorHistoryGraphTest extends TestCase
             );
         }
 
-        $response = $this->actingAs($user)->get(route('monitors.show', [
+        $response = $this->get(route('monitors.show', [
             'monitor' => $monitor->id,
             'year' => (int) Carbon::now('UTC')->format('Y'),
         ]));
@@ -268,7 +274,7 @@ class MonitorHistoryGraphTest extends TestCase
 
     public function test_latest_checks_are_capped_at_one_hundred_fifty(): void
     {
-        $user = User::factory()->create();
+        $this->actingAsMember($this->organization);
         $monitor = $this->makeMonitor();
 
         $base = Carbon::now('UTC')->startOfDay()->addHours(1);
@@ -280,7 +286,7 @@ class MonitorHistoryGraphTest extends TestCase
             );
         }
 
-        $response = $this->actingAs($user)->get(route('monitors.show', [
+        $response = $this->get(route('monitors.show', [
             'monitor' => $monitor->id,
             'year' => (int) Carbon::now('UTC')->format('Y'),
         ]));

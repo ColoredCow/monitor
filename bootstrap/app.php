@@ -23,7 +23,9 @@ return Application::configure(basePath: dirname(__DIR__))
             AddLinkHeadersForPreloadedAssets::class,
         ]);
 
-        //
+        $middleware->alias([
+            'active.organization' => \App\Http\Middleware\SetActiveOrganization::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

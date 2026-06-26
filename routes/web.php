@@ -20,9 +20,14 @@ use Illuminate\Support\Facades\Route;
 Route::permanentRedirect('/', '/login');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::resource('monitors', MonitorsController::class);
-    Route::resource('groups', GroupsController::class);
-    Route::resource('users', UsersController::class);
+    Route::get('/no-organization', fn () => \Inertia\Inertia::render('NoOrganization'))
+        ->name('no-organization');
+
+    Route::middleware('active.organization')->group(function () {
+        Route::resource('monitors', MonitorsController::class);
+        Route::resource('groups', GroupsController::class);
+        Route::resource('users', UsersController::class);
+    });
 });
 
 require __DIR__.'/auth.php';

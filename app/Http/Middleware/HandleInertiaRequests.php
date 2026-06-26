@@ -31,10 +31,28 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request)
     {
+        // `auth` is a CLOSURE so Inertia resolves it at response-render time —
+        // i.e. AFTER SetActiveOrganization has run and bound CurrentOrganization.
+        // (share() itself runs early in the middleware pipeline, before route
+        // middleware, so reading the resolved org eagerly here would be null.)
         return array_merge(parent::share($request), [
-            'auth' => [
-                'user' => $request->user(),
-            ],
+            'auth' => function () use ($request) {
+                $user = $request->user();
+                $active = app(\App\Support\CurrentOrganization::class)->get();
+
+                return [
+                    'user' => $user,
+                    'isSuperAdmin' => (bool) $user?->isSuperAdmin(),
+                    'organizations' => $user
+                        ? $user->organizations()->orderBy('name')->get()
+                            ->map(fn ($o) => ['id' => $o->id, 'name' => $o->name, 'role' => $o->pivot->role])
+                            ->values()
+                        : [],
+                    'activeOrganization' => $active
+                        ? ['id' => $active->id, 'name' => $active->name]
+                        : null,
+                ];
+            },
             'features' => [
                 'monitorHistory' => config('monitor-history.enabled'),
             ],

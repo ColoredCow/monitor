@@ -3,21 +3,26 @@
 namespace Tests\Feature\MonitorHistory;
 
 use App\Models\Monitor;
-use App\Models\User;
+use App\Models\Organization;
 use App\Services\MonitorCheckLogService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Tests\Concerns\InteractsWithOrganizations;
 use Tests\TestCase;
 
 class MonitorHistoryShowTest extends TestCase
 {
+    use InteractsWithOrganizations;
     use RefreshDatabase;
+
+    protected Organization $organization;
 
     protected function setUp(): void
     {
         parent::setUp();
         config(['monitor-history.enabled' => true]);
+        $this->organization = Organization::factory()->create();
     }
 
     private function makeMonitor(array $attributes = []): Monitor
@@ -27,6 +32,7 @@ class MonitorHistoryShowTest extends TestCase
             'uptime_check_enabled' => true,
             'domain_check_enabled' => false,
             'certificate_check_enabled' => false,
+            'organization_id' => $this->organization->id,
         ], $attributes));
     }
 
@@ -49,7 +55,7 @@ class MonitorHistoryShowTest extends TestCase
 
     public function test_heatmap_metrics_are_returned_even_when_the_client_requests_a_non_utc_timezone(): void
     {
-        $user = User::factory()->create();
+        $this->actingAsMember($this->organization);
         $monitor = $this->makeMonitor();
 
         $this->seedUptimeLog($monitor, MonitorCheckLogService::STATUS_SUCCESS, '2026-03-01 10:00:00');
@@ -61,7 +67,7 @@ class MonitorHistoryShowTest extends TestCase
             '--to' => '2026-03-01',
         ])->assertSuccessful();
 
-        $response = $this->actingAs($user)->get(route('monitors.show', [
+        $response = $this->get(route('monitors.show', [
             'monitor' => $monitor->id,
             'preset' => 'all',
             'timezone' => 'Asia/Kolkata',
@@ -77,14 +83,14 @@ class MonitorHistoryShowTest extends TestCase
 
     public function test_payload_advertises_each_check_type_with_its_enabled_flag(): void
     {
-        $user = User::factory()->create();
+        $this->actingAsMember($this->organization);
         $monitor = $this->makeMonitor([
             'uptime_check_enabled' => true,
             'domain_check_enabled' => false,
             'certificate_check_enabled' => false,
         ]);
 
-        $response = $this->actingAs($user)->get(route('monitors.show', $monitor->id));
+        $response = $this->get(route('monitors.show', $monitor->id));
 
         $response->assertInertia(fn ($page) => $page
             ->component('Monitors/Show')
@@ -97,13 +103,13 @@ class MonitorHistoryShowTest extends TestCase
 
     public function test_recent_checks_are_limited_to_the_selected_range(): void
     {
-        $user = User::factory()->create();
+        $this->actingAsMember($this->organization);
         $monitor = $this->makeMonitor();
 
         $this->seedUptimeLog($monitor, MonitorCheckLogService::STATUS_SUCCESS, '2026-03-10 10:00:00');
         $this->seedUptimeLog($monitor, MonitorCheckLogService::STATUS_FAILED, '2025-01-01 10:00:00');
 
-        $response = $this->actingAs($user)->get(route('monitors.show', [
+        $response = $this->get(route('monitors.show', [
             'monitor' => $monitor->id,
             'preset' => 'custom',
             'from' => '2026-03-01',
@@ -118,13 +124,13 @@ class MonitorHistoryShowTest extends TestCase
 
     public function test_show_resolves_earliest_check_with_a_single_query(): void
     {
-        $user = User::factory()->create();
+        $this->actingAsMember($this->organization);
         $monitor = $this->makeMonitor();
         $this->seedUptimeLog($monitor, MonitorCheckLogService::STATUS_SUCCESS, '2024-01-15 10:00:00');
 
         DB::enableQueryLog();
 
-        $this->actingAs($user)->get(route('monitors.show', $monitor->id))->assertOk();
+        $this->get(route('monitors.show', $monitor->id))->assertOk();
 
         // The earliest-check (MIN checked_at) lookup is `order by checked_at asc limit 1`.
         // The range, available-years and summary all derive from it, so it must be
@@ -149,10 +155,10 @@ class MonitorHistoryShowTest extends TestCase
     {
         config(['monitor-history.enabled' => false]);
 
-        $user = User::factory()->create();
+        $this->actingAsMember($this->organization);
         $monitor = $this->makeMonitor();
 
-        $response = $this->actingAs($user)->get(route('monitors.show', $monitor->id));
+        $response = $this->get(route('monitors.show', $monitor->id));
 
         $response->assertInertia(fn ($page) => $page
             ->component('Monitors/Show')

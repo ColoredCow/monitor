@@ -37,6 +37,11 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        $organization = $request->user()->organizations()->orderBy('name')->first();
+        if ($organization) {
+            $request->session()->put('active_organization_id', $organization->id);
+        }
+
         return redirect()->intended('/monitors');
     }
 
