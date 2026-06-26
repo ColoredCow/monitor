@@ -12,6 +12,11 @@ class SetActiveOrganization
     public function handle(Request $request, Closure $next): Response
     {
         $user = $request->user();
+
+        if (! $user) {
+            return $next($request);
+        }
+
         $current = app(CurrentOrganization::class);
 
         $organization = $current->resolveFor($user, $request->session()->get('active_organization_id'));
