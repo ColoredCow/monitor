@@ -46,6 +46,9 @@ class UsersController extends Controller
         $organization = app(CurrentOrganization::class)->get();
         $validated = $request->validated();
 
+        // Link an existing user if their email already exists; name and password are
+        // intentionally NOT overwritten for existing accounts — only new accounts
+        // get the values from the form.
         $user = User::firstOrNew(['email' => $validated['email']]);
 
         if (! $user->exists) {

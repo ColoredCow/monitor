@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Organizations;
 
+use App\Models\Group;
 use App\Models\Monitor;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\InteractsWithOrganizations;
@@ -53,5 +54,24 @@ class RoleAuthorizationTest extends TestCase
 
         $this->delete("/monitors/{$monitor->id}")->assertForbidden();
         $this->assertDatabaseHas('monitors', ['id' => $monitor->id]);
+    }
+
+    public function test_member_cannot_create_group(): void
+    {
+        $organization = $this->createOrganization();
+        $this->actingAsMember($organization);
+
+        $this->post(route('groups.store'), ['name' => 'X'])->assertForbidden();
+        $this->assertDatabaseCount('groups', 0);
+    }
+
+    public function test_member_cannot_delete_group(): void
+    {
+        $organization = $this->createOrganization();
+        $group = Group::factory()->forOrganization($organization)->create();
+        $this->actingAsMember($organization);
+
+        $this->delete(route('groups.destroy', $group))->assertForbidden();
+        $this->assertDatabaseHas('groups', ['id' => $group->id]);
     }
 }

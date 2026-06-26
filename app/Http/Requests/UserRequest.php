@@ -27,7 +27,7 @@ class UserRequest extends FormRequest
             $rules['email'] = 'required|email';
             $rules['password'] = 'required|string|min:6';
         } else {
-            $rules['email'] = 'required|email|unique:users,email,'.$this->user->id;
+            $rules['email'] = 'required|email|unique:users,email,'.$this->route('user')?->id;
             $rules['password'] = 'nullable|string|min:6';
         }
 

@@ -44,6 +44,9 @@ class OrganizationsController extends Controller
             'slug' => $this->uniqueSlug($validated['name']),
         ]);
 
+        // Link an existing user if their email already exists; name and password are
+        // intentionally NOT overwritten for existing accounts — only new accounts
+        // get the values from the form.
         $admin = User::firstOrNew(
             ['email' => $validated['admin_email']],
             [
