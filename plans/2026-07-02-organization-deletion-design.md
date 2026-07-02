@@ -53,7 +53,9 @@ The **shared timestamp is the cascade marker**: children trashed *before* the or
 **`restore(Organization $org)`**:
 1. **Slug collision check**: if a *live* org now holds this slug → abort with a friendly error (functional index would reject it anyway; we fail before touching data).
 2. Restore the org; restore monitors/groups/users `onlyTrashed()->where('deleted_at', $ts)`.
-3. **Per-monitor URL collision**: any monitor whose URL is now held by a live monitor is **skipped and reported** (stays trashed, purged on schedule). Users already restored-and-linked elsewhere (§7) are live and skipped naturally by the timestamp match.
+3. **Per-monitor URL collision**: any monitor whose URL is now held by a live monitor is **skipped and reported** (stays trashed; the purge command's orphan pass hard-deletes it once past the window). Users already restored-and-linked elsewhere (§7) are live and skipped naturally by the timestamp match.
+
+`delete()` and `restore()` are **idempotent** (deleting an already-trashed org or restoring a live one is a no-op — re-stamping would corrupt the cascade marker), and `purge()` refuses a live organization. `purge()`'s user deletion also filters on the cascade marker, so purging one org can never destroy a user who belongs to a *different* org's still-restorable cascade.
 
 **`purge(Organization $org)`** — FK-safe, two phases:
 1. *Outside* the transaction (org already invisible): chunked deletion of `monitor_check_logs` / `monitor_daily_check_metrics` for the org's monitors (`limit()`-loop, never offset-chunking) — avoids one giant implicit cascade holding locks.
@@ -62,6 +64,7 @@ The **shared timestamp is the cascade marker**: children trashed *before* the or
 ## 6. Purge command & scheduling
 
 - `organizations:purge-deleted {--older-than-days=} {--dry-run}` — mirrors `PruneMonitorCheckHistory`'s shape; retention from `config('organizations.purge_after_days', 60)` (new `config/organizations.php`); iterates `Organization::onlyTrashed()->where('deleted_at', '<=', $cutoff)` and calls `purge()` per org; `--dry-run` prints counts.
+- **Orphan pass** (same command, same cutoff): hard-deletes trashed monitors/groups whose organization is **live** — i.e. individually deleted records (`MonitorsController@destroy` / `GroupsController@destroy` are soft deletes now) and monitors a restore skipped over URL conflicts. Without this, user-facing "delete" would silently mean retain-forever. Groups still referenced by any (even trashed) monitor row are skipped until those monitors purge.
 - Scheduled in `routes/console.php`: `->dailyAt('02:30')->withoutOverlapping()`.
 - **Not** `Prunable`: `model:prune` prunes models independently with no cross-model ordering — it would `forceDelete` the org while `RESTRICT` FKs still point at it. A dedicated command owns the ordering. (Deliberate single purge path; no `Prunable` traits anywhere.)
 
@@ -85,6 +88,7 @@ The **shared timestamp is the cascade marker**: children trashed *before* the or
 - **Members of a deleted org:** multi-org users silently fall back to their next org on the following request; sole-org users are trashed → logged out on next request → login refused. Session revocation is *next-request*, not instant (file session driver); acceptable for v1.
 - **Aggregator:** `MonitorDailyCheckMetricsAggregator` reads `monitor_check_logs` without joining monitors, so it re-aggregates a trashed monitor's final days within its 7-day lookback, then self-terminates. Harmless.
 - **In-flight queued jobs** that serialized a `User`/`Monitor` restore models *without* global scopes and may briefly act on trashed rows; the app currently queues nothing user-scoped. Noted for the future.
+- **Cascade-marker precision (accepted):** `deleted_at` has second precision, so two org deletions within the same wall-clock second could conflate their users in restore/purge matching. Deletions are individual super-admin UI actions, so this cannot occur in practice; accepted for v1 rather than migrating to microsecond timestamps.
 
 ## 10. Testing (TDD, real MySQL — FK ordering genuinely enforced)
 
