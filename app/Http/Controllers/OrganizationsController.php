@@ -131,7 +131,7 @@ class OrganizationsController extends Controller
 
         $status = "Restored '{$organization->name}'.";
         if ($result['skipped_monitors'] !== []) {
-            $status .= ' Skipped monitors with URLs now in use: '.implode(', ', $result['skipped_monitors']).'.';
+            $status .= ' Skipped monitors whose URLs are now in use: '.implode(', ', $result['skipped_monitors']).'.';
         }
 
         return redirect()->route('organizations.index')->with('status', $status);
