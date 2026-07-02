@@ -140,6 +140,14 @@ return [
     ],
 
     /*
+     * NOTE: the vendor commands monitor:create and monitor:sync-file operate on
+     * the BASE Spatie model — they bypass organization assignment AND soft
+     * deletes (sync-file --delete-missing HARD-deletes, destroying check
+     * history). Manage monitors through the app UI; monitor:delete is
+     * overridden in-app to soft-delete.
+     */
+
+    /*
      * To add or modify behaviour to the Monitor model you can specify your
      * own model here. The only requirement is that it should extend
      * `Spatie\UptimeMonitor\Models\Monitor`.

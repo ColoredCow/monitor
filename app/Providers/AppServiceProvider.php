@@ -27,6 +27,11 @@ class AppServiceProvider extends ServiceProvider
     public function register()
     {
         $this->app->singleton(CurrentOrganization::class);
+
+        // The vendor command hard-deletes via the base Spatie model; rebind it
+        // to our soft-delete-aware version (app providers register after
+        // package providers, so this binding wins at resolution time).
+        $this->app->bind('command.monitor:delete', \App\Console\Commands\DeleteMonitor::class);
     }
 
     /**
