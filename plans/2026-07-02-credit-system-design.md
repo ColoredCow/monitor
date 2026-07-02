@@ -101,6 +101,10 @@ When a decrement takes the balance from positive to zero or below, the
 zero-crossing dispatches the "monitoring paused" notification once (guarded
 by the org's warning level so retries and in-flight checks don't spam).
 
+Metering must never break monitoring: `recordCheck()` wraps its writes in
+try/catch and logs failures. A transient DB hiccup loses at most a credit's
+worth of metering — it must not fail the check run.
+
 ## Enforcement
 
 Query-level exclusion, no state mutation. The three check commands
@@ -112,6 +116,22 @@ commands (see the `monitor:delete` override).
 Key property: nothing on the monitor is toggled. `uptime_check_enabled` and all
 user configuration stay untouched, so a top-up resumes checking on the next
 scheduler tick with zero cleanup.
+
+## Performance
+
+Per-check metering adds two single-row statements (a primary-key `UPDATE` and a
+unique-key upsert) to a pipeline that already updates the `monitors` row on
+every check — and inserts a `monitor_check_logs` row when history is enabled.
+The check loop is network-bound (10 concurrent HTTP checks, 10s timeout per
+site), so the added DB time is negligible. Balance decrements all target one
+`organizations` row per org, but Guzzle concurrency is HTTP-level only: the
+response handlers run sequentially in one PHP process, so decrements are
+serialized and row-lock contention is effectively nil.
+
+**Escape hatch at 10–100× scale:** because all metering funnels through
+`CreditMeteringService`, the natural optimization — buffer per-org counts in
+memory during a command run and flush one decrement per org per run — is a
+service-internal change requiring no schema or call-site changes.
 
 ## Scheduled jobs
 
@@ -175,7 +195,8 @@ Mail to org admins only (members never receive credit emails):
 TDD during implementation. Coverage:
 
 - Metering: each check type decrements balance and upserts the correct daily
-  row; works with `monitor-history.enabled` off; failed checks are charged.
+  row; works with `monitor-history.enabled` off; failed checks are charged;
+  a metering write failure is logged and does not fail the check run.
 - Enforcement: zero-balance orgs' monitors are excluded from all three check
   commands; positive-balance orgs unaffected; top-up resumes without touching
   monitor settings.
