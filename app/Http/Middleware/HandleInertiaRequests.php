@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Organization;
 use App\Support\CurrentOrganization;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -44,10 +45,17 @@ class HandleInertiaRequests extends Middleware
                 return [
                     'user' => $user,
                     'isSuperAdmin' => (bool) $user?->isSuperAdmin(),
+                    // Super-admins may switch to ANY org (the switch endpoint and
+                    // resolveFor both allow it), so their switcher lists all orgs,
+                    // not just memberships.
                     'organizations' => $user
-                        ? $user->organizations()->orderBy('name')->get()
-                            ->map(fn ($o) => ['id' => $o->id, 'name' => $o->name, 'role' => $o->pivot->role])
-                            ->values()
+                        ? ($user->isSuperAdmin()
+                            ? Organization::orderBy('name')->get()
+                                ->map(fn ($o) => ['id' => $o->id, 'name' => $o->name, 'role' => null])
+                                ->values()
+                            : $user->organizations()->orderBy('name')->get()
+                                ->map(fn ($o) => ['id' => $o->id, 'name' => $o->name, 'role' => $o->pivot->role])
+                                ->values())
                         : [],
                     'activeOrganization' => $active
                         ? ['id' => $active->id, 'name' => $active->name]

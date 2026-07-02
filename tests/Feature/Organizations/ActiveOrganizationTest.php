@@ -44,4 +44,30 @@ class ActiveOrganizationTest extends TestCase
 
         $this->assertSame($organization->id, session('active_organization_id'));
     }
+
+    public function test_super_admin_switcher_lists_all_organizations(): void
+    {
+        $this->createOrganization(['name' => 'Alpha']);
+        $this->createOrganization(['name' => 'Beta']);
+        $this->actingAsSuperAdmin();
+
+        // Super-admin is a member of neither org, but can switch to any —
+        // so the shared switcher list must contain both.
+        $this->get('/monitors')->assertInertia(fn ($page) => $page
+            ->where('auth.isSuperAdmin', true)
+            ->has('auth.organizations', 2)
+            ->where('auth.organizations.0.name', 'Alpha')
+            ->where('auth.organizations.1.name', 'Beta'));
+    }
+
+    public function test_member_switcher_lists_only_memberships(): void
+    {
+        $mine = $this->createOrganization(['name' => 'Mine']);
+        $this->createOrganization(['name' => 'Other']);
+        $this->actingAsMember($mine);
+
+        $this->get('/monitors')->assertInertia(fn ($page) => $page
+            ->has('auth.organizations', 1)
+            ->where('auth.organizations.0.name', 'Mine'));
+    }
 }
