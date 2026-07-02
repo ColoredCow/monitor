@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\OrganizationRestoreBlockedException;
 use App\Models\Organization;
 use App\Models\User;
+use App\Services\OrganizationDeletionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -16,8 +18,18 @@ class OrganizationsController extends Controller
     {
         $this->authorize('manage-organizations');
 
+        $purgeAfterDays = (int) config('organizations.purge_after_days', 60);
+
         return Inertia::render('Organizations/Index', [
             'organizations' => Organization::withCount('users', 'monitors')->orderBy('name')->get(),
+            'deletedOrganizations' => Organization::onlyTrashed()->orderBy('deleted_at')->get()
+                ->map(fn (Organization $organization) => [
+                    'id' => $organization->id,
+                    'name' => $organization->name,
+                    'deleted_at' => $organization->deleted_at->toDateString(),
+                    'days_until_purge' => max(0, $purgeAfterDays - (int) $organization->deleted_at->diffInDays(now())),
+                ])->values(),
+            'purgeAfterDays' => $purgeAfterDays,
         ]);
     }
 
@@ -91,6 +103,34 @@ class OrganizationsController extends Controller
         ]);
 
         return redirect()->route('organizations.index');
+    }
+
+    public function destroy(Organization $organization): RedirectResponse
+    {
+        $this->authorize('manage-organizations');
+
+        app(OrganizationDeletionService::class)->delete($organization);
+
+        return redirect()->route('organizations.index');
+    }
+
+    public function restore(Organization $organization): RedirectResponse
+    {
+        $this->authorize('manage-organizations');
+
+        try {
+            $result = app(OrganizationDeletionService::class)->restore($organization);
+        } catch (OrganizationRestoreBlockedException $exception) {
+            return redirect()->route('organizations.index')
+                ->withErrors(['restore' => $exception->getMessage()]);
+        }
+
+        $status = "Restored '{$organization->name}'.";
+        if ($result['skipped_monitors'] !== []) {
+            $status .= ' Skipped monitors with URLs now in use: '.implode(', ', $result['skipped_monitors']).'.';
+        }
+
+        return redirect()->route('organizations.index')->with('status', $status);
     }
 
     private function uniqueSlug(string $name, ?int $ignoreId = null): string

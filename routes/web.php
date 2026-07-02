@@ -30,7 +30,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('organizations.switch');
 
     Route::resource('organizations', OrganizationsController::class)
-        ->only(['index', 'create', 'store', 'edit', 'update']);
+        ->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
+    Route::post('/organizations/{organization}/restore', [OrganizationsController::class, 'restore'])
+        ->name('organizations.restore')
+        ->withTrashed();
 
     Route::middleware('active.organization')->group(function () {
         Route::resource('monitors', MonitorsController::class);
