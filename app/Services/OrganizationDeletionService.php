@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Exceptions\OrganizationRestoreBlockedException;
 use App\Models\Group;
 use App\Models\Monitor;
+use App\Models\MonitorCheckLog;
+use App\Models\MonitorDailyCheckMetric;
 use App\Models\Organization;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -82,6 +84,86 @@ class OrganizationDeletionService
 
             return ['skipped_monitors' => $skipped];
         });
+    }
+
+    /**
+     * Hard-delete a trashed organization and everything that belonged to it.
+     * Idempotent; FK-safe order (children before RESTRICT parents). The big
+     * leaf tables are trimmed in chunks OUTSIDE the transaction — the org is
+     * already invisible, and one giant implicit cascade would hold locks.
+     */
+    public function purge(Organization $organization): void
+    {
+        if (! $organization->trashed()) {
+            throw new \LogicException('Refusing to purge a live organization.');
+        }
+
+        $monitorIds = Monitor::withTrashed()
+            ->where('organization_id', $organization->id)
+            ->pluck('id');
+
+        foreach ($monitorIds->chunk(500) as $ids) {
+            while (MonitorCheckLog::whereIn('monitor_id', $ids)->limit(5000)->delete() > 0) {
+                // batches until the chunk's logs are gone
+            }
+            MonitorDailyCheckMetric::whereIn('monitor_id', $ids)->delete();
+        }
+
+        DB::transaction(function () use ($organization) {
+            Monitor::withTrashed()->where('organization_id', $organization->id)->forceDelete();
+            Group::withTrashed()->where('organization_id', $organization->id)->forceDelete();
+
+            // Users cascaded BY THIS org's deletion (cascade-marker match) that
+            // are still trashed and have no other live membership. Without the
+            // deleted_at filter, purging THIS org could permanently destroy a
+            // user who was cascaded with a DIFFERENT org that is still inside
+            // its own restore window. The org subquery must see the trashed org.
+            User::onlyTrashed()
+                ->where('deleted_at', $organization->deleted_at)
+                ->where('is_super_admin', false)
+                ->whereHas('organizations', fn ($q) => $q->withTrashed()->where('organizations.id', $organization->id))
+                ->whereDoesntHave('organizations', fn ($q) => $q->where('organizations.id', '!=', $organization->id))
+                ->forceDelete();
+
+            $organization->forceDelete(); // organization_user rows drop via FK cascade
+        });
+    }
+
+    /**
+     * Hard-delete trashed monitors/groups past the cutoff whose organization is
+     * LIVE: individually deleted records, and monitors a restore skipped due to
+     * URL conflicts. Without this pass they would be retained forever (the org
+     * purge only reaches children of trashed orgs). Groups still referenced by
+     * any monitor row (even a trashed one — the FK is RESTRICT) are skipped and
+     * picked up on a later run once those monitors have purged.
+     *
+     * @return array{monitors: int, groups: int}
+     */
+    public function purgeOrphanedChildren(\DateTimeInterface $cutoff): array
+    {
+        $monitorIds = Monitor::onlyTrashed()
+            ->where('deleted_at', '<=', $cutoff)
+            ->whereHas('organization')
+            ->pluck('id');
+
+        foreach ($monitorIds->chunk(500) as $ids) {
+            while (MonitorCheckLog::whereIn('monitor_id', $ids)->limit(5000)->delete() > 0) {
+                // batches until the chunk's logs are gone
+            }
+            MonitorDailyCheckMetric::whereIn('monitor_id', $ids)->delete();
+        }
+
+        $monitors = $monitorIds->isEmpty()
+            ? 0
+            : Monitor::onlyTrashed()->whereKey($monitorIds)->forceDelete();
+
+        $groups = Group::onlyTrashed()
+            ->where('deleted_at', '<=', $cutoff)
+            ->whereHas('organization')
+            ->whereDoesntHave('monitors', fn ($q) => $q->withTrashed())
+            ->forceDelete();
+
+        return ['monitors' => (int) $monitors, 'groups' => (int) $groups];
     }
 
     private function soleMemberUsers(Organization $organization)

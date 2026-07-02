@@ -39,3 +39,9 @@ Schedule::command('monitor:prune-check-history')
     ->dailyAt('01:00')
     ->when($historyEnabled)
     ->withoutOverlapping();
+
+// Organization retention: hard-purge organizations soft-deleted beyond the
+// configurable window (organizations.purge_after_days).
+Schedule::command('organizations:purge-deleted')
+    ->dailyAt('02:30')
+    ->withoutOverlapping();
