@@ -20,7 +20,7 @@ class OrganizationSwitchTest extends TestCase
         $orgB->users()->attach($user->id, ['role' => Organization::ROLE_MEMBER]);
 
         $this->post(route('organizations.switch'), ['organization_id' => $orgB->id])
-            ->assertRedirect();
+            ->assertRedirect(route('monitors.index'));
 
         $this->assertSame($orgB->id, session('active_organization_id'));
     }
@@ -43,8 +43,22 @@ class OrganizationSwitchTest extends TestCase
         $this->actingAsSuperAdmin();
 
         $this->post(route('organizations.switch'), ['organization_id' => $org->id])
-            ->assertRedirect();
+            ->assertRedirect(route('monitors.index'));
 
         $this->assertSame($org->id, session('active_organization_id'));
+    }
+
+    public function test_active_org_label_resolves_on_pages_outside_org_middleware(): void
+    {
+        $org = $this->createOrganization(['name' => 'Acme']);
+        $this->actingAsSuperAdmin();
+
+        // /organizations is outside the active.organization middleware, so the
+        // shared prop must fall back to resolving the session value.
+        $this->withSession(['active_organization_id' => $org->id])
+            ->get(route('organizations.index'))
+            ->assertInertia(fn ($page) => $page
+                ->where('auth.activeOrganization.id', $org->id)
+                ->where('auth.activeOrganization.name', 'Acme'));
     }
 }

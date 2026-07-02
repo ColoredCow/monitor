@@ -40,7 +40,16 @@ class HandleInertiaRequests extends Middleware
         return array_merge(parent::share($request), [
             'auth' => function () use ($request) {
                 $user = $request->user();
-                $active = app(CurrentOrganization::class)->get();
+                $current = app(CurrentOrganization::class);
+                $active = $current->get();
+
+                // Pages outside the active.organization middleware (e.g. the
+                // organizations screens) never bind CurrentOrganization, so the
+                // switcher label would always read "Select organization" there.
+                // Resolve from the session so the active org shows everywhere.
+                if (! $active && $user && ($sessionOrgId = $request->session()->get('active_organization_id'))) {
+                    $active = $current->resolveFor($user, $sessionOrgId);
+                }
 
                 return [
                     'user' => $user,
