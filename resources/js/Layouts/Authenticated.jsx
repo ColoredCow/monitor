@@ -9,7 +9,12 @@ export default function Authenticated({ auth, children }) {
     const [showingNavigationDropdown, setShowingNavigationDropdown] =
         useState(false);
 
-    const { organizations = [], activeOrganization = null, isSuperAdmin = false } = auth;
+    const {
+        organizations = [],
+        activeOrganization = null,
+        isSuperAdmin = false,
+        isOrgAdmin = false,
+    } = auth;
 
     const switchOrganization = (id) => {
         router.post(route("organizations.switch"), { organization_id: id });
@@ -43,12 +48,14 @@ export default function Authenticated({ auth, children }) {
                                 >
                                     Groups
                                 </NavLink>
-                                <NavLink
-                                    href={route("users.index")}
-                                    active={route().current("users.*")}
-                                >
-                                    Users
-                                </NavLink>
+                                {isOrgAdmin && (
+                                    <NavLink
+                                        href={route("users.index")}
+                                        active={route().current("users.*")}
+                                    >
+                                        Users
+                                    </NavLink>
+                                )}
                                 {isSuperAdmin && (
                                     <NavLink
                                         href={route("organizations.index")}
@@ -199,12 +206,14 @@ export default function Authenticated({ auth, children }) {
                         >
                             Groups
                         </ResponsiveNavLink>
-                        <ResponsiveNavLink
-                            href={route("users.index")}
-                            active={route().current("users.index")}
-                        >
-                            Users
-                        </ResponsiveNavLink>
+                        {isOrgAdmin && (
+                            <ResponsiveNavLink
+                                href={route("users.index")}
+                                active={route().current("users.index")}
+                            >
+                                Users
+                            </ResponsiveNavLink>
+                        )}
                         {isSuperAdmin && (
                             <ResponsiveNavLink
                                 href={route("organizations.index")}

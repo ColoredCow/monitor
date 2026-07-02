@@ -1,8 +1,9 @@
 import React from "react";
-import { Link, router } from "@inertiajs/react";
+import { Link, router, usePage } from "@inertiajs/react";
 import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 
 export default function GroupCard({ group }) {
+    const isOrgAdmin = usePage().props.auth?.isOrgAdmin ?? false;
     const monitorsCount = group.monitors?.length ?? 0;
     const monitorsCountText =
         monitorsCount == 1
@@ -33,29 +34,31 @@ export default function GroupCard({ group }) {
                             </span>
                         </div>
                     </div>
-                    <div className="flex gap-1 ml-3 flex-shrink-0">
-                        <Link
-                            href={route("groups.edit", group.id)}
-                            className="p-2 rounded-lg text-gray-400 hover:bg-purple-50 hover:text-purple-600 transition-colors"
-                        >
-                            <PencilIcon className="h-4 w-4" />
-                        </Link>
-                        {monitorsCount ? (
-                            <div
-                                className="p-2 rounded-lg text-gray-300 cursor-not-allowed"
-                                title="Group has monitors"
+                    {isOrgAdmin && (
+                        <div className="flex gap-1 ml-3 flex-shrink-0">
+                            <Link
+                                href={route("groups.edit", group.id)}
+                                className="p-2 rounded-lg text-gray-400 hover:bg-purple-50 hover:text-purple-600 transition-colors"
                             >
-                                <TrashIcon className="h-4 w-4" />
-                            </div>
-                        ) : (
-                            <button
-                                onClick={handleDelete}
-                                className="p-2 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600 transition-colors"
-                            >
-                                <TrashIcon className="h-4 w-4" />
-                            </button>
-                        )}
-                    </div>
+                                <PencilIcon className="h-4 w-4" />
+                            </Link>
+                            {monitorsCount ? (
+                                <div
+                                    className="p-2 rounded-lg text-gray-300 cursor-not-allowed"
+                                    title="Group has monitors"
+                                >
+                                    <TrashIcon className="h-4 w-4" />
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={handleDelete}
+                                    className="p-2 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600 transition-colors"
+                                >
+                                    <TrashIcon className="h-4 w-4" />
+                                </button>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

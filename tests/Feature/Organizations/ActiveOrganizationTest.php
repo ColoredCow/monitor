@@ -70,4 +70,21 @@ class ActiveOrganizationTest extends TestCase
             ->has('auth.organizations', 1)
             ->where('auth.organizations.0.name', 'Mine'));
     }
+
+    public function test_is_org_admin_prop_reflects_role_in_active_org(): void
+    {
+        $organization = $this->createOrganization();
+
+        $this->actingAsMember($organization);
+        $this->get('/monitors')->assertInertia(fn ($page) => $page
+            ->where('auth.isOrgAdmin', false));
+
+        $this->actingAsAdmin($organization);
+        $this->get('/monitors')->assertInertia(fn ($page) => $page
+            ->where('auth.isOrgAdmin', true));
+
+        $this->actingAsSuperAdmin();
+        $this->get('/monitors')->assertInertia(fn ($page) => $page
+            ->where('auth.isOrgAdmin', true));
+    }
 }

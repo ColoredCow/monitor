@@ -45,6 +45,11 @@ class HandleInertiaRequests extends Middleware
                 return [
                     'user' => $user,
                     'isSuperAdmin' => (bool) $user?->isSuperAdmin(),
+                    // UI gate for admin-only affordances (create/edit/delete,
+                    // Users tab). The server still enforces via policies/gates;
+                    // this only controls what the frontend renders.
+                    'isOrgAdmin' => (bool) ($user && ($user->isSuperAdmin()
+                        || ($active && $user->isAdminOf($active)))),
                     // Super-admins may switch to ANY org (the switch endpoint and
                     // resolveFor both allow it), so their switcher lists all orgs,
                     // not just memberships.
