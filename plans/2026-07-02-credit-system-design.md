@@ -22,7 +22,7 @@ later without schema changes.
 | Exhaustion behavior | Pause all checks immediately at zero balance |
 | Acquisition | Super-admin manual grants only (v1) |
 | Warnings | Email org admins at runway thresholds, plus paused/resumed notices |
-| Org visibility | Balance, runway, per-monitor/per-check-type usage breakdown, transaction history |
+| Org visibility | Balance, projected runway (dashboard card, header chip, monitor-form preview), per-monitor/per-check-type usage breakdown, transaction history |
 | Credit expiry | None in v1 |
 
 A failed check costs the same as a successful one — it consumed the same
@@ -133,6 +133,36 @@ serialized and row-lock contention is effectively nil.
 memory during a command run and flush one decrement per org per run — is a
 service-internal change requiring no schema or call-site changes.
 
+## Runway projection
+
+A single runway concept, used by both the UI and the warning emails: projected
+runway derived from **current monitor configuration**, not historical usage.
+Computed on read, never stored — so there is no cache to invalidate when
+monitors change.
+
+`CreditRunwayService` computes an org's projected daily burn with one aggregate
+query over its active (enabled, non-soft-deleted) monitors:
+
+- uptime enabled: `1440 / uptime_check_interval_in_minutes` credits/day
+  (interval is a string column — cast to int, floor at 1)
+- certificate enabled: +1 credit/day
+- domain enabled: +1 credit/day
+
+Runway = `credit_balance / projected daily burn`, humanized to the largest
+sensible unit: "~3 months", "~7 days", "~18 hours", "less than an hour",
+capped at "over a year". Zero burn (no enabled checks) renders as "credits
+aren't being consumed" instead of a runway; zero balance renders the paused
+state instead.
+
+Adding/deleting a monitor, changing a check interval, or toggling
+certificate/domain checks changes the projection on the next render — with
+Inertia that is immediately after the form round-trip.
+
+Config-derived (rather than trailing-7-day historical) burn is deliberate: the
+dashboard and warning emails can never disagree, it works from day one for new
+orgs, and it reacts instantly to config changes — which is exactly when a
+warning matters most. Steady-state, the two converge anyway.
+
 ## Scheduled jobs
 
 Both registered in `routes/console.php`:
@@ -141,11 +171,11 @@ Both registered in `routes/console.php`:
   `credit_usage_daily` per org and writes one `usage_debit` transaction. Does
   not touch the balance (already decremented live) — this is the audit record.
 - **`credits:evaluate-warnings`** — daily, after rollup. Computes each org's
-  runway (balance ÷ trailing 7-day average daily burn) and escalates a warning
-  level stored on the organization: `none → low` (≤ 7 days) `→ critical`
-  (≤ 2 days) `→ exhausted` (zero; also set live by the zero-crossing). Each
-  escalation emails the org's admins once. A grant resets the level; if the org
-  was paused, admins receive a "monitoring resumed" email.
+  projected runway via `CreditRunwayService` and escalates a warning level
+  stored on the organization: `none → low` (≤ 7 days) `→ critical` (≤ 2 days)
+  `→ exhausted` (zero; also set live by the zero-crossing). Each escalation
+  emails the org's admins once. A grant resets the level; if the org was
+  paused, admins receive a "monitoring resumed" email.
 
 Runway-based thresholds scale with org size — no absolute numbers that mean
 different things to a 5-monitor org and a 500-monitor org.
@@ -171,12 +201,29 @@ Mail to org admins only (members never receive credit emails):
 
 ### Organization dashboard
 
-- **Balance card** — current balance, estimated runway, and a prominent
-  "Monitoring paused — out of credits" banner at zero.
+- **Balance card** — current balance and projected runway ("1,240,000 credits ·
+  lasts ~3 months at current configuration"), with a prominent "Monitoring
+  paused — out of credits" banner at zero.
 - **Usage breakdown** — last 30 days from `credit_usage_daily`: daily burn
   chart, split by check type, top monitors by consumption.
 - **Transaction history** — grants and daily debits.
 - Org members (view-only role) can see all of this; only admins get emails.
+
+### Header chip
+
+A compact runway chip in the authenticated layout header (near the org
+switcher), e.g. "~3 months". Balance and projected daily burn are shared as
+Inertia props, so the chip refreshes on every navigation — including right
+after any monitor edit. Turns amber/red as the warning level escalates.
+
+### Monitor form preview
+
+The add/edit monitor form shows the projected impact before saving, computed
+client-side from the form's live values (interval, certificate/domain toggles)
+against the org's current burn and balance from shared props — e.g.
+"This change: 288 → 1,440 credits/day · runway ~3 months → ~3 weeks". No extra
+endpoint needed; for a new monitor the "before" burn is zero, for an edit it is
+derived from the monitor's persisted settings already loaded into the form.
 
 ## Edge cases
 
@@ -200,6 +247,10 @@ TDD during implementation. Coverage:
 - Enforcement: zero-balance orgs' monitors are excluded from all three check
   commands; positive-balance orgs unaffected; top-up resumes without touching
   monitor settings.
+- Runway projection: daily burn correct across config permutations (intervals,
+  toggles, disabled/soft-deleted monitors excluded); humanized output for
+  months/days/hours/sub-hour/over-a-year; zero-burn and zero-balance states;
+  warnings use the projection.
 - Notifications: zero-crossing fires exactly once; escalation and reset-on-grant
   behave; only admins are emailed.
 - Ledger integrity: rollup debit equals the day's metered usage; `balance_after`
