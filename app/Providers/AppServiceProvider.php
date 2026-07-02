@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Console\Commands\DeleteMonitor;
 use App\Listeners\LogCertificateCheckFailed;
 use App\Listeners\LogCertificateCheckSucceeded;
 use App\Models\Group;
@@ -31,7 +32,7 @@ class AppServiceProvider extends ServiceProvider
         // The vendor command hard-deletes via the base Spatie model; rebind it
         // to our soft-delete-aware version (app providers register after
         // package providers, so this binding wins at resolution time).
-        $this->app->bind('command.monitor:delete', \App\Console\Commands\DeleteMonitor::class);
+        $this->app->bind('command.monitor:delete', DeleteMonitor::class);
     }
 
     /**

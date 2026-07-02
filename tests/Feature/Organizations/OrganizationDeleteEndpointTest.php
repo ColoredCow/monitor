@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Organizations;
 
-use App\Models\Organization;
 use App\Services\OrganizationDeletionService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\Concerns\InteractsWithOrganizations;
