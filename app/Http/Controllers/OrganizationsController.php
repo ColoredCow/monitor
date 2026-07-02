@@ -56,16 +56,20 @@ class OrganizationsController extends Controller
             'slug' => $this->uniqueSlug($validated['name']),
         ]);
 
-        // Link an existing user if their email already exists; name and password are
-        // intentionally NOT overwritten for existing accounts — only new accounts
-        // get the values from the form.
-        $admin = User::firstOrNew(
+        // Link an existing user if their email already exists; a soft-deleted
+        // account is restored and linked rather than duplicated. Name and
+        // password are intentionally NOT overwritten for existing accounts.
+        $admin = User::withTrashed()->firstOrNew(
             ['email' => $validated['admin_email']],
             [
                 'name' => $validated['admin_name'],
                 'password' => Hash::make($validated['admin_password']),
             ]
         );
+
+        if ($admin->trashed()) {
+            $admin->restore();
+        }
 
         if (! $admin->exists) {
             $admin->email_verified_at = now();

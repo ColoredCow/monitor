@@ -46,10 +46,16 @@ class UsersController extends Controller
         $organization = app(CurrentOrganization::class)->get();
         $validated = $request->validated();
 
-        // Link an existing user if their email already exists; name and password are
-        // intentionally NOT overwritten for existing accounts — only new accounts
-        // get the values from the form.
-        $user = User::firstOrNew(['email' => $validated['email']]);
+        // Link an existing user if their email already exists; a soft-deleted
+        // account (e.g. removed with a deleted organization) is restored and
+        // linked rather than duplicated. Name and password are intentionally
+        // NOT overwritten for existing accounts — only new accounts get the
+        // values from the form.
+        $user = User::withTrashed()->firstOrNew(['email' => $validated['email']]);
+
+        if ($user->trashed()) {
+            $user->restore();
+        }
 
         if (! $user->exists) {
             $user->name = $validated['name'];

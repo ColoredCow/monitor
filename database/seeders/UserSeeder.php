@@ -15,11 +15,15 @@ class UserSeeder extends Seeder
      */
     public function run()
     {
-        User::updateOrCreate([
+        $user = User::withTrashed()->updateOrCreate([
             'email' => config('constants.default.user.email'),
         ], [
             'name' => config('constants.default.user.email'),
             'password' => Hash::make(config('constants.default.user.password')),
         ]);
+
+        if ($user->trashed()) {
+            $user->restore();
+        }
     }
 }

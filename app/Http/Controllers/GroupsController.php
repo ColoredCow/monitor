@@ -6,6 +6,7 @@ use App\Http\Requests\GroupRequest;
 use App\Models\Group;
 use App\Support\CurrentOrganization;
 use Illuminate\Contracts\Support\Renderable;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class GroupsController extends Controller
@@ -116,6 +117,15 @@ class GroupsController extends Controller
     public function destroy(Group $group)
     {
         $this->authorize('delete', $group);
+
+        // The FK no longer blocks this (soft delete is an UPDATE), so enforce
+        // explicitly: a group with live monitors must not disappear from under them.
+        if ($group->monitors()->exists()) {
+            throw ValidationException::withMessages([
+                'group' => 'This group still has monitors. Move or delete them before deleting the group.',
+            ]);
+        }
+
         $group->delete();
 
         return redirect()->route('groups.index');
