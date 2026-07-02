@@ -109,5 +109,5 @@ The **shared timestamp is the cascade marker**: children trashed *before* the or
 
 ## 12. Rollout prerequisites
 
-- **Confirm production MySQL ≥ 8.0.13** (functional indexes). Local: 8.0.19 ✓.
+- **Production MySQL ≥ 8.0.13 confirmed** (functional indexes): prod is 8.0.42 ✓, local 8.0.19 ✓.
 - Deploy = migrations + scheduler picks up the purge command automatically.
