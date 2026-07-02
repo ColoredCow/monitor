@@ -28,7 +28,13 @@ class MonitorRequest extends FormRequest
 
         return [
             'name' => 'required|string',
-            'url' => 'required|url',
+            'url' => [
+                'required',
+                'url',
+                Rule::unique('monitors', 'url')
+                    ->withoutTrashed()
+                    ->ignore($this->route('monitor')?->id),
+            ],
             'monitorUptime' => 'required',
             'monitorDomain' => 'required',
             'uptimeCheckInterval' => 'required',
