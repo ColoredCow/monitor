@@ -49,6 +49,14 @@ export default function Authenticated({ auth, children }) {
                                 >
                                     Users
                                 </NavLink>
+                                {isSuperAdmin && (
+                                    <NavLink
+                                        href={route("organizations.index")}
+                                        active={route().current("organizations.*")}
+                                    >
+                                        Organizations
+                                    </NavLink>
+                                )}
                             </div>
                         </div>
 
@@ -197,6 +205,14 @@ export default function Authenticated({ auth, children }) {
                         >
                             Users
                         </ResponsiveNavLink>
+                        {isSuperAdmin && (
+                            <ResponsiveNavLink
+                                href={route("organizations.index")}
+                                active={route().current("organizations.*")}
+                            >
+                                Organizations
+                            </ResponsiveNavLink>
+                        )}
                     </div>
 
                     <div className="pt-4 pb-3 border-t border-gray-200">
