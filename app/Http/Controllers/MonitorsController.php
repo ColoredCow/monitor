@@ -8,6 +8,7 @@ use App\Models\Monitor;
 use App\Models\MonitorCheckLog;
 use App\Services\DomainService;
 use App\Services\MonitorCheckLogService;
+use App\Support\CurrentOrganization;
 use Carbon\Carbon;
 use Illuminate\Contracts\Support\Renderable;
 use Illuminate\Http\Request;
@@ -32,13 +33,17 @@ class MonitorsController extends Controller
      */
     public function index()
     {
-        $groups = Group::with(['monitors' => function ($query) {
-            $query->orderBy('name');
-        }])
+        $organizationId = app(CurrentOrganization::class)->id();
+
+        $groups = Group::forOrganization($organizationId)
+            ->with(['monitors' => function ($query) use ($organizationId) {
+                $query->forOrganization($organizationId)->orderBy('name');
+            }])
             ->has('monitors')
             ->orderBy('name')->get();
 
-        $monitorWithNoGroups = Monitor::whereNull('group_id')->orderBy('name')->get();
+        $monitorWithNoGroups = Monitor::forOrganization($organizationId)
+            ->whereNull('group_id')->orderBy('name')->get();
 
         if ($monitorWithNoGroups->count()) {
             $groups = collect($groups);
@@ -61,7 +66,8 @@ class MonitorsController extends Controller
      */
     public function create()
     {
-        $groups = Group::orderBy('name')->get();
+        $this->authorize('create', Monitor::class);
+        $groups = Group::forOrganization(app(CurrentOrganization::class)->id())->orderBy('name')->get();
 
         return Inertia::render('Monitors/Create', [
             'groups' => $groups,
@@ -75,6 +81,7 @@ class MonitorsController extends Controller
      */
     public function store(MonitorRequest $request)
     {
+        $this->authorize('create', Monitor::class);
         $validated = $request->validated();
         $monitor = Monitor::create([
             'name' => $validated['name'],
@@ -99,6 +106,7 @@ class MonitorsController extends Controller
      */
     public function show(Request $request, Monitor $monitor)
     {
+        $this->authorize('view', $monitor);
         $graph = null;
         $filters = null;
         $summary = null;
@@ -165,7 +173,8 @@ class MonitorsController extends Controller
      */
     public function edit(Monitor $monitor)
     {
-        $groups = Group::orderBy('name')->get();
+        $this->authorize('update', $monitor);
+        $groups = Group::forOrganization(app(CurrentOrganization::class)->id())->orderBy('name')->get();
 
         return Inertia::render('Monitors/Edit', [
             'monitor' => $monitor,
@@ -180,6 +189,7 @@ class MonitorsController extends Controller
      */
     public function update(MonitorRequest $request, Monitor $monitor)
     {
+        $this->authorize('update', $monitor);
         $validated = $request->validated();
         $currentDomainCheck = $monitor->domain_check_enabled;
 
@@ -206,6 +216,7 @@ class MonitorsController extends Controller
      */
     public function destroy(Monitor $monitor)
     {
+        $this->authorize('delete', $monitor);
         $monitor->delete();
 
         return redirect()->route('monitors.index');

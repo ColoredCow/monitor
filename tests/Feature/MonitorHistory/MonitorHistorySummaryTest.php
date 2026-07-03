@@ -3,20 +3,25 @@
 namespace Tests\Feature\MonitorHistory;
 
 use App\Models\Monitor;
-use App\Models\User;
+use App\Models\Organization;
 use App\Services\MonitorCheckLogService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\InteractsWithOrganizations;
 use Tests\TestCase;
 
 class MonitorHistorySummaryTest extends TestCase
 {
+    use InteractsWithOrganizations;
     use RefreshDatabase;
+
+    protected Organization $organization;
 
     protected function setUp(): void
     {
         parent::setUp();
         config(['monitor-history.enabled' => true]);
+        $this->organization = Organization::factory()->create();
     }
 
     private function makeMonitor(array $attributes = []): Monitor
@@ -26,6 +31,7 @@ class MonitorHistorySummaryTest extends TestCase
             'uptime_check_enabled' => true,
             'domain_check_enabled' => false,
             'certificate_check_enabled' => false,
+            'organization_id' => $this->organization->id,
         ], $attributes));
     }
 
@@ -41,10 +47,10 @@ class MonitorHistorySummaryTest extends TestCase
 
     public function test_filters_prop_reports_resolved_preset_and_range(): void
     {
-        $user = User::factory()->create();
+        $this->actingAsMember($this->organization);
         $monitor = $this->makeMonitor();
 
-        $response = $this->actingAs($user)->get(route('monitors.show', [
+        $response = $this->get(route('monitors.show', [
             'monitor' => $monitor->id,
             'preset' => 'custom',
             'from' => '2026-03-01',
@@ -62,13 +68,13 @@ class MonitorHistorySummaryTest extends TestCase
 
     public function test_summary_selected_range_differs_from_all_time(): void
     {
-        $user = User::factory()->create();
+        $this->actingAsMember($this->organization);
         $monitor = $this->makeMonitor();
 
         $this->seedUptimeLog($monitor, MonitorCheckLogService::STATUS_SUCCESS, '2026-03-10 10:00:00');
         $this->seedUptimeLog($monitor, MonitorCheckLogService::STATUS_FAILED, '2025-01-01 10:00:00');
 
-        $response = $this->actingAs($user)->get(route('monitors.show', [
+        $response = $this->get(route('monitors.show', [
             'monitor' => $monitor->id,
             'preset' => 'custom',
             'from' => '2026-03-01',
@@ -85,13 +91,13 @@ class MonitorHistorySummaryTest extends TestCase
 
     public function test_summary_first_checked_at_is_earliest_log_in_timezone(): void
     {
-        $user = User::factory()->create();
+        $this->actingAsMember($this->organization);
         $monitor = $this->makeMonitor();
 
         $this->seedUptimeLog($monitor, MonitorCheckLogService::STATUS_SUCCESS, '2025-01-01 10:00:00');
         $this->seedUptimeLog($monitor, MonitorCheckLogService::STATUS_SUCCESS, '2026-03-10 10:00:00');
 
-        $response = $this->actingAs($user)->get(route('monitors.show', $monitor->id));
+        $response = $this->get(route('monitors.show', $monitor->id));
 
         $response->assertInertia(fn ($page) => $page
             ->component('Monitors/Show')
@@ -101,10 +107,10 @@ class MonitorHistorySummaryTest extends TestCase
 
     public function test_summary_first_checked_at_is_null_when_no_logs(): void
     {
-        $user = User::factory()->create();
+        $this->actingAsMember($this->organization);
         $monitor = $this->makeMonitor();
 
-        $response = $this->actingAs($user)->get(route('monitors.show', $monitor->id));
+        $response = $this->get(route('monitors.show', $monitor->id));
 
         $response->assertInertia(fn ($page) => $page
             ->component('Monitors/Show')
@@ -114,10 +120,10 @@ class MonitorHistorySummaryTest extends TestCase
 
     public function test_never_monitored_monitor_returns_a_zeroed_empty_state_payload(): void
     {
-        $user = User::factory()->create();
+        $this->actingAsMember($this->organization);
         $monitor = $this->makeMonitor();
 
-        $response = $this->actingAs($user)->get(route('monitors.show', $monitor->id));
+        $response = $this->get(route('monitors.show', $monitor->id));
 
         // Pins the empty-state contract the SummaryStats / RecentChecks UI relies on
         // to distinguish "never monitored" from "no checks in range": the props are

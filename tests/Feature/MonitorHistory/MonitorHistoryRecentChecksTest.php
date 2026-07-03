@@ -3,20 +3,25 @@
 namespace Tests\Feature\MonitorHistory;
 
 use App\Models\Monitor;
-use App\Models\User;
+use App\Models\Organization;
 use App\Services\MonitorCheckLogService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\InteractsWithOrganizations;
 use Tests\TestCase;
 
 class MonitorHistoryRecentChecksTest extends TestCase
 {
+    use InteractsWithOrganizations;
     use RefreshDatabase;
+
+    protected Organization $organization;
 
     protected function setUp(): void
     {
         parent::setUp();
         config(['monitor-history.enabled' => true]);
+        $this->organization = Organization::factory()->create();
     }
 
     private function makeMonitor(array $attributes = []): Monitor
@@ -26,6 +31,7 @@ class MonitorHistoryRecentChecksTest extends TestCase
             'uptime_check_enabled' => true,
             'domain_check_enabled' => true,
             'certificate_check_enabled' => false,
+            'organization_id' => $this->organization->id,
         ], $attributes));
     }
 
@@ -42,7 +48,7 @@ class MonitorHistoryRecentChecksTest extends TestCase
 
     public function test_recent_checks_pagination_shape_uses_page_size_25(): void
     {
-        $user = User::factory()->create();
+        $this->actingAsMember($this->organization);
         $monitor = $this->makeMonitor();
 
         for ($i = 0; $i < 30; $i++) {
@@ -55,7 +61,7 @@ class MonitorHistoryRecentChecksTest extends TestCase
             );
         }
 
-        $response = $this->actingAs($user)->get(route('monitors.show', [
+        $response = $this->get(route('monitors.show', [
             'monitor' => $monitor->id,
             'preset' => 'custom',
             'from' => '2026-03-01',
@@ -76,7 +82,7 @@ class MonitorHistoryRecentChecksTest extends TestCase
 
     public function test_recent_checks_respect_recent_page(): void
     {
-        $user = User::factory()->create();
+        $this->actingAsMember($this->organization);
         $monitor = $this->makeMonitor();
 
         for ($i = 0; $i < 30; $i++) {
@@ -88,7 +94,7 @@ class MonitorHistoryRecentChecksTest extends TestCase
             );
         }
 
-        $response = $this->actingAs($user)->get(route('monitors.show', [
+        $response = $this->get(route('monitors.show', [
             'monitor' => $monitor->id,
             'preset' => 'custom',
             'from' => '2026-03-01',
@@ -105,13 +111,13 @@ class MonitorHistoryRecentChecksTest extends TestCase
 
     public function test_recent_checks_filter_by_recent_type(): void
     {
-        $user = User::factory()->create();
+        $this->actingAsMember($this->organization);
         $monitor = $this->makeMonitor();
 
         $this->seedLog($monitor, MonitorCheckLogService::CHECK_TYPE_UPTIME, MonitorCheckLogService::STATUS_SUCCESS, '2026-03-10 10:00:00');
         $this->seedLog($monitor, MonitorCheckLogService::CHECK_TYPE_DOMAIN, MonitorCheckLogService::STATUS_WARNING, '2026-03-11 10:00:00');
 
-        $response = $this->actingAs($user)->get(route('monitors.show', [
+        $response = $this->get(route('monitors.show', [
             'monitor' => $monitor->id,
             'preset' => 'custom',
             'from' => '2026-03-01',
@@ -130,12 +136,12 @@ class MonitorHistoryRecentChecksTest extends TestCase
 
     public function test_recent_checks_default_type_is_uptime(): void
     {
-        $user = User::factory()->create();
+        $this->actingAsMember($this->organization);
         $monitor = $this->makeMonitor();
 
         $this->seedLog($monitor, MonitorCheckLogService::CHECK_TYPE_UPTIME, MonitorCheckLogService::STATUS_SUCCESS, '2026-03-10 10:00:00');
 
-        $response = $this->actingAs($user)->get(route('monitors.show', [
+        $response = $this->get(route('monitors.show', [
             'monitor' => $monitor->id,
             'preset' => 'custom',
             'from' => '2026-03-01',
@@ -150,7 +156,7 @@ class MonitorHistoryRecentChecksTest extends TestCase
 
     public function test_recent_checks_reject_an_unsupported_type_and_fall_back_to_uptime(): void
     {
-        $user = User::factory()->create();
+        $this->actingAsMember($this->organization);
         $monitor = $this->makeMonitor();
 
         $this->seedLog($monitor, MonitorCheckLogService::CHECK_TYPE_UPTIME, MonitorCheckLogService::STATUS_SUCCESS, '2026-03-10 10:00:00');
@@ -158,7 +164,7 @@ class MonitorHistoryRecentChecksTest extends TestCase
 
         // 'certificate' is a real check type but NOT a selectable recent tab —
         // an out-of-whitelist value must fall back to uptime, never echo through.
-        $response = $this->actingAs($user)->get(route('monitors.show', [
+        $response = $this->get(route('monitors.show', [
             'monitor' => $monitor->id,
             'preset' => 'custom',
             'from' => '2026-03-01',
@@ -176,13 +182,13 @@ class MonitorHistoryRecentChecksTest extends TestCase
 
     public function test_recent_checks_respect_the_selected_range(): void
     {
-        $user = User::factory()->create();
+        $this->actingAsMember($this->organization);
         $monitor = $this->makeMonitor();
 
         $this->seedLog($monitor, MonitorCheckLogService::CHECK_TYPE_UPTIME, MonitorCheckLogService::STATUS_SUCCESS, '2026-03-10 10:00:00');
         $this->seedLog($monitor, MonitorCheckLogService::CHECK_TYPE_UPTIME, MonitorCheckLogService::STATUS_FAILED, '2025-01-01 10:00:00');
 
-        $response = $this->actingAs($user)->get(route('monitors.show', [
+        $response = $this->get(route('monitors.show', [
             'monitor' => $monitor->id,
             'preset' => 'custom',
             'from' => '2026-03-01',

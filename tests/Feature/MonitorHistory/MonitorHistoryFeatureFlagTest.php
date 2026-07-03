@@ -3,6 +3,7 @@
 namespace Tests\Feature\MonitorHistory;
 
 use App\Models\Monitor;
+use App\Models\Organization;
 use App\Services\MonitorCheckLogService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -18,6 +19,7 @@ class MonitorHistoryFeatureFlagTest extends TestCase
             'uptime_check_enabled' => true,
             'domain_check_enabled' => true,
             'certificate_check_enabled' => true,
+            'organization_id' => Organization::factory()->create()->id,
         ]);
     }
 

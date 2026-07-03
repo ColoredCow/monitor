@@ -2,7 +2,7 @@ import React from "react";
 import MonitorUptimeIcon from "./MonitorUptimeIcon";
 import MonitorDomainIcon from "./MonitorDomainIcon";
 import MonitorCheckIntervalIcon from "./MonitorCheckIntervalIcon";
-import { Link, router } from "@inertiajs/react";
+import { Link, router, usePage } from "@inertiajs/react";
 import {
     ArrowTopRightOnSquareIcon,
     EyeIcon,
@@ -11,6 +11,8 @@ import {
 } from "@heroicons/react/24/outline";
 
 export default function MonitorCard({ monitor }) {
+    const isOrgAdmin = usePage().props.auth?.isOrgAdmin ?? false;
+
     const handleDelete = (e) => {
         e.preventDefault();
         if (
@@ -52,18 +54,22 @@ export default function MonitorCard({ monitor }) {
                         >
                             <EyeIcon className="h-4 w-4" />
                         </Link>
-                        <Link
-                            href={route("monitors.edit", monitor.id)}
-                            className="p-2 rounded-lg text-gray-400 hover:bg-purple-50 hover:text-purple-600 transition-colors"
-                        >
-                            <PencilIcon className="h-4 w-4" />
-                        </Link>
-                        <button
-                            onClick={handleDelete}
-                            className="p-2 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600 transition-colors"
-                        >
-                            <TrashIcon className="h-4 w-4" />
-                        </button>
+                        {isOrgAdmin && (
+                            <>
+                                <Link
+                                    href={route("monitors.edit", monitor.id)}
+                                    className="p-2 rounded-lg text-gray-400 hover:bg-purple-50 hover:text-purple-600 transition-colors"
+                                >
+                                    <PencilIcon className="h-4 w-4" />
+                                </Link>
+                                <button
+                                    onClick={handleDelete}
+                                    className="p-2 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600 transition-colors"
+                                >
+                                    <TrashIcon className="h-4 w-4" />
+                                </button>
+                            </>
+                        )}
                     </div>
                 </div>
 

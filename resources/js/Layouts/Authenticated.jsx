@@ -3,11 +3,24 @@ import ApplicationLogo from "@/Components/ApplicationLogo";
 import Dropdown from "@/Components/Dropdown";
 import NavLink from "@/Components/NavLink";
 import ResponsiveNavLink from "@/Components/ResponsiveNavLink";
-import { Link } from "@inertiajs/react";
+import { Link, router } from "@inertiajs/react";
 
 export default function Authenticated({ auth, children }) {
     const [showingNavigationDropdown, setShowingNavigationDropdown] =
         useState(false);
+
+    const {
+        organizations = [],
+        activeOrganization = null,
+        isSuperAdmin = false,
+        isOrgAdmin = false,
+    } = auth;
+
+    const switchOrganization = (id) => {
+        router.post(route("organizations.switch"), { organization_id: id });
+    };
+
+    const showSwitcher = organizations.length > 1 || isSuperAdmin;
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -35,14 +48,61 @@ export default function Authenticated({ auth, children }) {
                                 >
                                     Groups
                                 </NavLink>
-                                <NavLink
-                                    href={route("users.index")}
-                                    active={route().current("users.*")}
-                                >
-                                    Users
-                                </NavLink>
+                                {isOrgAdmin && (
+                                    <NavLink
+                                        href={route("users.index")}
+                                        active={route().current("users.*")}
+                                    >
+                                        Users
+                                    </NavLink>
+                                )}
+                                {isSuperAdmin && (
+                                    <NavLink
+                                        href={route("organizations.index")}
+                                        active={route().current("organizations.*")}
+                                    >
+                                        Organizations
+                                    </NavLink>
+                                )}
                             </div>
                         </div>
+
+                        {showSwitcher && (
+                            <div className="hidden sm:flex sm:items-center mr-2">
+                                <Dropdown>
+                                    <Dropdown.Trigger>
+                                        <button
+                                            type="button"
+                                            className="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 rounded-lg hover:bg-gray-50 transition-colors"
+                                        >
+                                            <span className="truncate max-w-[12rem]">
+                                                {activeOrganization?.name ?? "Select organization"}
+                                            </span>
+                                            <svg className="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+                                            </svg>
+                                        </button>
+                                    </Dropdown.Trigger>
+                                    <Dropdown.Content>
+                                        {organizations.map((org) => (
+                                            <button
+                                                key={org.id}
+                                                type="button"
+                                                onClick={() => switchOrganization(org.id)}
+                                                className={
+                                                    "block w-full text-left px-4 py-2 text-sm transition-colors " +
+                                                    (activeOrganization?.id === org.id
+                                                        ? "bg-purple-50 text-purple-700 font-medium"
+                                                        : "text-gray-700 hover:bg-gray-50")
+                                                }
+                                            >
+                                                {org.name}
+                                            </button>
+                                        ))}
+                                    </Dropdown.Content>
+                                </Dropdown>
+                            </div>
+                        )}
 
                         <div className="hidden sm:flex sm:items-center">
                             <div className="relative">
@@ -146,12 +206,22 @@ export default function Authenticated({ auth, children }) {
                         >
                             Groups
                         </ResponsiveNavLink>
-                        <ResponsiveNavLink
-                            href={route("users.index")}
-                            active={route().current("users.index")}
-                        >
-                            Users
-                        </ResponsiveNavLink>
+                        {isOrgAdmin && (
+                            <ResponsiveNavLink
+                                href={route("users.index")}
+                                active={route().current("users.index")}
+                            >
+                                Users
+                            </ResponsiveNavLink>
+                        )}
+                        {isSuperAdmin && (
+                            <ResponsiveNavLink
+                                href={route("organizations.index")}
+                                active={route().current("organizations.*")}
+                            >
+                                Organizations
+                            </ResponsiveNavLink>
+                        )}
                     </div>
 
                     <div className="pt-4 pb-3 border-t border-gray-200">
@@ -168,6 +238,29 @@ export default function Authenticated({ auth, children }) {
                                 </div>
                             </div>
                         </div>
+
+                        {showSwitcher && (
+                            <div className="px-4 pb-3">
+                                <div className="text-xs font-semibold text-gray-400 uppercase mb-2">
+                                    Organization
+                                </div>
+                                {organizations.map((org) => (
+                                    <button
+                                        key={org.id}
+                                        type="button"
+                                        onClick={() => switchOrganization(org.id)}
+                                        className={
+                                            "block w-full text-left py-2 text-sm " +
+                                            (activeOrganization?.id === org.id
+                                                ? "text-purple-700 font-medium"
+                                                : "text-gray-700")
+                                        }
+                                    >
+                                        {org.name}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
 
                         <div>
                             <ResponsiveNavLink

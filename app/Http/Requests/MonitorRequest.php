@@ -2,8 +2,10 @@
 
 namespace App\Http\Requests;
 
+use App\Support\CurrentOrganization;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class MonitorRequest extends FormRequest
 {
@@ -22,13 +24,26 @@ class MonitorRequest extends FormRequest
      */
     public function rules(): array
     {
+        $organizationId = app(CurrentOrganization::class)->id();
+
         return [
             'name' => 'required|string',
-            'url' => 'required|url',
+            'url' => [
+                'required',
+                'url',
+                Rule::unique('monitors', 'url')
+                    ->withoutTrashed()
+                    ->ignore($this->route('monitor')?->id),
+            ],
             'monitorUptime' => 'required',
             'monitorDomain' => 'required',
             'uptimeCheckInterval' => 'required',
-            'monitorGroupId' => 'nullable',
+            'monitorGroupId' => [
+                'nullable',
+                Rule::exists('groups', 'id')
+                    ->where('organization_id', $organizationId)
+                    ->withoutTrashed(),
+            ],
         ];
     }
 }

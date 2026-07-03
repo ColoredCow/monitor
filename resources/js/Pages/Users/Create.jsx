@@ -12,6 +12,7 @@ export default function Create(props) {
         name: "",
         email: "",
         password: "",
+        role: "member",
     });
 
     const handleChange = (e) => {
@@ -77,6 +78,18 @@ export default function Create(props) {
                                     handleChange={handleChange}
                                     placeholder="••••••••"
                                 />
+                            </div>
+                            <div>
+                                <Label forInput="role" value="Role" />
+                                <select
+                                    name="role"
+                                    value={form.role}
+                                    onChange={handleChange}
+                                    className="mt-1 block w-full rounded-lg border-gray-300 focus:border-purple-500 focus:ring-purple-500 text-sm"
+                                >
+                                    <option value="member">Member (view only)</option>
+                                    <option value="admin">Admin (full access)</option>
+                                </select>
                             </div>
                             <div className="pt-6 border-t border-gray-200">
                                 <Button>

@@ -2,19 +2,24 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\BelongsToOrganization;
 use App\Services\MonitorCheckLogService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Psr\Http\Message\ResponseInterface;
 use Spatie\UptimeMonitor\Models\Enums\UptimeStatus;
 use Spatie\UptimeMonitor\Models\Monitor as SpatieMonitor;
 
 class Monitor extends SpatieMonitor
 {
-    public function __construct()
+    use BelongsToOrganization;
+    use SoftDeletes;
+
+    public function __construct(array $attributes = [])
     {
-        parent::__construct();
+        parent::__construct($attributes);
         $this->casts = array_merge($this->casts, [
             'domain_expires_at' => 'datetime',
         ]);

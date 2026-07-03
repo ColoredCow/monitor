@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Organization;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UserRequest extends FormRequest
 {
@@ -15,11 +17,17 @@ class UserRequest extends FormRequest
     {
         $rules = [
             'name' => 'required|string',
-            'email' => 'required|email|unique:users,email'.($this->user ? ','.$this->user->id : ''),
+            'role' => ['required', Rule::in([
+                Organization::ROLE_ADMIN,
+                Organization::ROLE_MEMBER,
+            ])],
         ];
+
         if ($this->isMethod('post')) {
+            $rules['email'] = 'required|email';
             $rules['password'] = 'required|string|min:6';
-        } elseif ($this->isMethod('put') || $this->isMethod('patch')) {
+        } else {
+            $rules['email'] = 'required|email|unique:users,email,'.$this->route('user')?->id;
             $rules['password'] = 'nullable|string|min:6';
         }
 

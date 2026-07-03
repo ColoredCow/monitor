@@ -4,6 +4,7 @@ namespace Tests\Feature\MonitorHistory;
 
 use App\Models\Monitor;
 use App\Models\MonitorDailyCheckMetric;
+use App\Models\Organization;
 use App\Services\MonitorCheckLogService;
 use App\Services\MonitorDailyCheckMetricsAggregator;
 use Carbon\Carbon;
@@ -14,11 +15,20 @@ class MonitorDailyCheckMetricsAggregatorTest extends TestCase
 {
     use RefreshDatabase;
 
+    private Organization $organization;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->organization = Organization::factory()->create();
+    }
+
     public function test_it_computes_daily_totals_ratio_and_worst_status(): void
     {
         $monitor = Monitor::create([
             'url' => 'https://example-'.uniqid().'.com',
             'uptime_check_enabled' => true,
+            'organization_id' => $this->organization->id,
         ]);
 
         $service = app(MonitorCheckLogService::class);
@@ -62,6 +72,7 @@ class MonitorDailyCheckMetricsAggregatorTest extends TestCase
         $monitor = Monitor::create([
             'url' => 'https://example-'.uniqid().'.com',
             'uptime_check_enabled' => true,
+            'organization_id' => $this->organization->id,
         ]);
 
         app(MonitorCheckLogService::class)->logCheck(
