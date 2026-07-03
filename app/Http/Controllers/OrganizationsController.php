@@ -30,6 +30,7 @@ class OrganizationsController extends Controller
                     'days_until_purge' => max(0, $purgeAfterDays - (int) $organization->deleted_at->diffInDays(now())),
                 ])->values(),
             'purgeAfterDays' => $purgeAfterDays,
+            'status' => session('status'),
         ]);
     }
 

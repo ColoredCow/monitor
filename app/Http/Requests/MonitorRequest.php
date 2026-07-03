@@ -41,7 +41,8 @@ class MonitorRequest extends FormRequest
             'monitorGroupId' => [
                 'nullable',
                 Rule::exists('groups', 'id')
-                    ->where('organization_id', $organizationId),
+                    ->where('organization_id', $organizationId)
+                    ->withoutTrashed(),
             ],
         ];
     }

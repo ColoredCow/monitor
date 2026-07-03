@@ -25,5 +25,11 @@ class UserSeeder extends Seeder
         if ($user->trashed()) {
             $user->restore();
         }
+
+        // Bootstrap: the default user is the platform super-admin, so a fresh
+        // `migrate --seed` install is immediately usable — they can onboard the
+        // first organization at /organizations (self-registration is disabled).
+        // (is_super_admin is intentionally not mass-assignable.)
+        $user->forceFill(['is_super_admin' => true])->save();
     }
 }

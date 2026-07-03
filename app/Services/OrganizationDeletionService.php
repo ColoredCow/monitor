@@ -77,8 +77,13 @@ class OrganizationDeletionService
                 ->where('deleted_at', $timestamp)
                 ->restore();
 
+            // Users are only ever trashed when their last live org was deleted,
+            // so restore EVERY trashed member of this now-live org — not just
+            // those matching this cascade's timestamp. A user cascaded by a
+            // different org's deletion who also belongs here now has a live org
+            // again and must not stay locked out. (organizations() is
+            // live-scoped and the org was restored above, so it matches.)
             User::onlyTrashed()
-                ->where('deleted_at', $timestamp)
                 ->whereHas('organizations', fn ($q) => $q->where('organizations.id', $organization->id))
                 ->restore();
 

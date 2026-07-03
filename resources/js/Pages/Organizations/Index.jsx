@@ -11,6 +11,7 @@ export default function Index() {
         organizations,
         deletedOrganizations = [],
         purgeAfterDays = 60,
+        status,
         errors = {},
     } = usePage().props;
 
@@ -45,6 +46,11 @@ export default function Index() {
                 </div>
             </PageHeader>
             <div className="max-w-3xl mx-auto py-8 px-6 lg:px-8 space-y-3">
+                {status && (
+                    <div className="rounded-lg bg-green-50 border border-green-200 text-green-700 text-sm px-4 py-3">
+                        {status}
+                    </div>
+                )}
                 {errors.restore && (
                     <div className="rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3">
                         {errors.restore}
