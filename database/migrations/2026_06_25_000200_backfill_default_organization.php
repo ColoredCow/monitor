@@ -1,7 +1,5 @@
 <?php
 
-use App\Models\Organization;
-use App\Models\User;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 
@@ -17,23 +15,39 @@ return new class extends Migration
             return; // fresh/test database — nothing to migrate
         }
 
-        $organization = Organization::firstOrCreate(
-            ['slug' => 'coloredcow'],
-            ['name' => 'ColoredCow']
-        );
+        // Use the query builder, NOT Eloquent: these models gain SoftDeletes
+        // later in the migration sequence, and their SoftDeletingScope would
+        // reference a deleted_at column that does not exist yet at this point.
+        $organizationId = DB::table('organizations')->where('slug', 'coloredcow')->value('id');
 
-        DB::table('groups')->whereNull('organization_id')->update(['organization_id' => $organization->id]);
-        DB::table('monitors')->whereNull('organization_id')->update(['organization_id' => $organization->id]);
-
-        foreach (User::all() as $user) {
-            $organization->users()->syncWithoutDetaching([
-                $user->id => ['role' => Organization::ROLE_ADMIN],
+        if (! $organizationId) {
+            $organizationId = DB::table('organizations')->insertGetId([
+                'name' => 'ColoredCow',
+                'slug' => 'coloredcow',
+                'created_at' => now(),
+                'updated_at' => now(),
             ]);
+        }
+
+        DB::table('groups')->whereNull('organization_id')->update(['organization_id' => $organizationId]);
+        DB::table('monitors')->whereNull('organization_id')->update(['organization_id' => $organizationId]);
+
+        $memberships = DB::table('users')->pluck('id')->map(fn ($userId) => [
+            'organization_id' => $organizationId,
+            'user_id' => $userId,
+            'role' => 'admin', // Organization::ROLE_ADMIN
+            'created_at' => now(),
+            'updated_at' => now(),
+        ])->all();
+
+        if ($memberships !== []) {
+            // insertOrIgnore respects the unique(organization_id, user_id) index.
+            DB::table('organization_user')->insertOrIgnore($memberships);
         }
 
         $defaultEmail = config('constants.default.user.email');
         if ($defaultEmail) {
-            User::where('email', $defaultEmail)->update(['is_super_admin' => true]);
+            DB::table('users')->where('email', $defaultEmail)->update(['is_super_admin' => true]);
         }
     }
 
