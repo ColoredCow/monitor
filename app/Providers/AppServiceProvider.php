@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Console\Commands\CreateMonitorDisabled;
 use App\Console\Commands\DeleteMonitor;
+use App\Console\Commands\SyncFileDisabled;
 use App\Listeners\LogCertificateCheckFailed;
 use App\Listeners\LogCertificateCheckSucceeded;
 use App\Models\Group;
@@ -29,10 +31,15 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->singleton(CurrentOrganization::class);
 
-        // The vendor command hard-deletes via the base Spatie model; rebind it
-        // to our soft-delete-aware version (app providers register after
-        // package providers, so this binding wins at resolution time).
+        // The vendor commands operate on the base Spatie model, bypassing
+        // organization assignment and soft deletes. Rebind them to safe
+        // app versions (app providers register after package providers, so
+        // these bindings win at resolution time): monitor:delete soft-deletes,
+        // while monitor:create / monitor:sync-file are refused outright — they
+        // have no safe multi-tenant semantics.
         $this->app->bind('command.monitor:delete', DeleteMonitor::class);
+        $this->app->bind('command.monitor:create', CreateMonitorDisabled::class);
+        $this->app->bind('command.monitor:sync-file', SyncFileDisabled::class);
     }
 
     /**

@@ -140,11 +140,12 @@ return [
     ],
 
     /*
-     * NOTE: the vendor commands monitor:create and monitor:sync-file operate on
-     * the BASE Spatie model — they bypass organization assignment AND soft
-     * deletes (sync-file --delete-missing HARD-deletes, destroying check
-     * history). Manage monitors through the app UI; monitor:delete is
-     * overridden in-app to soft-delete.
+     * NOTE: the vendor commands operate on the BASE Spatie model, bypassing
+     * organization assignment and soft deletes. They are rebound in
+     * AppServiceProvider: monitor:delete soft-deletes, while monitor:create and
+     * monitor:sync-file are DISABLED (no safe multi-tenant semantics —
+     * sync-file --delete-missing would hard-delete across all orgs). Manage
+     * monitors through the app UI.
      */
 
     /*
