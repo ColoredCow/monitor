@@ -8,7 +8,7 @@ import Input from "@/Components/Input";
 import { router } from "@inertiajs/react";
 
 export default function Edit(props) {
-    const { user } = usePage().props;
+    const { user, canEditProfile = true } = usePage().props;
 
     const [form, setForm] = useState({
         name: user.name,
@@ -49,38 +49,48 @@ export default function Edit(props) {
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                     <div className="p-8">
                         <form onSubmit={handleSubmit} className="space-y-6">
-                            <div>
-                                <Label forInput="name" value="Full Name" />
-                                <Input
-                                    name="name"
-                                    value={form.name}
-                                    required
-                                    handleChange={handleChange}
-                                />
-                            </div>
-                            <div>
-                                <Label forInput="email" value="Email Address" />
-                                <Input
-                                    name="email"
-                                    type="email"
-                                    value={form.email}
-                                    required
-                                    handleChange={handleChange}
-                                />
-                            </div>
-                            <div>
-                                <Label
-                                    forInput="password"
-                                    value="New Password"
-                                />
-                                <Input
-                                    name="password"
-                                    type="password"
-                                    value={form.password}
-                                    handleChange={handleChange}
-                                    placeholder="Leave blank to keep current"
-                                />
-                            </div>
+                            {canEditProfile ? (
+                                <>
+                                    <div>
+                                        <Label forInput="name" value="Full Name" />
+                                        <Input
+                                            name="name"
+                                            value={form.name}
+                                            required
+                                            handleChange={handleChange}
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label forInput="email" value="Email Address" />
+                                        <Input
+                                            name="email"
+                                            type="email"
+                                            value={form.email}
+                                            required
+                                            handleChange={handleChange}
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label
+                                            forInput="password"
+                                            value="New Password"
+                                        />
+                                        <Input
+                                            name="password"
+                                            type="password"
+                                            value={form.password}
+                                            handleChange={handleChange}
+                                            placeholder="Leave blank to keep current"
+                                        />
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="rounded-lg bg-gray-50 border border-gray-200 text-sm text-gray-600 px-4 py-3">
+                                    {user.name} ({user.email}) also belongs to other
+                                    organizations, so their profile is managed there. You
+                                    can change their role in this organization below.
+                                </div>
+                            )}
                             <div>
                                 <Label forInput="role" value="Role" />
                                 <select
