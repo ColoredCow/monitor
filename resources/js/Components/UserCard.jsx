@@ -25,6 +25,11 @@ export default function UserCard({ user }) {
                             <span className="text-xs text-gray-500 font-medium mt-0.5 truncate">
                                 {user.email}
                             </span>
+                            {user.role && (
+                                <span className="mt-1 inline-block w-fit text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded bg-purple-50 text-purple-700">
+                                    {user.role}
+                                </span>
+                            )}
                         </div>
                     </div>
                     <div className="flex gap-1 ml-3 flex-shrink-0">

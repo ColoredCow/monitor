@@ -8,7 +8,8 @@ import { PlusIcon } from '@heroicons/react/24/solid';
 
 export default function Index(props) {
 
-    const { groups } = usePage().props;
+    const { groups, auth } = usePage().props;
+    const isOrgAdmin = auth?.isOrgAdmin ?? false;
 
     return (
         <Authenticated
@@ -23,12 +24,14 @@ export default function Index(props) {
                         <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Monitors</h1>
                         <p className="text-sm text-gray-500 mt-1">Manage and monitor your endpoints</p>
                     </div>
-                    <Link href={route('monitors.create')}>
-                        <Button>
-                            <PlusIcon className="h-4 w-4"/>
-                            <span>Create</span>
-                        </Button>
-                    </Link>
+                    {isOrgAdmin && (
+                        <Link href={route('monitors.create')}>
+                            <Button>
+                                <PlusIcon className="h-4 w-4"/>
+                                <span>Create</span>
+                            </Button>
+                        </Link>
+                    )}
                 </div>
             </PageHeader>
 

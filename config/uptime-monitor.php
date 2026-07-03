@@ -140,6 +140,15 @@ return [
     ],
 
     /*
+     * NOTE: the vendor commands operate on the BASE Spatie model, bypassing
+     * organization assignment and soft deletes. They are rebound in
+     * AppServiceProvider: monitor:delete soft-deletes, while monitor:create and
+     * monitor:sync-file are DISABLED (no safe multi-tenant semantics —
+     * sync-file --delete-missing would hard-delete across all orgs). Manage
+     * monitors through the app UI.
+     */
+
+    /*
      * To add or modify behaviour to the Monitor model you can specify your
      * own model here. The only requirement is that it should extend
      * `Spatie\UptimeMonitor\Models\Monitor`.

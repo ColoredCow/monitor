@@ -4,6 +4,7 @@ namespace Tests\Feature\MonitorHistory;
 
 use App\Models\Monitor;
 use App\Models\MonitorCheckLog;
+use App\Models\Organization;
 use App\Services\MonitorCheckLogService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -19,6 +20,7 @@ class MonitorCheckLogServiceTest extends TestCase
             'url' => 'https://example-'.uniqid().'.com',
             'uptime_check_enabled' => true,
             'domain_check_enabled' => true,
+            'organization_id' => Organization::factory()->create()->id,
         ]);
     }
 
