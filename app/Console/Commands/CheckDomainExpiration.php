@@ -18,7 +18,9 @@ class CheckDomainExpiration extends Command
 
     public function handle(DomainService $domainService): void
     {
-        $monitors = $this->option('force') ? Monitor::all() : Monitor::domainCheckEnabled();
+        $monitors = $this->option('force')
+            ? Monitor::whereHas('organization', fn ($query) => $query->where('credit_balance', '>', 0))->get()
+            : Monitor::domainCheckEnabled();
 
         if ($url = $this->option('url')) {
             $urls = explode(',', $url);
