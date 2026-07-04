@@ -92,6 +92,31 @@ class CreditMeteringServiceTest extends TestCase
         $this->assertDatabaseCount('credit_usage_daily', 0);
     }
 
+    public function test_paused_notification_failure_is_isolated_and_does_not_read_as_metering_failure(): void
+    {
+        Notification::shouldReceive('send')->once()->andThrow(new \RuntimeException('smtp down'));
+        Log::spy();
+
+        $organization = $this->createOrganization();
+        $admin = User::factory()->create();
+        $organization->users()->attach($admin->id, ['role' => Organization::ROLE_ADMIN]);
+        $this->setBalance($organization, 1);
+        $monitor = Monitor::factory()->forOrganization($organization)->create();
+
+        app(CreditMeteringService::class)->recordCheck($monitor, MonitorCheckLogService::CHECK_TYPE_UPTIME);
+
+        $fresh = $organization->fresh();
+        $this->assertSame(0, $fresh->credit_balance);
+        $this->assertSame(Organization::CREDIT_LEVEL_EXHAUSTED, $fresh->credit_warning_level);
+
+        Log::shouldHaveReceived('error')
+            ->once()
+            ->with('MonitoringPaused notification failed to send.', \Mockery::on(function ($context) use ($organization) {
+                return $context['organization_id'] === $organization->id
+                    && $context['error'] === 'smtp down';
+            }));
+    }
+
     public function test_metering_failure_is_swallowed_and_logged(): void
     {
         Log::spy();

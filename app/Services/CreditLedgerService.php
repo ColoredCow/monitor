@@ -64,6 +64,15 @@ class CreditLedgerService
                 $locked->credit_warning_level = Organization::CREDIT_LEVEL_NONE;
             }
 
+            // A downward correction that takes the balance to zero or below
+            // must flag the org as exhausted too, or it stays paused (checks
+            // are excluded by balance) but not reflected as such. No
+            // notification here: the super-admin performing the correction
+            // already knows; live metering owns the organic paused-email path.
+            if ($amount < 0 && $locked->credit_balance <= 0) {
+                $locked->credit_warning_level = Organization::CREDIT_LEVEL_EXHAUSTED;
+            }
+
             $locked->save();
 
             $transaction = CreditTransaction::create([

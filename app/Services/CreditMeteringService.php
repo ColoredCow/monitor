@@ -72,7 +72,18 @@ class CreditMeteringService
             $organization = Organization::find($organizationId);
 
             if ($organization) {
-                Notification::send($organization->admins()->get(), new MonitoringPaused($organization));
+                // The exhausted flag above is already committed and correct;
+                // a mail failure here must not bubble into recordCheck's
+                // catch-all, which would misleadingly log it as a metering
+                // failure.
+                try {
+                    Notification::send($organization->admins()->get(), new MonitoringPaused($organization));
+                } catch (Throwable $exception) {
+                    Log::error('MonitoringPaused notification failed to send.', [
+                        'organization_id' => $organizationId,
+                        'error' => $exception->getMessage(),
+                    ]);
+                }
             }
         }
     }

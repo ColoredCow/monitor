@@ -63,6 +63,10 @@ One row per super-admin grant/adjustment, plus one system-generated daily
 org's transactions equals its balance as of the last rollup; intra-day drift is
 only today's not-yet-rolled-up usage.
 
+`recordUsageDebit` reads the balance under `lockForUpdate` inside a
+transaction (hardened during implementation beyond the original draft) so
+`balance_after` is consistent with concurrent grants.
+
 ### `credit_usage_daily`
 
 Analytics table powering the dashboard breakdown:
@@ -104,6 +108,12 @@ by the org's warning level so retries and in-flight checks don't spam).
 Metering must never break monitoring: `recordCheck()` wraps its writes in
 try/catch and logs failures. A transient DB hiccup loses at most a credit's
 worth of metering — it must not fail the check run.
+
+**DOWN-monitor rechecks are billed.** The vendor rechecks DOWN monitors every
+minute regardless of interval, and each executed recheck costs 1 credit — a
+deliberate policy decision (2026-07-04). Runway projections assume monitors
+are UP; actual burn during an outage can exceed the projection by up to
+interval×.
 
 ## Enforcement
 
@@ -265,3 +275,28 @@ TDD during implementation. Coverage:
 - Per-type or per-org pricing (rates are flat; revisit via config later)
 - Credit expiry
 - Degraded-frequency mode instead of hard pause
+
+## Rollout
+
+Migrating adds `credit_balance = 0` to every existing organization, which
+pauses all of their checks (`Monitor::scopeEnabled` gates on balance > 0). The
+required deploy step is to run, immediately after `php artisan migrate`:
+
+```
+php artisan credits:grant <amount> --all
+```
+
+This grants `<amount>` credits to every organization via
+`CreditLedgerService::grant()` — never a raw balance update — so the ledger
+stays consistent and any org that was paused receives its "monitoring
+resumed" email as part of the normal grant flow.
+
+Three environment variables configure the credit system and should be set
+before migrating in production:
+
+- `CREDITS_DEFAULT_GRANT` — credits granted automatically when a new
+  organization is created (0 disables the auto-grant).
+- `CREDITS_WARNING_LOW_DAYS` — projected-runway days remaining that escalates
+  an org's warning level to "low".
+- `CREDITS_WARNING_CRITICAL_DAYS` — projected-runway days remaining that
+  escalates an org's warning level to "critical".
