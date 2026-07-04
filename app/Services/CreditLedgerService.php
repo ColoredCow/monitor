@@ -33,18 +33,23 @@ class CreditLedgerService
     /**
      * Audit record for a day of metered usage. The balance was already
      * decremented live by CreditMeteringService, so this only writes the
-     * ledger row — it must NOT touch the balance.
+     * ledger row — it must NOT touch the balance. The org row is locked to
+     * ensure balance_after is consistent with concurrent grants/adjustments.
      */
     public function recordUsageDebit(Organization $organization, int $credits, string $date): CreditTransaction
     {
-        return CreditTransaction::create([
-            'organization_id' => $organization->id,
-            'type' => CreditTransaction::TYPE_USAGE_DEBIT,
-            'amount' => -$credits,
-            'balance_after' => $organization->fresh()->credit_balance,
-            'description' => "Metered usage for {$date}",
-            'metadata' => ['date' => $date],
-        ]);
+        return DB::transaction(function () use ($organization, $credits, $date) {
+            $locked = Organization::query()->whereKey($organization->id)->lockForUpdate()->firstOrFail();
+
+            return CreditTransaction::create([
+                'organization_id' => $locked->id,
+                'type' => CreditTransaction::TYPE_USAGE_DEBIT,
+                'amount' => -$credits,
+                'balance_after' => $locked->credit_balance,
+                'description' => "Metered usage for {$date}",
+                'metadata' => ['date' => $date],
+            ]);
+        });
     }
 
     protected function applyTransaction(Organization $organization, string $type, int $amount, ?User $createdBy, ?string $description): CreditTransaction
