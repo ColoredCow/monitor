@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Exceptions\OrganizationRestoreBlockedException;
 use App\Models\Organization;
 use App\Models\User;
+use App\Services\CreditLedgerService;
 use App\Services\OrganizationDeletionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -81,6 +82,12 @@ class OrganizationsController extends Controller
         $organization->users()->syncWithoutDetaching([
             $admin->id => ['role' => Organization::ROLE_ADMIN],
         ]);
+
+        $defaultGrant = (int) config('credits.default_grant');
+
+        if ($defaultGrant > 0) {
+            app(CreditLedgerService::class)->grant($organization, $defaultGrant, $request->user(), 'Initial grant');
+        }
 
         return redirect()->route('organizations.index');
     }
