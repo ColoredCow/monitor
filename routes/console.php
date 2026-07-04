@@ -52,3 +52,7 @@ Schedule::command('organizations:purge-deleted')
 Schedule::command('credits:rollup-usage')
     ->dailyAt('00:15')
     ->withoutOverlapping();
+
+Schedule::command('credits:evaluate-warnings')
+    ->dailyAt('00:30')
+    ->withoutOverlapping();
