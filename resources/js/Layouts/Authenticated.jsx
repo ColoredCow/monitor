@@ -3,6 +3,7 @@ import ApplicationLogo from "@/Components/ApplicationLogo";
 import Dropdown from "@/Components/Dropdown";
 import NavLink from "@/Components/NavLink";
 import ResponsiveNavLink from "@/Components/ResponsiveNavLink";
+import CreditRunwayChip from "@/Components/CreditRunwayChip";
 import { Link, router } from "@inertiajs/react";
 
 export default function Authenticated({ auth, children }) {
@@ -65,6 +66,10 @@ export default function Authenticated({ auth, children }) {
                                     </NavLink>
                                 )}
                             </div>
+                        </div>
+
+                        <div className="hidden sm:flex sm:items-center ml-auto mr-3">
+                            <CreditRunwayChip credits={auth.credits} />
                         </div>
 
                         {showSwitcher && (
