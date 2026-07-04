@@ -11,6 +11,7 @@
 |
 */
 
+use App\Http\Controllers\CreditsController;
 use App\Http\Controllers\GroupsController;
 use App\Http\Controllers\MonitorsController;
 use App\Http\Controllers\OrganizationsController;
@@ -39,6 +40,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('monitors', MonitorsController::class);
         Route::resource('groups', GroupsController::class);
         Route::resource('users', UsersController::class);
+        Route::get('credits', [CreditsController::class, 'index'])->name('credits.index');
     });
 });
 
