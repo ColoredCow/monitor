@@ -3,12 +3,15 @@
 namespace App\Models;
 
 use App\Models\Concerns\BelongsToOrganization;
+use App\Services\CreditMeteringService;
 use App\Services\MonitorCheckLogService;
+use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Psr\Http\Message\ResponseInterface;
+use Spatie\SslCertificate\SslCertificate;
 use Spatie\UptimeMonitor\Models\Enums\UptimeStatus;
 use Spatie\UptimeMonitor\Models\Monitor as SpatieMonitor;
 
@@ -34,6 +37,8 @@ class Monitor extends SpatieMonitor
 
     public function uptimeRequestSucceeded(ResponseInterface $response): void
     {
+        app(CreditMeteringService::class)->recordCheck($this, MonitorCheckLogService::CHECK_TYPE_UPTIME);
+
         parent::uptimeRequestSucceeded($response);
 
         if (! $this->uptime_check_enabled) {
@@ -62,6 +67,8 @@ class Monitor extends SpatieMonitor
 
     public function uptimeRequestFailed(string $reason): void
     {
+        app(CreditMeteringService::class)->recordCheck($this, MonitorCheckLogService::CHECK_TYPE_UPTIME);
+
         parent::uptimeRequestFailed($reason);
 
         if (! $this->uptime_check_enabled) {
@@ -81,6 +88,25 @@ class Monitor extends SpatieMonitor
             message: 'Uptime check failed.',
             failureReason: $reason,
         );
+    }
+
+    /**
+     * Vendor checkCertificate() branches into exactly one of these two per
+     * executed certificate check — that makes them the single metering
+     * point for certificate billing.
+     */
+    public function setCertificate(SslCertificate $certificate): void
+    {
+        app(CreditMeteringService::class)->recordCheck($this, MonitorCheckLogService::CHECK_TYPE_CERTIFICATE);
+
+        parent::setCertificate($certificate);
+    }
+
+    public function setCertificateException(Exception $exception): void
+    {
+        app(CreditMeteringService::class)->recordCheck($this, MonitorCheckLogService::CHECK_TYPE_CERTIFICATE);
+
+        parent::setCertificateException($exception);
     }
 
     public function group()

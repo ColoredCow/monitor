@@ -3,7 +3,9 @@
 namespace App\Console\Commands;
 
 use App\Models\Monitor;
+use App\Services\CreditMeteringService;
 use App\Services\DomainService;
+use App\Services\MonitorCheckLogService;
 use Illuminate\Console\Command;
 
 class CheckDomainExpiration extends Command
@@ -30,6 +32,8 @@ class CheckDomainExpiration extends Command
         $hasNotifications = false;
 
         foreach ($monitors as $monitor) {
+            app(CreditMeteringService::class)->recordCheck($monitor, MonitorCheckLogService::CHECK_TYPE_DOMAIN);
+
             $result = $domainService->verifyDomainExpiration($monitor);
 
             if ($result['notified']) {
