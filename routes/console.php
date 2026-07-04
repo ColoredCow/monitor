@@ -45,3 +45,10 @@ Schedule::command('monitor:prune-check-history')
 Schedule::command('organizations:purge-deleted')
     ->dailyAt('02:30')
     ->withoutOverlapping();
+
+// Credit system: nightly ledger rollup of yesterday's metered usage, then
+// warning-level evaluation (order matters only for tidy ledger timestamps —
+// warnings read live config, not the rollup).
+Schedule::command('credits:rollup-usage')
+    ->dailyAt('00:15')
+    ->withoutOverlapping();
