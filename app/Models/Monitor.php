@@ -28,10 +28,28 @@ class Monitor extends SpatieMonitor
         ]);
     }
 
+    /**
+     * Overrides the vendor scope. Spatie's MonitorRepository funnels every
+     * check-selection query through Monitor::enabled() (resolved via config
+     * uptime-monitor.monitor_model), so the balance gate here pauses uptime
+     * AND certificate checks for organizations that are out of credits.
+     * whereHas('organization') also drops monitors of soft-deleted orgs.
+     */
+    public function scopeEnabled($query)
+    {
+        return $query
+            ->where(function ($q) {
+                $q->where('uptime_check_enabled', true)
+                    ->orWhere('certificate_check_enabled', true);
+            })
+            ->whereHas('organization', fn ($q) => $q->where('credit_balance', '>', 0));
+    }
+
     public function scopeDomainCheckEnabled(Builder $query): Collection
     {
         return $query
             ->where('domain_check_enabled', true)
+            ->whereHas('organization', fn ($q) => $q->where('credit_balance', '>', 0))
             ->get();
     }
 
