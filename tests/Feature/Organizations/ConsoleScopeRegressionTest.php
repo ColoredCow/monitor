@@ -32,8 +32,8 @@ class ConsoleScopeRegressionTest extends TestCase
         // Create two separate organizations with one enabled monitor each.
         // We use Monitor::factory() with state directly to avoid relying on
         // an active organization — no user is authenticated, no CurrentOrganization bound.
-        $orgA = Organization::factory()->create(['name' => 'Org A', 'slug' => 'org-a']);
-        $orgB = Organization::factory()->create(['name' => 'Org B', 'slug' => 'org-b']);
+        $orgA = Organization::factory()->create(['name' => 'Org A', 'slug' => 'org-a', 'credit_balance' => 100]);
+        $orgB = Organization::factory()->create(['name' => 'Org B', 'slug' => 'org-b', 'credit_balance' => 100]);
 
         $monitorA = Monitor::factory()->forOrganization($orgA)->create(['uptime_check_enabled' => true]);
         $monitorB = Monitor::factory()->forOrganization($orgB)->create(['uptime_check_enabled' => true]);
