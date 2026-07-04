@@ -12,7 +12,7 @@ class CheckDomainExpiration extends Command
 {
     protected $signature = 'monitor:check-domain-expiration
                             {--url= : Only check these URLs}
-                            {--force : Force run all monitors}';
+                            {--force : Force run all monitors of organizations that still have credits}';
 
     protected $description = 'Check domain expiration of all sites';
 

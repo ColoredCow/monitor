@@ -105,6 +105,39 @@ class CreditLedgerServiceTest extends TestCase
         $this->assertSame(Organization::CREDIT_LEVEL_EXHAUSTED, $organization->fresh()->credit_warning_level);
     }
 
+    public function test_negative_adjustment_crossing_zero_sets_exhausted_and_sends_nothing(): void
+    {
+        Notification::fake();
+        $organization = $this->createOrganization();
+        $admin = User::factory()->create();
+        $organization->users()->attach($admin->id, ['role' => Organization::ROLE_ADMIN]);
+        $this->setCredits($organization, 10, Organization::CREDIT_LEVEL_NONE);
+
+        app(CreditLedgerService::class)->adjust($organization, -15, null, 'Correction');
+
+        $this->assertSame(-5, $organization->fresh()->credit_balance);
+        $this->assertSame(Organization::CREDIT_LEVEL_EXHAUSTED, $organization->fresh()->credit_warning_level);
+        Notification::assertNothingSent();
+    }
+
+    public function test_grant_after_negative_adjustment_resets_level_and_sends_resumed(): void
+    {
+        Notification::fake();
+        $organization = $this->createOrganization();
+        $admin = User::factory()->create();
+        $organization->users()->attach($admin->id, ['role' => Organization::ROLE_ADMIN]);
+        $this->setCredits($organization, 10, Organization::CREDIT_LEVEL_NONE);
+
+        app(CreditLedgerService::class)->adjust($organization, -15, null, 'Correction');
+        $this->assertSame(Organization::CREDIT_LEVEL_EXHAUSTED, $organization->fresh()->credit_warning_level);
+        Notification::assertNothingSent();
+
+        app(CreditLedgerService::class)->grant($organization, 100);
+
+        $this->assertSame(Organization::CREDIT_LEVEL_NONE, $organization->fresh()->credit_warning_level);
+        Notification::assertSentTo($admin, MonitoringResumed::class);
+    }
+
     public function test_usage_debit_writes_ledger_row_without_touching_balance(): void
     {
         $organization = $this->createOrganization();

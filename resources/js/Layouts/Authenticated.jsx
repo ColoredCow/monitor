@@ -211,6 +211,12 @@ export default function Authenticated({ auth, children }) {
                         >
                             Groups
                         </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            href={route("credits.index")}
+                            active={route().current("credits.*")}
+                        >
+                            Credits
+                        </ResponsiveNavLink>
                         {isOrgAdmin && (
                             <ResponsiveNavLink
                                 href={route("users.index")}

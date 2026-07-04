@@ -40,7 +40,7 @@ export default function Credits() {
                 <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
                     <div className="text-sm text-gray-500">Current balance</div>
                     <div className="text-3xl font-bold text-gray-900 mt-1">
-                        {organization.credit_balance.toLocaleString()} credits
+                        {(organization.credit_balance ?? 0).toLocaleString()} credits
                     </div>
                     <div className="text-sm text-gray-500 mt-2">
                         {dailyBurn.toLocaleString()} credits/day — lasts{" "}
@@ -76,6 +76,9 @@ export default function Credits() {
                             className="mt-1 block w-full"
                             handleChange={(e) => setForm({ ...form, description: e.target.value })}
                         />
+                        {errors.description && (
+                            <div className="text-sm text-red-600 mt-1">{errors.description}</div>
+                        )}
                     </div>
                     <Button>Apply</Button>
                 </form>

@@ -13,6 +13,7 @@ return new class extends Migration
             $table->foreignId('organization_id')->constrained()->cascadeOnDelete();
             // nullOnDelete preserves org-level usage history when the purge
             // hard-deletes a monitor.
+            // monitors.id is an unsigned INT (increments()), so the FK column must match its width.
             $table->unsignedInteger('monitor_id')->nullable();
             $table->foreign('monitor_id')->references('id')->on('monitors')->nullOnDelete();
             $table->string('check_type', 20); // uptime | certificate | domain
