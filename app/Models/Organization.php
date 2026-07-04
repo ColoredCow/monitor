@@ -20,6 +20,17 @@ class Organization extends Model
     /** The alert services an organization can set its own webhook for. */
     public const WEBHOOK_SERVICES = ['google_chat', 'slack'];
 
+    public const CREDIT_LEVEL_NONE = 'none';
+
+    public const CREDIT_LEVEL_LOW = 'low';
+
+    public const CREDIT_LEVEL_CRITICAL = 'critical';
+
+    public const CREDIT_LEVEL_EXHAUSTED = 'exhausted';
+
+    // NOTE: credit_balance and credit_warning_level are deliberately NOT
+    // fillable — they change only through CreditLedgerService / CreditMeteringService.
+
     protected $fillable = ['name', 'slug', 'google_chat_webhook_url', 'slack_webhook_url'];
 
     /**
@@ -33,6 +44,7 @@ class Organization extends Model
         return [
             'google_chat_webhook_url' => EncryptedOrNull::class,
             'slack_webhook_url' => EncryptedOrNull::class,
+            'credit_balance' => 'integer',
         ];
     }
 
@@ -51,5 +63,25 @@ class Organization extends Model
         return $this->belongsToMany(User::class)
             ->withPivot('role')
             ->withTimestamps();
+    }
+
+    public function creditTransactions(): HasMany
+    {
+        return $this->hasMany(CreditTransaction::class);
+    }
+
+    public function creditUsage(): HasMany
+    {
+        return $this->hasMany(CreditUsageDaily::class);
+    }
+
+    public function admins(): BelongsToMany
+    {
+        return $this->users()->wherePivot('role', self::ROLE_ADMIN);
+    }
+
+    public function hasCredits(): bool
+    {
+        return $this->credit_balance > 0;
     }
 }
