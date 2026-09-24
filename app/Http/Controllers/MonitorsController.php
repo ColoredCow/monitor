@@ -6,6 +6,7 @@ use App\Http\Requests\MonitorRequest;
 use App\Models\Group;
 use App\Models\Monitor;
 use App\Services\DomainService;
+use Illuminate\Contracts\Support\Renderable;
 use Inertia\Inertia;
 
 class MonitorsController extends Controller
@@ -23,7 +24,7 @@ class MonitorsController extends Controller
     /**
      * Show the monitors dashboard.
      *
-     * @return \Illuminate\Contracts\Support\Renderable
+     * @return Renderable
      */
     public function index()
     {
@@ -52,7 +53,7 @@ class MonitorsController extends Controller
     /**
      * Show the create monitor page.
      *
-     * @return \Illuminate\Contracts\Support\Renderable
+     * @return Renderable
      */
     public function create()
     {
@@ -66,7 +67,7 @@ class MonitorsController extends Controller
     /**
      * Create a new monitor.
      *
-     * @return \Illuminate\Contracts\Support\Renderable
+     * @return Renderable
      */
     public function store(MonitorRequest $request)
     {
@@ -90,7 +91,7 @@ class MonitorsController extends Controller
     /**
      * Show the monitor details.
      *
-     * @return \Illuminate\Contracts\Support\Renderable
+     * @return Renderable
      */
     public function show(Monitor $monitor)
     {
@@ -102,7 +103,7 @@ class MonitorsController extends Controller
     /**
      * Edit the monitor details.
      *
-     * @return \Illuminate\Contracts\Support\Renderable
+     * @return Renderable
      */
     public function edit(Monitor $monitor)
     {
@@ -117,7 +118,7 @@ class MonitorsController extends Controller
     /**
      * Update the monitor details.
      *
-     * @return \Illuminate\Contracts\Support\Renderable
+     * @return Renderable
      */
     public function update(MonitorRequest $request, Monitor $monitor)
     {
@@ -143,7 +144,7 @@ class MonitorsController extends Controller
     /**
      * Delete the monitor.
      *
-     * @return \Illuminate\Contracts\Support\Renderable
+     * @return Renderable
      */
     public function destroy(Monitor $monitor)
     {
