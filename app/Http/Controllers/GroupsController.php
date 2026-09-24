@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\GroupRequest;
 use App\Models\Group;
+use Illuminate\Contracts\Support\Renderable;
 use Inertia\Inertia;
 
 class GroupsController extends Controller
@@ -21,7 +22,7 @@ class GroupsController extends Controller
     /**
      * Show the groups dashboard.
      *
-     * @return \Illuminate\Contracts\Support\Renderable
+     * @return Renderable
      */
     public function index()
     {
@@ -33,7 +34,7 @@ class GroupsController extends Controller
     /**
      * Show the create group page.
      *
-     * @return \Illuminate\Contracts\Support\Renderable
+     * @return Renderable
      */
     public function create()
     {
@@ -43,7 +44,7 @@ class GroupsController extends Controller
     /**
      * Create a new group.
      *
-     * @return \Illuminate\Contracts\Support\Renderable
+     * @return Renderable
      */
     public function store(GroupRequest $request)
     {
@@ -58,7 +59,7 @@ class GroupsController extends Controller
     /**
      * Show the group details.
      *
-     * @return \Illuminate\Contracts\Support\Renderable
+     * @return Renderable
      */
     public function show(Group $group)
     {
@@ -70,7 +71,7 @@ class GroupsController extends Controller
     /**
      * Edit the group details.
      *
-     * @return \Illuminate\Contracts\Support\Renderable
+     * @return Renderable
      */
     public function edit(Group $group)
     {
@@ -82,7 +83,7 @@ class GroupsController extends Controller
     /**
      * Update the group details.
      *
-     * @return \Illuminate\Contracts\Support\Renderable
+     * @return Renderable
      */
     public function update(GroupRequest $request, Group $group)
     {
@@ -99,7 +100,7 @@ class GroupsController extends Controller
     /**
      * Delete the group.
      *
-     * @return \Illuminate\Contracts\Support\Renderable
+     * @return Renderable
      */
     public function destroy(Group $group)
     {
