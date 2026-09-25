@@ -7,9 +7,10 @@ import Label from "@/Components/Label";
 import Input from "@/Components/Input";
 import Checkbox from "@/Components/Checkbox";
 import Button from "@/Components/Button";
+import MonitorCreditImpact from "@/Components/MonitorCreditImpact";
 
 export default function Create(props) {
-    const { groups } = usePage().props;
+    const { groups, auth } = usePage().props;
 
     const [form, setForm] = useState({
         name: "",
@@ -150,6 +151,8 @@ export default function Create(props) {
                                         </span>
                                     </label>
                                 </div>
+
+                                <MonitorCreditImpact credits={auth.credits} burnBefore={0} form={form} />
                             </div>
 
                             <div className="pt-6 border-t border-gray-200">

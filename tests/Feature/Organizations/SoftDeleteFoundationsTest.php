@@ -18,7 +18,7 @@ class SoftDeleteFoundationsTest extends TestCase
 
     public function test_trashed_monitor_is_excluded_from_spatie_repository(): void
     {
-        $organization = $this->createOrganization();
+        $organization = $this->createOrganization(['credit_balance' => 100]);
         $kept = Monitor::factory()->forOrganization($organization)->create();
         $trashed = Monitor::factory()->forOrganization($organization)->create();
 
@@ -33,7 +33,7 @@ class SoftDeleteFoundationsTest extends TestCase
 
     public function test_soft_deleting_a_monitor_keeps_its_check_logs(): void
     {
-        $monitor = Monitor::factory()->forOrganization($this->createOrganization())->create();
+        $monitor = Monitor::factory()->forOrganization($this->createOrganization(['credit_balance' => 100]))->create();
         app(MonitorCheckLogService::class)->logCheck(
             monitor: $monitor,
             checkType: MonitorCheckLogService::CHECK_TYPE_UPTIME,
@@ -48,7 +48,7 @@ class SoftDeleteFoundationsTest extends TestCase
 
     public function test_trashed_user_cannot_log_in(): void
     {
-        $organization = $this->createOrganization();
+        $organization = $this->createOrganization(['credit_balance' => 100]);
         $user = User::factory()->create();
         $organization->users()->attach($user->id, ['role' => Organization::ROLE_MEMBER]);
         $user->delete();
@@ -61,8 +61,8 @@ class SoftDeleteFoundationsTest extends TestCase
 
     public function test_trashed_organization_disappears_from_switcher_and_resolution(): void
     {
-        $orgA = $this->createOrganization(['name' => 'Alpha']);
-        $orgB = $this->createOrganization(['name' => 'Beta']);
+        $orgA = $this->createOrganization(['name' => 'Alpha', 'credit_balance' => 100]);
+        $orgB = $this->createOrganization(['name' => 'Beta', 'credit_balance' => 100]);
         $user = User::factory()->create();
         $orgA->users()->attach($user->id, ['role' => Organization::ROLE_MEMBER]);
         $orgB->users()->attach($user->id, ['role' => Organization::ROLE_MEMBER]);

@@ -65,10 +65,17 @@ export default function Index() {
                         <div>
                             <div className="font-semibold text-gray-900">{org.name}</div>
                             <div className="text-xs text-gray-500 mt-0.5">
-                                {org.users_count} users · {org.monitors_count} monitors
+                                {org.users_count} users · {org.monitors_count} monitors ·{" "}
+                                {(org.credit_balance ?? 0).toLocaleString()} credits
                             </div>
                         </div>
                         <div className="flex items-center gap-4">
+                            <Link
+                                href={route("organizations.credits.show", org.id)}
+                                className="text-sm text-purple-600 hover:text-purple-800"
+                            >
+                                Credits
+                            </Link>
                             <Link
                                 href={route("organizations.edit", org.id)}
                                 className="text-sm text-purple-600 hover:text-purple-800"
