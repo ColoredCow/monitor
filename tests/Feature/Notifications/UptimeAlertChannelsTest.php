@@ -3,13 +3,16 @@
 namespace Tests\Feature\Notifications;
 
 use App\Models\Monitor;
+use App\Models\Organization;
 use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
 use GuzzleHttp\Promise\Create;
 use GuzzleHttp\Psr7\Response;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Psr\Http\Message\RequestInterface;
 use Spatie\UptimeMonitor\Events\UptimeCheckFailed;
+use Spatie\UptimeMonitor\Events\UptimeCheckRecovered;
 use Spatie\UptimeMonitor\Helpers\Period;
 use Spatie\UptimeMonitor\Models\Enums\UptimeStatus;
 use Tests\TestCase;
@@ -20,8 +23,13 @@ class UptimeAlertChannelsTest extends TestCase
 
     private const GOOGLE_CHAT_URL = 'https://chat.example.test/v1/spaces/alerts/messages';
 
+    private const SLACK_URL = 'https://hooks.slack.com/services/T000/B000/secret';
+
     /** Webhook requests sent during the test. */
     private array $sent = [];
+
+    /** Status code the fake webhook host answers with, per URL. */
+    private array $statusFor = [];
 
     protected function setUp(): void
     {
@@ -33,10 +41,63 @@ class UptimeAlertChannelsTest extends TestCase
             'uptime-monitor.notifications.google_chat.webhook_url' => self::GOOGLE_CHAT_URL,
         ]);
 
-        // Every webhook call is recorded and answered with a 200.
-        $stack = HandlerStack::create(fn () => Create::promiseFor(new Response(200)));
+        // Every webhook call is recorded and answered with a 200 unless a test says otherwise.
+        $stack = HandlerStack::create(fn (RequestInterface $request) => Create::promiseFor(
+            new Response($this->statusFor[(string) $request->getUri()] ?? 200)
+        ));
         $stack->push(Middleware::history($this->sent));
         $this->app->instance(Client::class, new Client(['handler' => $stack]));
+    }
+
+    public function test_an_organization_with_a_slack_webhook_gets_its_down_and_recovered_alerts(): void
+    {
+        $organization = Organization::factory()->create(['slack_webhook_url' => self::SLACK_URL]);
+        $monitor = Monitor::factory()->forOrganization($organization)->create(['url' => 'https://shop.example.test']);
+
+        $this->failMonitor($monitor, 'cURL error 28: Operation timed out');
+        $this->recoverMonitor($monitor);
+
+        $texts = $this->textsSentTo(self::SLACK_URL);
+        $this->assertCount(2, $texts);
+        $this->assertSame("https://shop.example.test seems down\nReason: cURL error 28: Operation timed out", $texts[0]);
+        $this->assertStringStartsWith('https://shop.example.test has recovered after', $texts[1]);
+
+        // Slack needs a JSON content type; the shared Google Chat space still gets both alerts.
+        $this->assertSame('application/json', $this->requestsTo(self::SLACK_URL)[0]->getHeaderLine('Content-Type'));
+        $this->assertCount(2, $this->textsSentTo(self::GOOGLE_CHAT_URL));
+    }
+
+    public function test_another_organizations_alerts_never_reach_the_webhook(): void
+    {
+        Organization::factory()->create(['slack_webhook_url' => self::SLACK_URL]);
+        $monitor = Monitor::factory()->create();
+
+        $this->failMonitor($monitor, 'cURL error 28: Operation timed out');
+
+        $this->assertSame([], $this->requestsTo(self::SLACK_URL));
+        $this->assertCount(1, $this->textsSentTo(self::GOOGLE_CHAT_URL));
+    }
+
+    public function test_an_organization_without_a_webhook_sends_nothing_to_slack(): void
+    {
+        $monitor = Monitor::factory()->create();
+
+        $this->failMonitor($monitor, 'cURL error 28: Operation timed out');
+
+        $this->assertCount(1, $this->sent);
+        $this->assertCount(1, $this->textsSentTo(self::GOOGLE_CHAT_URL));
+    }
+
+    public function test_a_broken_slack_webhook_does_not_break_alerting(): void
+    {
+        $this->statusFor[self::SLACK_URL] = 500;
+        $organization = Organization::factory()->create(['slack_webhook_url' => self::SLACK_URL]);
+        $monitor = Monitor::factory()->forOrganization($organization)->create();
+
+        $this->failMonitor($monitor, 'cURL error 28: Operation timed out');
+
+        $this->assertCount(1, $this->requestsTo(self::SLACK_URL));
+        $this->assertCount(1, $this->textsSentTo(self::GOOGLE_CHAT_URL));
     }
 
     public function test_the_google_chat_alert_includes_the_failure_reason(): void
@@ -80,13 +141,28 @@ class UptimeAlertChannelsTest extends TestCase
         event(new UptimeCheckFailed($monitor, new Period(now()->subMinutes(5), now())));
     }
 
+    private function recoverMonitor(Monitor $monitor): void
+    {
+        $monitor->update(['uptime_status' => UptimeStatus::UP]);
+
+        event(new UptimeCheckRecovered($monitor, new Period(now()->subMinutes(5), now())));
+    }
+
+    /** @return RequestInterface[] */
+    private function requestsTo(string $url): array
+    {
+        return collect($this->sent)
+            ->map(fn (array $call) => $call['request'])
+            ->filter(fn (RequestInterface $request) => (string) $request->getUri() === $url)
+            ->values()
+            ->all();
+    }
+
     /** The "text" of every webhook message sent to the given URL. */
     private function textsSentTo(string $url): array
     {
-        return collect($this->sent)
-            ->filter(fn (array $call) => (string) $call['request']->getUri() === $url)
-            ->map(fn (array $call) => json_decode((string) $call['request']->getBody(), true)['text'])
-            ->values()
+        return collect($this->requestsTo($url))
+            ->map(fn (RequestInterface $request) => json_decode((string) $request->getBody(), true)['text'])
             ->all();
     }
 }

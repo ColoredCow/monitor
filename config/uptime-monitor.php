@@ -1,6 +1,7 @@
 <?php
 
 use App\Channels\GoogleChatChannel;
+use App\Channels\OrganizationSlackChannel;
 use App\Models\Monitor;
 use App\Notifications\Notifiable;
 use App\Notifications\UptimeCheckFailed;
@@ -19,8 +20,10 @@ return [
      */
     'notifications' => [
         'notifications' => [
-            UptimeCheckFailed::class => ['mail', GoogleChatChannel::class],
-            UptimeCheckRecovered::class => ['mail', GoogleChatChannel::class],
+            // OrganizationSlackChannel goes last: it only posts for organizations
+            // that set their own Slack webhook.
+            UptimeCheckFailed::class => ['mail', GoogleChatChannel::class, OrganizationSlackChannel::class],
+            UptimeCheckRecovered::class => ['mail', GoogleChatChannel::class, OrganizationSlackChannel::class],
             UptimeCheckSucceeded::class => [],
 
             CertificateCheckFailed::class => ['mail'],

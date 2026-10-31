@@ -17,4 +17,10 @@ class UptimeCheckRecovered extends SpatieUptimeCheckRecovered
                 'text' => $this->getMessageText(),
             ]);
     }
+
+    public function toOrganizationSlack($notifiable)
+    {
+        // Slack incoming webhooks take the same {"text": ...} payload as Google Chat.
+        return $this->toGoogleChat($notifiable);
+    }
 }

@@ -16,7 +16,20 @@ class Organization extends Model
 
     public const ROLE_MEMBER = 'member';
 
-    protected $fillable = ['name', 'slug'];
+    protected $fillable = ['name', 'slug', 'slack_webhook_url'];
+
+    /**
+     * The Slack webhook URL is a secret: anyone holding it can post to the
+     * channel. Keep it encrypted at rest and out of serialized output.
+     */
+    protected $hidden = ['slack_webhook_url'];
+
+    protected function casts(): array
+    {
+        return [
+            'slack_webhook_url' => 'encrypted',
+        ];
+    }
 
     public function monitors(): HasMany
     {

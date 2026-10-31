@@ -19,6 +19,12 @@ class UptimeCheckFailed extends SpatieUptimeCheckFailed
             ]);
     }
 
+    public function toOrganizationSlack($notifiable)
+    {
+        // Slack incoming webhooks take the same {"text": ...} payload as Google Chat.
+        return $this->toGoogleChat($notifiable);
+    }
+
     /**
      * The alert text with the failure reason, so a 403 from a firewall can be
      * told apart from a timeout or a 5xx without opening the email.
