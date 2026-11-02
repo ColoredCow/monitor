@@ -2,28 +2,15 @@
 
 namespace App\Notifications;
 
+use App\Notifications\Concerns\FormatsChatAlerts;
 use Illuminate\Bus\Queueable;
 use Illuminate\Support\Str;
-use NotificationChannels\Webhook\WebhookMessage;
 use Spatie\UptimeMonitor\Notifications\Notifications\UptimeCheckFailed as SpatieUptimeCheckFailed;
 
 class UptimeCheckFailed extends SpatieUptimeCheckFailed
 {
+    use FormatsChatAlerts;
     use Queueable;
-
-    public function toGoogleChat($notifiable)
-    {
-        return WebhookMessage::create()
-            ->data([
-                'text' => $this->getAlertText(),
-            ]);
-    }
-
-    public function toOrganizationSlack($notifiable)
-    {
-        // Slack incoming webhooks take the same {"text": ...} payload as Google Chat.
-        return $this->toGoogleChat($notifiable);
-    }
 
     /**
      * The alert text with the failure reason, so a 403 from a firewall can be
