@@ -48,9 +48,11 @@ export default function Edit() {
                             <p className="text-sm text-gray-500">
                                 Down and recovered alerts for this organization's monitors are also
                                 posted to a Slack channel through an incoming webhook.{" "}
-                                {organization.has_slack_webhook
-                                    ? "A webhook is set. Paste a new URL to replace it."
-                                    : "Paste the webhook URL to turn this on."}
+                                {!organization.has_slack_webhook
+                                    ? "Paste the webhook URL to turn this on."
+                                    : organization.slack_webhook_unreadable
+                                      ? "The saved webhook can't be read any more. Paste it again, or turn Slack alerts off."
+                                      : "A webhook is set. Paste a new URL to replace it."}
                             </p>
                             <Input
                                 name="slack_webhook_url"

@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Notifications;
 
+use App\Channels\OrganizationSlackChannel;
+use App\Exceptions\AlertChannelFailed;
 use App\Models\Monitor;
 use App\Models\Organization;
 use GuzzleHttp\Client;
@@ -10,12 +12,19 @@ use GuzzleHttp\Middleware;
 use GuzzleHttp\Promise\Create;
 use GuzzleHttp\Psr7\Response;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Notifications\Notification;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Exceptions;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Notification as NotificationFacade;
 use Psr\Http\Message\RequestInterface;
 use Spatie\UptimeMonitor\Events\UptimeCheckFailed;
 use Spatie\UptimeMonitor\Events\UptimeCheckRecovered;
 use Spatie\UptimeMonitor\Helpers\Period;
 use Spatie\UptimeMonitor\Models\Enums\UptimeStatus;
+use Symfony\Component\Mime\Exception\LogicException as MimeLogicException;
 use Tests\TestCase;
+use Throwable;
 
 class UptimeAlertChannelsTest extends TestCase
 {
@@ -88,8 +97,9 @@ class UptimeAlertChannelsTest extends TestCase
         $this->assertCount(1, $this->textsSentTo(self::GOOGLE_CHAT_URL));
     }
 
-    public function test_a_broken_slack_webhook_does_not_break_alerting(): void
+    public function test_a_broken_slack_webhook_is_reported_without_its_url(): void
     {
+        Exceptions::fake();
         $this->statusFor[self::SLACK_URL] = 500;
         $organization = Organization::factory()->create(['slack_webhook_url' => self::SLACK_URL]);
         $monitor = Monitor::factory()->forOrganization($organization)->create();
@@ -98,6 +108,83 @@ class UptimeAlertChannelsTest extends TestCase
 
         $this->assertCount(1, $this->requestsTo(self::SLACK_URL));
         $this->assertCount(1, $this->textsSentTo(self::GOOGLE_CHAT_URL));
+        Exceptions::assertReported(fn (AlertChannelFailed $e) => $e->getMessage()
+            === "Uptime alert via OrganizationSlackChannel failed for organization {$organization->id} (HTTP 500).");
+        Exceptions::assertNotReported(fn (Throwable $e) => str_contains($e->getMessage(), 'hooks.slack.com'));
+    }
+
+    public function test_a_broken_google_chat_webhook_does_not_stop_the_slack_alert(): void
+    {
+        Exceptions::fake();
+        $this->statusFor[self::GOOGLE_CHAT_URL] = 500;
+        $organization = Organization::factory()->create(['slack_webhook_url' => self::SLACK_URL]);
+        $monitor = Monitor::factory()->forOrganization($organization)->create();
+
+        $this->failMonitor($monitor, 'cURL error 28: Operation timed out');
+
+        $this->assertCount(1, $this->textsSentTo(self::SLACK_URL));
+        Exceptions::assertReported(fn (AlertChannelFailed $e) => str_contains($e->getMessage(), 'GoogleChatChannel'));
+        Exceptions::assertNotReported(fn (Throwable $e) => str_contains($e->getMessage(), 'chat.example.test'));
+    }
+
+    public function test_a_failing_mail_transport_does_not_stop_the_chat_alerts(): void
+    {
+        Exceptions::fake();
+        config(['mail.from.address' => null]);
+        $organization = Organization::factory()->create(['slack_webhook_url' => self::SLACK_URL]);
+        $monitor = Monitor::factory()->forOrganization($organization)->create();
+
+        $this->failMonitor($monitor, 'cURL error 28: Operation timed out');
+
+        $this->assertCount(1, $this->textsSentTo(self::GOOGLE_CHAT_URL));
+        $this->assertCount(1, $this->textsSentTo(self::SLACK_URL));
+        Exceptions::assertReported(MimeLogicException::class);
+    }
+
+    public function test_an_unreadable_webhook_skips_slack_without_breaking_alerting(): void
+    {
+        Log::spy();
+        $organization = Organization::factory()->create(['slack_webhook_url' => self::SLACK_URL]);
+        // What APP_KEY changing without APP_PREVIOUS_KEYS leaves behind.
+        DB::table('organizations')->where('id', $organization->id)->update(['slack_webhook_url' => 'not-decryptable']);
+        $monitor = Monitor::factory()->forOrganization($organization)->create();
+
+        $this->failMonitor($monitor, 'cURL error 28: Operation timed out');
+
+        $this->assertSame([], $this->requestsTo(self::SLACK_URL));
+        $this->assertCount(1, $this->textsSentTo(self::GOOGLE_CHAT_URL));
+        Log::shouldHaveReceived('warning')->once()
+            ->withArgs(fn (string $message) => str_contains($message, "organization {$organization->id} can't be decrypted"));
+    }
+
+    public function test_mentions_in_the_failure_reason_cannot_ping_anyone(): void
+    {
+        $organization = Organization::factory()->create(['slack_webhook_url' => self::SLACK_URL]);
+        $monitor = Monitor::factory()->forOrganization($organization)->create(['url' => 'https://shop.example.test']);
+
+        $this->failMonitor($monitor, 'Forbidden: <!channel> <users/all> & more');
+
+        $this->assertSame(
+            ["https://shop.example.test seems down\nReason: Forbidden: &lt;!channel&gt; &lt;users/all&gt; &amp; more"],
+            $this->textsSentTo(self::SLACK_URL)
+        );
+        $this->assertSame(
+            ["https://shop.example.test seems down\nReason: Forbidden: <\u{200B}!channel> <\u{200B}users/all> & more"],
+            $this->textsSentTo(self::GOOGLE_CHAT_URL)
+        );
+    }
+
+    public function test_the_slack_channel_skips_notifications_it_cannot_format(): void
+    {
+        NotificationFacade::route('organizationSlack', self::SLACK_URL)->notify(new class extends Notification
+        {
+            public function via($notifiable): array
+            {
+                return [OrganizationSlackChannel::class];
+            }
+        });
+
+        $this->assertSame([], $this->sent);
     }
 
     public function test_the_google_chat_alert_includes_the_failure_reason(): void

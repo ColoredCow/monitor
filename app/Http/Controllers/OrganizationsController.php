@@ -92,7 +92,7 @@ class OrganizationsController extends Controller
         return Inertia::render('Organizations/Edit', [
             // The webhook URL is a secret, so the page only learns whether one is set.
             'organization' => $organization->only('id', 'name', 'slug')
-                + ['has_slack_webhook' => filled($organization->slack_webhook_url)],
+                + $this->slackWebhookStatus($organization),
         ]);
     }
 
@@ -111,16 +111,32 @@ class OrganizationsController extends Controller
             'slug' => $this->uniqueSlug($validated['name'], $organization->id),
         ];
 
-        // A blank URL keeps the current webhook; the page never sends it back.
-        if ($request->boolean('remove_slack_webhook')) {
-            $attributes['slack_webhook_url'] = null;
-        } elseif (filled($validated['slack_webhook_url'] ?? null)) {
+        // A pasted URL wins over "turn off". A blank URL keeps the current
+        // webhook, since the page never sends it back.
+        if (filled($validated['slack_webhook_url'] ?? null)) {
             $attributes['slack_webhook_url'] = $validated['slack_webhook_url'];
+        } elseif ($request->boolean('remove_slack_webhook')) {
+            $attributes['slack_webhook_url'] = null;
         }
 
         $organization->update($attributes);
 
         return redirect()->route('organizations.index');
+    }
+
+    /**
+     * Whether a Slack webhook is stored, and whether it can still be read.
+     * It can't after APP_KEY changes without APP_PREVIOUS_KEYS; the page then
+     * asks for it again.
+     */
+    private function slackWebhookStatus(Organization $organization): array
+    {
+        $stored = filled($organization->getRawOriginal('slack_webhook_url'));
+
+        return [
+            'has_slack_webhook' => $stored,
+            'slack_webhook_unreadable' => $stored && $organization->slack_webhook_url === null,
+        ];
     }
 
     public function destroy(Organization $organization): RedirectResponse

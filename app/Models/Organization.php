@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Casts\EncryptedOrNull;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -27,7 +28,7 @@ class Organization extends Model
     protected function casts(): array
     {
         return [
-            'slack_webhook_url' => 'encrypted',
+            'slack_webhook_url' => EncryptedOrNull::class,
         ];
     }
 
