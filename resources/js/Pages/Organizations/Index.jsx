@@ -73,7 +73,7 @@ export default function Index() {
                                 href={route("organizations.edit", org.id)}
                                 className="text-sm text-purple-600 hover:text-purple-800"
                             >
-                                Rename
+                                Edit
                             </Link>
                             <button
                                 type="button"

@@ -90,7 +90,9 @@ class OrganizationsController extends Controller
         $this->authorize('update', $organization);
 
         return Inertia::render('Organizations/Edit', [
-            'organization' => $organization->only('id', 'name', 'slug'),
+            // The webhook URL is a secret, so the page only learns whether one is set.
+            'organization' => $organization->only('id', 'name', 'slug')
+                + $this->slackWebhookStatus($organization),
         ]);
     }
 
@@ -100,14 +102,41 @@ class OrganizationsController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'slack_webhook_url' => 'nullable|string|max:500|url|starts_with:https://hooks.slack.com/',
+            'remove_slack_webhook' => 'boolean',
         ]);
 
-        $organization->update([
+        $attributes = [
             'name' => $validated['name'],
             'slug' => $this->uniqueSlug($validated['name'], $organization->id),
-        ]);
+        ];
+
+        // A pasted URL wins over "turn off". A blank URL keeps the current
+        // webhook, since the page never sends it back.
+        if (filled($validated['slack_webhook_url'] ?? null)) {
+            $attributes['slack_webhook_url'] = $validated['slack_webhook_url'];
+        } elseif ($request->boolean('remove_slack_webhook')) {
+            $attributes['slack_webhook_url'] = null;
+        }
+
+        $organization->update($attributes);
 
         return redirect()->route('organizations.index');
+    }
+
+    /**
+     * Whether a Slack webhook is stored, and whether it can still be read.
+     * It can't after APP_KEY changes without APP_PREVIOUS_KEYS; the page then
+     * asks for it again.
+     */
+    private function slackWebhookStatus(Organization $organization): array
+    {
+        $stored = filled($organization->getRawOriginal('slack_webhook_url'));
+
+        return [
+            'has_slack_webhook' => $stored,
+            'slack_webhook_unreadable' => $stored && $organization->slack_webhook_url === null,
+        ];
     }
 
     public function destroy(Organization $organization): RedirectResponse
