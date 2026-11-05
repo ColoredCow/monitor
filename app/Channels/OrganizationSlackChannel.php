@@ -4,6 +4,7 @@ namespace App\Channels;
 
 use Illuminate\Notifications\Notification;
 use NotificationChannels\Webhook\WebhookChannel;
+use Psr\Http\Message\ResponseInterface;
 
 class OrganizationSlackChannel extends WebhookChannel
 {
@@ -16,7 +17,7 @@ class OrganizationSlackChannel extends WebhookChannel
      * its own and reports the failure without the webhook URL.
      *
      * @param  mixed  $notifiable
-     * @return \Psr\Http\Message\ResponseInterface|null
+     * @return ResponseInterface|null
      */
     public function send($notifiable, Notification $notification)
     {
