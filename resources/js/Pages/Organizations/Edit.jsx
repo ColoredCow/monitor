@@ -8,10 +8,49 @@ import Input from "@/Components/Input";
 import Checkbox from "@/Components/Checkbox";
 import ValidationErrors from "@/Components/ValidationErrors";
 
+// One alert channel's webhook. The page never receives the URL itself, only
+// whether one is set and whether it can still be read.
+function WebhookSetting({ service, label, intro, unsetText, offAction, offLabel, placeholder, organization, form, handleChange }) {
+    const field = `${service}_webhook_url`;
+    const remove = `remove_${service}_webhook`;
+    const isSet = organization[`has_${service}_webhook`];
+    const unreadable = organization[`${service}_webhook_unreadable`];
+
+    return (
+        <div className="pt-6 border-t border-gray-200 space-y-3">
+            <Label forInput={field} value={label} />
+            <p className="text-sm text-gray-500">
+                {intro}{" "}
+                {!isSet
+                    ? unsetText
+                    : unreadable
+                      ? `The saved webhook can't be read any more. Paste it again, or ${offAction}.`
+                      : "A webhook is set. Paste a new URL to replace it."}
+            </p>
+            <Input
+                name={field}
+                type="url"
+                value={form[field]}
+                placeholder={placeholder}
+                autoComplete="off"
+                handleChange={handleChange}
+            />
+            {isSet && (
+                <label className="flex items-center gap-2 text-sm text-gray-700">
+                    <Checkbox name={remove} checked={form[remove]} handleChange={handleChange} />
+                    {offLabel}
+                </label>
+            )}
+        </div>
+    );
+}
+
 export default function Edit() {
     const { auth, organization, errors } = usePage().props;
     const [form, setForm] = useState({
         name: organization.name,
+        google_chat_webhook_url: "",
+        remove_google_chat_webhook: false,
         slack_webhook_url: "",
         remove_slack_webhook: false,
     });
@@ -26,6 +65,8 @@ export default function Edit() {
         e.preventDefault();
         router.put(route("organizations.update", organization.id), form);
     };
+
+    const webhookProps = { organization, form, handleChange };
 
     return (
         <Authenticated auth={auth}>
@@ -43,36 +84,26 @@ export default function Edit() {
                             <Label forInput="name" value="Organization name" />
                             <Input name="name" value={form.name} required handleChange={handleChange} />
                         </div>
-                        <div className="pt-6 border-t border-gray-200 space-y-3">
-                            <Label forInput="slack_webhook_url" value="Slack alerts" />
-                            <p className="text-sm text-gray-500">
-                                Down and recovered alerts for this organization's monitors are also
-                                posted to a Slack channel through an incoming webhook.{" "}
-                                {!organization.has_slack_webhook
-                                    ? "Paste the webhook URL to turn this on."
-                                    : organization.slack_webhook_unreadable
-                                      ? "The saved webhook can't be read any more. Paste it again, or turn Slack alerts off."
-                                      : "A webhook is set. Paste a new URL to replace it."}
-                            </p>
-                            <Input
-                                name="slack_webhook_url"
-                                type="url"
-                                value={form.slack_webhook_url}
-                                placeholder="https://hooks.slack.com/services/..."
-                                autoComplete="off"
-                                handleChange={handleChange}
-                            />
-                            {organization.has_slack_webhook && (
-                                <label className="flex items-center gap-2 text-sm text-gray-700">
-                                    <Checkbox
-                                        name="remove_slack_webhook"
-                                        checked={form.remove_slack_webhook}
-                                        handleChange={handleChange}
-                                    />
-                                    Turn off Slack alerts
-                                </label>
-                            )}
-                        </div>
+                        <WebhookSetting
+                            {...webhookProps}
+                            service="google_chat"
+                            label="Google Chat alerts"
+                            intro="Down and recovered alerts for this organization's monitors go to this Google Chat space."
+                            unsetText="Until you set one, they go to the default space. Paste a space's webhook URL to use it instead."
+                            offAction="go back to the default space"
+                            offLabel="Go back to the default space"
+                            placeholder="https://chat.googleapis.com/v1/spaces/..."
+                        />
+                        <WebhookSetting
+                            {...webhookProps}
+                            service="slack"
+                            label="Slack alerts"
+                            intro="Down and recovered alerts for this organization's monitors are also posted to a Slack channel through an incoming webhook."
+                            unsetText="Paste the webhook URL to turn this on."
+                            offAction="turn Slack alerts off"
+                            offLabel="Turn off Slack alerts"
+                            placeholder="https://hooks.slack.com/services/..."
+                        />
                         <div className="pt-6 border-t border-gray-200">
                             <Button>Save</Button>
                         </div>

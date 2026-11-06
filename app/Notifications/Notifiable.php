@@ -33,9 +33,20 @@ class Notifiable extends SpatieNotifiable
         }
     }
 
-    public function routeNotificationForGoogleChat()
+    /**
+     * The organization's own Google Chat space when it set one; otherwise the
+     * app-wide space from UPTIME_MONITOR_GOOGLE_CHAT_WEBHOOK_URL.
+     */
+    public function routeNotificationForGoogleChat($notification = null)
     {
-        return config('uptime-monitor.notifications.google_chat.webhook_url');
+        $default = config('uptime-monitor.notifications.google_chat.webhook_url');
+
+        return $this->organizationWebhook(
+            $notification,
+            'google_chat_webhook_url',
+            'Google Chat',
+            filled($default) ? 'using the default space.' : 'no default space is set, so the alert is skipped.'
+        ) ?? $default;
     }
 
     /**
@@ -43,17 +54,27 @@ class Notifiable extends SpatieNotifiable
      */
     public function routeNotificationForOrganizationSlack($notification)
     {
-        if (! method_exists($notification, 'getMonitor')) {
+        return $this->organizationWebhook($notification, 'slack_webhook_url', 'Slack', 'Slack alert skipped.');
+    }
+
+    /**
+     * The webhook the alerting monitor's organization set for a channel.
+     *
+     * A stored webhook that can't be decrypted (APP_KEY changed without
+     * APP_PREVIOUS_KEYS) counts as unset, with a warning, rather than failing
+     * the alert; an admin can paste it again.
+     */
+    private function organizationWebhook($notification, string $attribute, string $channel, string $fallback): ?string
+    {
+        if (! is_object($notification) || ! method_exists($notification, 'getMonitor')) {
             return null;
         }
 
         $organization = $notification->getMonitor()->organization;
-        $url = $organization?->slack_webhook_url;
+        $url = $organization?->{$attribute};
 
-        // Stored but unreadable (APP_KEY changed without APP_PREVIOUS_KEYS):
-        // Slack is skipped rather than failing the alert; an admin can paste it again.
-        if ($url === null && filled($organization?->getRawOriginal('slack_webhook_url'))) {
-            Log::warning("Slack webhook for organization {$organization->id} can't be decrypted; Slack alert skipped.");
+        if ($url === null && filled($organization?->getRawOriginal($attribute))) {
+            Log::warning("{$channel} webhook for organization {$organization->id} can't be decrypted; {$fallback}");
         }
 
         return $url;

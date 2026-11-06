@@ -5,9 +5,8 @@ namespace App\Channels;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Arr;
 use NotificationChannels\Webhook\Exceptions\CouldNotSendNotification;
-use NotificationChannels\Webhook\WebhookChannel;
 
-class GoogleChatChannel extends WebhookChannel
+class GoogleChatChannel extends AlertWebhookChannel
 {
     /**
      * Send the given notification.
@@ -17,16 +16,15 @@ class GoogleChatChannel extends WebhookChannel
      */
     public function send($notifiable, Notification $notification)
     {
-        if (! $url = $notifiable->routeNotificationFor('googleChat')) {
+        if (! $url = $notifiable->routeNotificationFor('googleChat', $notification)) {
             return;
         }
 
         $webhookData = $notification->toGoogleChat($notifiable)->toArray();
 
-        $response = $this->client->post($url, [
+        $response = $this->post($url, [
             'query' => Arr::get($webhookData, 'query'),
             'body' => json_encode(Arr::get($webhookData, 'data')),
-            'verify' => Arr::get($webhookData, 'verify'),
             'headers' => Arr::get($webhookData, 'headers'),
         ]);
 

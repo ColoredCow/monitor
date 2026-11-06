@@ -17,17 +17,21 @@ class Organization extends Model
 
     public const ROLE_MEMBER = 'member';
 
-    protected $fillable = ['name', 'slug', 'slack_webhook_url'];
+    /** The alert services an organization can set its own webhook for. */
+    public const WEBHOOK_SERVICES = ['google_chat', 'slack'];
+
+    protected $fillable = ['name', 'slug', 'google_chat_webhook_url', 'slack_webhook_url'];
 
     /**
-     * The Slack webhook URL is a secret: anyone holding it can post to the
-     * channel. Keep it encrypted at rest and out of serialized output.
+     * Webhook URLs are secrets: anyone holding one can post to the space or
+     * channel. Keep them encrypted at rest and out of serialized output.
      */
-    protected $hidden = ['slack_webhook_url'];
+    protected $hidden = ['google_chat_webhook_url', 'slack_webhook_url'];
 
     protected function casts(): array
     {
         return [
+            'google_chat_webhook_url' => EncryptedOrNull::class,
             'slack_webhook_url' => EncryptedOrNull::class,
         ];
     }

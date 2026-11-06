@@ -2,10 +2,13 @@
 
 namespace Tests\Feature\Notifications;
 
+use App\Channels\GoogleChatChannel;
 use App\Channels\OrganizationSlackChannel;
 use App\Exceptions\AlertChannelFailed;
 use App\Models\Monitor;
 use App\Models\Organization;
+use App\Notifications\DomainExpirationWarning;
+use App\Notifications\Notifiable;
 use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
@@ -33,6 +36,8 @@ class UptimeAlertChannelsTest extends TestCase
     private const GOOGLE_CHAT_URL = 'https://chat.example.test/v1/spaces/alerts/messages';
 
     private const SLACK_URL = 'https://hooks.slack.com/services/T000/B000/secret';
+
+    private const ORG_CHAT_URL = 'https://chat.googleapis.com/v1/spaces/ORG/messages?key=k&token=t';
 
     /** Webhook requests sent during the test. */
     private array $sent = [];
@@ -218,6 +223,93 @@ class UptimeAlertChannelsTest extends TestCase
         $this->assertStringEndsWith('Reason: '.str_repeat('x', 300).'...', $text);
     }
 
+    public function test_an_organization_with_its_own_google_chat_space_gets_its_alerts_there(): void
+    {
+        $organization = Organization::factory()->create(['google_chat_webhook_url' => self::ORG_CHAT_URL]);
+        $monitor = Monitor::factory()->forOrganization($organization)->create(['url' => 'https://shop.example.test']);
+
+        $this->failMonitor($monitor, 'cURL error 28: Operation timed out');
+        $this->recoverMonitor($monitor);
+
+        $texts = $this->textsSentTo(self::ORG_CHAT_URL);
+        $this->assertCount(2, $texts);
+        $this->assertSame("https://shop.example.test seems down\nReason: cURL error 28: Operation timed out", $texts[0]);
+        $this->assertSame([], $this->requestsTo(self::GOOGLE_CHAT_URL));
+    }
+
+    public function test_organizations_without_their_own_space_keep_the_default_one(): void
+    {
+        Organization::factory()->create(['google_chat_webhook_url' => self::ORG_CHAT_URL]);
+        $monitor = Monitor::factory()->create();
+
+        $this->failMonitor($monitor, 'cURL error 28: Operation timed out');
+
+        $this->assertCount(1, $this->textsSentTo(self::GOOGLE_CHAT_URL));
+        $this->assertSame([], $this->requestsTo(self::ORG_CHAT_URL));
+    }
+
+    public function test_an_unreadable_google_chat_webhook_falls_back_to_the_default_space(): void
+    {
+        Log::spy();
+        $organization = Organization::factory()->create(['google_chat_webhook_url' => self::ORG_CHAT_URL]);
+        // What APP_KEY changing without APP_PREVIOUS_KEYS leaves behind.
+        DB::table('organizations')->where('id', $organization->id)->update(['google_chat_webhook_url' => 'not-decryptable']);
+        $monitor = Monitor::factory()->forOrganization($organization)->create();
+
+        $this->failMonitor($monitor, 'cURL error 28: Operation timed out');
+
+        $this->assertCount(1, $this->textsSentTo(self::GOOGLE_CHAT_URL));
+        Log::shouldHaveReceived('warning')->once()
+            ->withArgs(fn (string $message) => $message
+                === "Google Chat webhook for organization {$organization->id} can't be decrypted; using the default space.");
+    }
+
+    public function test_an_unreadable_webhook_without_a_default_space_skips_the_alert(): void
+    {
+        Log::spy();
+        config(['uptime-monitor.notifications.google_chat.webhook_url' => null]);
+        $organization = Organization::factory()->create(['google_chat_webhook_url' => self::ORG_CHAT_URL]);
+        // What APP_KEY changing without APP_PREVIOUS_KEYS leaves behind.
+        DB::table('organizations')->where('id', $organization->id)->update(['google_chat_webhook_url' => 'not-decryptable']);
+        $monitor = Monitor::factory()->forOrganization($organization)->create();
+
+        $this->failMonitor($monitor, 'cURL error 28: Operation timed out');
+
+        $this->assertSame([], $this->sent);
+        Log::shouldHaveReceived('warning')->once()
+            ->withArgs(fn (string $message) => $message
+                === "Google Chat webhook for organization {$organization->id} can't be decrypted; no default space is set, so the alert is skipped.");
+    }
+
+    public function test_domain_expiration_warnings_follow_the_organizations_space(): void
+    {
+        config(['domain-expiration.notifications.notifications.'.DomainExpirationWarning::class => [GoogleChatChannel::class]]);
+        $organization = Organization::factory()->create(['google_chat_webhook_url' => self::ORG_CHAT_URL]);
+        $monitor = Monitor::factory()->forOrganization($organization)->create([
+            'url' => 'https://shop.example.test',
+            'domain_expires_at' => now()->addDays(7),
+        ]);
+
+        (new Notifiable)->notify(new DomainExpirationWarning($monitor, 'Domain name is about to expire!'));
+
+        $this->assertCount(1, $this->textsSentTo(self::ORG_CHAT_URL));
+        $this->assertSame([], $this->requestsTo(self::GOOGLE_CHAT_URL));
+    }
+
+    public function test_alert_webhook_posts_verify_tls_and_time_out(): void
+    {
+        $organization = Organization::factory()->create(['slack_webhook_url' => self::SLACK_URL]);
+        $monitor = Monitor::factory()->forOrganization($organization)->create();
+
+        $this->failMonitor($monitor, 'cURL error 28: Operation timed out');
+
+        foreach ([self::GOOGLE_CHAT_URL, self::SLACK_URL] as $url) {
+            $options = $this->optionsFor($url);
+            $this->assertTrue($options['verify'], $url);
+            $this->assertSame(10, $options['timeout'], $url);
+        }
+    }
+
     private function failMonitor(Monitor $monitor, ?string $reason): void
     {
         $monitor->update([
@@ -243,6 +335,13 @@ class UptimeAlertChannelsTest extends TestCase
             ->filter(fn (RequestInterface $request) => (string) $request->getUri() === $url)
             ->values()
             ->all();
+    }
+
+    /** The Guzzle options of the first request sent to the given URL. */
+    private function optionsFor(string $url): array
+    {
+        return collect($this->sent)
+            ->first(fn (array $call) => (string) $call['request']->getUri() === $url)['options'];
     }
 
     /** The "text" of every webhook message sent to the given URL. */
