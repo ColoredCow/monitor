@@ -17,7 +17,7 @@ class GoogleChatChannel extends WebhookChannel
      */
     public function send($notifiable, Notification $notification)
     {
-        if (! $url = $notifiable->routeNotificationFor('googleChat')) {
+        if (! $url = $notifiable->routeNotificationFor('googleChat', $notification)) {
             return;
         }
 

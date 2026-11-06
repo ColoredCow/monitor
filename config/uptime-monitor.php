@@ -20,9 +20,11 @@ return [
      */
     'notifications' => [
         'notifications' => [
-            // OrganizationSlackChannel only posts for organizations that set their
-            // own Slack webhook. App\Notifications\Notifiable sends each channel on
-            // its own, so one failing channel can't stop the others.
+            // GoogleChatChannel posts to the organization's own space when it set
+            // one, otherwise to the app-wide space below. OrganizationSlackChannel
+            // only posts for organizations that set their own Slack webhook.
+            // App\Notifications\Notifiable sends each channel on its own, so one
+            // failing channel can't stop the others.
             UptimeCheckFailed::class => ['mail', GoogleChatChannel::class, OrganizationSlackChannel::class],
             UptimeCheckRecovered::class => ['mail', GoogleChatChannel::class, OrganizationSlackChannel::class],
             UptimeCheckSucceeded::class => [],

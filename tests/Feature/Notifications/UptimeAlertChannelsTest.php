@@ -34,6 +34,8 @@ class UptimeAlertChannelsTest extends TestCase
 
     private const SLACK_URL = 'https://hooks.slack.com/services/T000/B000/secret';
 
+    private const ORG_CHAT_URL = 'https://chat.googleapis.com/v1/spaces/ORG/messages?key=k&token=t';
+
     /** Webhook requests sent during the test. */
     private array $sent = [];
 
@@ -216,6 +218,47 @@ class UptimeAlertChannelsTest extends TestCase
 
         $text = $this->textsSentTo(self::GOOGLE_CHAT_URL)[0];
         $this->assertStringEndsWith('Reason: '.str_repeat('x', 300).'...', $text);
+    }
+
+    public function test_an_organization_with_its_own_google_chat_space_gets_its_alerts_there(): void
+    {
+        $organization = Organization::factory()->create(['google_chat_webhook_url' => self::ORG_CHAT_URL]);
+        $monitor = Monitor::factory()->forOrganization($organization)->create(['url' => 'https://shop.example.test']);
+
+        $this->failMonitor($monitor, 'cURL error 28: Operation timed out');
+        $this->recoverMonitor($monitor);
+
+        $texts = $this->textsSentTo(self::ORG_CHAT_URL);
+        $this->assertCount(2, $texts);
+        $this->assertSame("https://shop.example.test seems down\nReason: cURL error 28: Operation timed out", $texts[0]);
+        $this->assertSame([], $this->requestsTo(self::GOOGLE_CHAT_URL));
+    }
+
+    public function test_organizations_without_their_own_space_keep_the_default_one(): void
+    {
+        Organization::factory()->create(['google_chat_webhook_url' => self::ORG_CHAT_URL]);
+        $monitor = Monitor::factory()->create();
+
+        $this->failMonitor($monitor, 'cURL error 28: Operation timed out');
+
+        $this->assertCount(1, $this->textsSentTo(self::GOOGLE_CHAT_URL));
+        $this->assertSame([], $this->requestsTo(self::ORG_CHAT_URL));
+    }
+
+    public function test_an_unreadable_google_chat_webhook_falls_back_to_the_default_space(): void
+    {
+        Log::spy();
+        $organization = Organization::factory()->create(['google_chat_webhook_url' => self::ORG_CHAT_URL]);
+        // What APP_KEY changing without APP_PREVIOUS_KEYS leaves behind.
+        DB::table('organizations')->where('id', $organization->id)->update(['google_chat_webhook_url' => 'not-decryptable']);
+        $monitor = Monitor::factory()->forOrganization($organization)->create();
+
+        $this->failMonitor($monitor, 'cURL error 28: Operation timed out');
+
+        $this->assertCount(1, $this->textsSentTo(self::GOOGLE_CHAT_URL));
+        Log::shouldHaveReceived('warning')->once()
+            ->withArgs(fn (string $message) => $message
+                === "Google Chat webhook for organization {$organization->id} can't be decrypted; using the default space.");
     }
 
     public function test_google_chat_posts_verify_tls_and_time_out(): void
