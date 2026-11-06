@@ -26,7 +26,9 @@ class GoogleChatChannel extends WebhookChannel
         $response = $this->client->post($url, [
             'query' => Arr::get($webhookData, 'query'),
             'body' => json_encode(Arr::get($webhookData, 'data')),
-            'verify' => Arr::get($webhookData, 'verify'),
+            // WebhookMessage defaults "verify" to false, which skips TLS checks.
+            'verify' => true,
+            'timeout' => 10,
             'headers' => Arr::get($webhookData, 'headers'),
         ]);
 

@@ -218,6 +218,17 @@ class UptimeAlertChannelsTest extends TestCase
         $this->assertStringEndsWith('Reason: '.str_repeat('x', 300).'...', $text);
     }
 
+    public function test_google_chat_posts_verify_tls_and_time_out(): void
+    {
+        $monitor = Monitor::factory()->create();
+
+        $this->failMonitor($monitor, 'cURL error 28: Operation timed out');
+
+        $options = $this->optionsFor(self::GOOGLE_CHAT_URL);
+        $this->assertTrue($options['verify']);
+        $this->assertSame(10, $options['timeout']);
+    }
+
     private function failMonitor(Monitor $monitor, ?string $reason): void
     {
         $monitor->update([
@@ -243,6 +254,13 @@ class UptimeAlertChannelsTest extends TestCase
             ->filter(fn (RequestInterface $request) => (string) $request->getUri() === $url)
             ->values()
             ->all();
+    }
+
+    /** The Guzzle options of the first request sent to the given URL. */
+    private function optionsFor(string $url): array
+    {
+        return collect($this->sent)
+            ->first(fn (array $call) => (string) $call['request']->getUri() === $url)['options'];
     }
 
     /** The "text" of every webhook message sent to the given URL. */
