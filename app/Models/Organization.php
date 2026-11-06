@@ -17,6 +17,9 @@ class Organization extends Model
 
     public const ROLE_MEMBER = 'member';
 
+    /** The alert services an organization can set its own webhook for. */
+    public const WEBHOOK_SERVICES = ['google_chat', 'slack'];
+
     protected $fillable = ['name', 'slug', 'google_chat_webhook_url', 'slack_webhook_url'];
 
     /**

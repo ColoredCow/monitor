@@ -2,10 +2,13 @@
 
 namespace Tests\Feature\Notifications;
 
+use App\Channels\GoogleChatChannel;
 use App\Channels\OrganizationSlackChannel;
 use App\Exceptions\AlertChannelFailed;
 use App\Models\Monitor;
 use App\Models\Organization;
+use App\Notifications\DomainExpirationWarning;
+use App\Notifications\Notifiable;
 use GuzzleHttp\Client;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Middleware;
@@ -261,15 +264,50 @@ class UptimeAlertChannelsTest extends TestCase
                 === "Google Chat webhook for organization {$organization->id} can't be decrypted; using the default space.");
     }
 
-    public function test_google_chat_posts_verify_tls_and_time_out(): void
+    public function test_an_unreadable_webhook_without_a_default_space_skips_the_alert(): void
     {
-        $monitor = Monitor::factory()->create();
+        Log::spy();
+        config(['uptime-monitor.notifications.google_chat.webhook_url' => null]);
+        $organization = Organization::factory()->create(['google_chat_webhook_url' => self::ORG_CHAT_URL]);
+        // What APP_KEY changing without APP_PREVIOUS_KEYS leaves behind.
+        DB::table('organizations')->where('id', $organization->id)->update(['google_chat_webhook_url' => 'not-decryptable']);
+        $monitor = Monitor::factory()->forOrganization($organization)->create();
 
         $this->failMonitor($monitor, 'cURL error 28: Operation timed out');
 
-        $options = $this->optionsFor(self::GOOGLE_CHAT_URL);
-        $this->assertTrue($options['verify']);
-        $this->assertSame(10, $options['timeout']);
+        $this->assertSame([], $this->sent);
+        Log::shouldHaveReceived('warning')->once()
+            ->withArgs(fn (string $message) => $message
+                === "Google Chat webhook for organization {$organization->id} can't be decrypted; no default space is set, so the alert is skipped.");
+    }
+
+    public function test_domain_expiration_warnings_follow_the_organizations_space(): void
+    {
+        config(['domain-expiration.notifications.notifications.'.DomainExpirationWarning::class => [GoogleChatChannel::class]]);
+        $organization = Organization::factory()->create(['google_chat_webhook_url' => self::ORG_CHAT_URL]);
+        $monitor = Monitor::factory()->forOrganization($organization)->create([
+            'url' => 'https://shop.example.test',
+            'domain_expires_at' => now()->addDays(7),
+        ]);
+
+        (new Notifiable)->notify(new DomainExpirationWarning($monitor, 'Domain name is about to expire!'));
+
+        $this->assertCount(1, $this->textsSentTo(self::ORG_CHAT_URL));
+        $this->assertSame([], $this->requestsTo(self::GOOGLE_CHAT_URL));
+    }
+
+    public function test_alert_webhook_posts_verify_tls_and_time_out(): void
+    {
+        $organization = Organization::factory()->create(['slack_webhook_url' => self::SLACK_URL]);
+        $monitor = Monitor::factory()->forOrganization($organization)->create();
+
+        $this->failMonitor($monitor, 'cURL error 28: Operation timed out');
+
+        foreach ([self::GOOGLE_CHAT_URL, self::SLACK_URL] as $url) {
+            $options = $this->optionsFor($url);
+            $this->assertTrue($options['verify'], $url);
+            $this->assertSame(10, $options['timeout'], $url);
+        }
     }
 
     private function failMonitor(Monitor $monitor, ?string $reason): void

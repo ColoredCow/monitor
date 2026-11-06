@@ -39,8 +39,14 @@ class Notifiable extends SpatieNotifiable
      */
     public function routeNotificationForGoogleChat($notification = null)
     {
-        return $this->organizationWebhook($notification, 'google_chat_webhook_url', 'Google Chat', 'using the default space.')
-            ?? config('uptime-monitor.notifications.google_chat.webhook_url');
+        $default = config('uptime-monitor.notifications.google_chat.webhook_url');
+
+        return $this->organizationWebhook(
+            $notification,
+            'google_chat_webhook_url',
+            'Google Chat',
+            filled($default) ? 'using the default space.' : 'no default space is set, so the alert is skipped.'
+        ) ?? $default;
     }
 
     /**

@@ -5,9 +5,8 @@ namespace App\Channels;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Arr;
 use NotificationChannels\Webhook\Exceptions\CouldNotSendNotification;
-use NotificationChannels\Webhook\WebhookChannel;
 
-class GoogleChatChannel extends WebhookChannel
+class GoogleChatChannel extends AlertWebhookChannel
 {
     /**
      * Send the given notification.
@@ -23,12 +22,9 @@ class GoogleChatChannel extends WebhookChannel
 
         $webhookData = $notification->toGoogleChat($notifiable)->toArray();
 
-        $response = $this->client->post($url, [
+        $response = $this->post($url, [
             'query' => Arr::get($webhookData, 'query'),
             'body' => json_encode(Arr::get($webhookData, 'data')),
-            // WebhookMessage defaults "verify" to false, which skips TLS checks.
-            'verify' => true,
-            'timeout' => 10,
             'headers' => Arr::get($webhookData, 'headers'),
         ]);
 

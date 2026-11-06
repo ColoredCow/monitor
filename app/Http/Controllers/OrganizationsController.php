@@ -89,11 +89,15 @@ class OrganizationsController extends Controller
     {
         $this->authorize('update', $organization);
 
+        $webhooks = [];
+
+        foreach (Organization::WEBHOOK_SERVICES as $service) {
+            $webhooks += $this->webhookStatus($organization, $service);
+        }
+
         return Inertia::render('Organizations/Edit', [
             // Webhook URLs are secrets, so the page only learns whether each one is set.
-            'organization' => $organization->only('id', 'name', 'slug')
-                + $this->webhookStatus($organization, 'google_chat')
-                + $this->webhookStatus($organization, 'slack'),
+            'organization' => $organization->only('id', 'name', 'slug') + $webhooks,
         ]);
     }
 
@@ -116,7 +120,7 @@ class OrganizationsController extends Controller
 
         // A pasted URL wins over "turn off". A blank URL keeps the current
         // webhook, since the page never sends it back.
-        foreach (['google_chat', 'slack'] as $service) {
+        foreach (Organization::WEBHOOK_SERVICES as $service) {
             $field = "{$service}_webhook_url";
 
             if (filled($validated[$field] ?? null)) {

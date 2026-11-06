@@ -3,10 +3,9 @@
 namespace App\Channels;
 
 use Illuminate\Notifications\Notification;
-use NotificationChannels\Webhook\WebhookChannel;
 use Psr\Http\Message\ResponseInterface;
 
-class OrganizationSlackChannel extends WebhookChannel
+class OrganizationSlackChannel extends AlertWebhookChannel
 {
     /**
      * Post the notification to the Slack incoming webhook its notifiable
@@ -29,9 +28,8 @@ class OrganizationSlackChannel extends WebhookChannel
             return null;
         }
 
-        return $this->client->post($url, [
+        return $this->post($url, [
             'json' => $notification->toOrganizationSlack($notifiable)->toArray()['data'],
-            'timeout' => 10,
         ]);
     }
 }

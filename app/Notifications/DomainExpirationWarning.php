@@ -27,6 +27,15 @@ class DomainExpirationWarning extends Notification
         return config('domain-expiration.notifications.notifications.'.static::class);
     }
 
+    /**
+     * Lets Notifiable::organizationWebhook route this warning to the
+     * organization's own Google Chat space, like the uptime alerts.
+     */
+    public function getMonitor(): Monitor
+    {
+        return $this->monitor;
+    }
+
     public function toGoogleChat(Notifiable $notifiable): WebhookMessage
     {
         return WebhookMessage::create()
