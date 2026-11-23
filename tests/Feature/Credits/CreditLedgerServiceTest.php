@@ -106,6 +106,22 @@ class CreditLedgerServiceTest extends TestCase
         Log::shouldHaveReceived('error')->once();
     }
 
+    public function test_grant_to_trashed_paused_org_updates_balance_but_sends_no_resumed_email(): void
+    {
+        Notification::fake();
+        $organization = $this->createOrganization();
+        $admin = User::factory()->create();
+        $organization->users()->attach($admin->id, ['role' => Organization::ROLE_ADMIN]);
+        $this->setCredits($organization, -3, Organization::CREDIT_LEVEL_EXHAUSTED);
+        $organization->delete();
+
+        app(CreditLedgerService::class)->grant($organization, 1000);
+
+        $this->assertSame(997, Organization::withTrashed()->find($organization->id)->credit_balance);
+        $this->assertSame(Organization::CREDIT_LEVEL_NONE, Organization::withTrashed()->find($organization->id)->credit_warning_level);
+        Notification::assertNothingSent();
+    }
+
     public function test_no_resumed_email_when_org_was_not_paused_or_stays_at_zero(): void
     {
         Notification::fake();

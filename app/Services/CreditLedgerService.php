@@ -86,7 +86,11 @@ class CreditLedgerService
                 'created_by' => $createdBy?->id,
             ]);
 
-            return [$transaction, $wasPaused && $locked->credit_balance > 0];
+            // A deleted org's monitoring has not resumed, so send no email. A
+            // later restore plus grant still notifies.
+            $resumed = $wasPaused && $locked->credit_balance > 0 && ! $locked->trashed();
+
+            return [$transaction, $resumed];
         });
 
         // Outside the DB transaction: never hold a row lock while sending

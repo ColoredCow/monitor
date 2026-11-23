@@ -80,21 +80,20 @@ class CreditMeteringService
             ->update(['credit_warning_level' => Organization::CREDIT_LEVEL_EXHAUSTED]);
 
         if ($becameExhausted > 0) {
-            $organization = Organization::find($organizationId);
+            // The exhausted flag above is already committed and correct. A
+            // lookup or mail failure here must not bubble into recordCheck's
+            // catch-all, and must not abort the warnings loop that calls this.
+            try {
+                $organization = Organization::find($organizationId);
 
-            if ($organization) {
-                // The exhausted flag above is already committed and correct;
-                // a mail failure here must not bubble into recordCheck's
-                // catch-all, which would misleadingly log it as a metering
-                // failure.
-                try {
+                if ($organization) {
                     Notification::send($organization->admins()->get(), new MonitoringPaused($organization));
-                } catch (Throwable $exception) {
-                    Log::error('MonitoringPaused notification failed to send.', [
-                        'organization_id' => $organizationId,
-                        'error' => $exception->getMessage(),
-                    ]);
                 }
+            } catch (Throwable $exception) {
+                Log::error('MonitoringPaused notification failed to send.', [
+                    'organization_id' => $organizationId,
+                    'error' => $exception->getMessage(),
+                ]);
             }
         }
     }
