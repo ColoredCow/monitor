@@ -46,7 +46,9 @@ class OrganizationCreditsController extends Controller
         $this->authorize('manage-organizations');
 
         $validated = $request->validate([
-            'amount' => 'required|integer|not_in:0',
+            // Bounded so a fat-fingered grant can't push the bigint balance
+            // toward overflow on the next transaction.
+            'amount' => 'required|integer|not_in:0|min:-1000000000|max:1000000000',
             'description' => 'nullable|string|max:255',
         ]);
 
