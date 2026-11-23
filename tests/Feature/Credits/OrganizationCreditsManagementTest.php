@@ -71,6 +71,41 @@ class OrganizationCreditsManagementTest extends TestCase
             ->assertSessionHasErrors('amount');
     }
 
+    public function test_amount_above_the_maximum_is_rejected(): void
+    {
+        $organization = $this->createOrganization();
+        $this->actingAsSuperAdmin();
+
+        $this->post("/organizations/{$organization->id}/credits", ['amount' => 1_000_000_001])
+            ->assertSessionHasErrors('amount');
+
+        $this->assertSame(0, $organization->fresh()->credit_balance);
+        $this->assertSame(0, CreditTransaction::count());
+    }
+
+    public function test_amount_below_the_negative_floor_is_rejected(): void
+    {
+        $organization = $this->createOrganization();
+        $this->actingAsSuperAdmin();
+
+        $this->post("/organizations/{$organization->id}/credits", ['amount' => -1_000_000_001])
+            ->assertSessionHasErrors('amount');
+
+        $this->assertSame(0, $organization->fresh()->credit_balance);
+        $this->assertSame(0, CreditTransaction::count());
+    }
+
+    public function test_amount_at_the_maximum_is_accepted(): void
+    {
+        $organization = $this->createOrganization();
+        $this->actingAsSuperAdmin();
+
+        $this->post("/organizations/{$organization->id}/credits", ['amount' => 1_000_000_000])
+            ->assertSessionDoesntHaveErrors('amount');
+
+        $this->assertSame(1_000_000_000, $organization->fresh()->credit_balance);
+    }
+
     public function test_org_admins_cannot_view_or_grant(): void
     {
         $organization = $this->createOrganization();

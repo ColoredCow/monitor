@@ -9,6 +9,7 @@ use App\Models\Organization;
 use App\Models\User;
 use App\Services\MonitorCheckLogService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\Concerns\InteractsWithOrganizations;
 use Tests\TestCase;
 
@@ -85,6 +86,17 @@ class CreditSchemaTest extends TestCase
             'monitor_id' => null,
             'credits' => 5,
         ]);
+    }
+
+    public function test_credit_usage_daily_has_an_index_starting_with_date(): void
+    {
+        // The nightly rollup filters this table by date alone; the unique
+        // index starts with organization_id, so date needs its own index.
+        $firstColumns = collect(DB::select('show index from credit_usage_daily'))
+            ->where('Seq_in_index', 1)
+            ->pluck('Column_name');
+
+        $this->assertContains('date', $firstColumns->all());
     }
 
     public function test_admins_relationship_only_returns_admins(): void

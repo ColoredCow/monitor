@@ -13,7 +13,7 @@ export default function Index() {
         warningLevel,
         dailyBurn,
         usageByDay = [],
-        topMonitors = [],
+        monitors = [],
         transactions = [],
     } = usePage().props;
 
@@ -67,18 +67,28 @@ export default function Index() {
                 </div>
 
                 <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-                    <h2 className="text-sm font-semibold text-gray-700 mb-4">Top monitors — last 30 days</h2>
-                    {topMonitors.length === 0 ? (
+                    <h2 className="text-sm font-semibold text-gray-700 mb-4">Monitor spend — last 30 days</h2>
+                    {monitors.length === 0 ? (
                         <div className="text-sm text-gray-400">No usage recorded yet.</div>
                     ) : (
-                        <ul className="space-y-2">
-                            {topMonitors.map((monitor) => (
-                                <li key={monitor.monitor_id} className="flex justify-between text-sm">
-                                    <span className="text-gray-700">{monitor.name}</span>
-                                    <span className="text-gray-500">{monitor.credits.toLocaleString()} credits</span>
-                                </li>
-                            ))}
-                        </ul>
+                        <table className="w-full text-sm">
+                            <thead>
+                                <tr className="text-left text-xs text-gray-400 uppercase tracking-wide">
+                                    <th className="pb-2">Monitor</th>
+                                    <th className="pb-2 text-right">Credits</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100">
+                                {monitors.map((monitor) => (
+                                    <tr key={monitor.monitor_id}>
+                                        <td className="py-2 text-gray-700">{monitor.name}</td>
+                                        <td className="py-2 text-right text-gray-500">
+                                            {monitor.credits.toLocaleString()}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     )}
                 </div>
 
