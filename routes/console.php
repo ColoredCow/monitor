@@ -21,7 +21,11 @@ Artisan::command('inspire', function () {
 use Illuminate\Support\Facades\Schedule;
 
 // Core uptime monitoring always runs, regardless of the history feature flag.
-Schedule::command('monitor:check-uptime')->everyMinute();
+// withoutOverlapping: checks are billed per execution, so two overlapping runs
+// would double-charge the same monitors during a slow run (e.g. a widespread
+// outage). A skipped tick is safer than a double charge. The 10-minute mutex
+// expiry keeps a hung run from blocking checks for the default 24 hours.
+Schedule::command('monitor:check-uptime')->everyMinute()->withoutOverlapping(10);
 Schedule::command('monitor:check-certificate')->daily();
 Schedule::command('monitor:check-domain-expiration')->daily();
 
