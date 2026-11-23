@@ -7,11 +7,13 @@ import Label from "@/Components/Label";
 import Input from "@/Components/Input";
 import Checkbox from "@/Components/Checkbox";
 import { router } from "@inertiajs/react";
+import MonitorCreditImpact from "@/Components/MonitorCreditImpact";
+import { dailyBurnForConfig } from "@/Utils/creditRunway";
 
 import Select from "@/Components/Select";
 
 export default function Edit(props) {
-    const { monitor, groups } = usePage().props;
+    const { monitor, groups, auth } = usePage().props;
 
     const [form, setForm] = useState({
         name: monitor.name,
@@ -20,6 +22,15 @@ export default function Edit(props) {
         monitorDomain: monitor.domain_check_enabled,
         monitorGroupId: monitor.group_id ?? "",
         uptimeCheckInterval: monitor.uptime_check_interval_in_minutes,
+    });
+
+    // What this monitor costs TODAY, from its persisted settings — subtracted
+    // from the org total so the preview shows the delta of the pending edit.
+    const burnBefore = dailyBurnForConfig({
+        intervalMinutes: monitor.uptime_check_interval_in_minutes,
+        uptimeEnabled: monitor.uptime_check_enabled,
+        certificateEnabled: monitor.certificate_check_enabled,
+        domainEnabled: monitor.domain_check_enabled,
     });
 
     const handleChange = (e) => {
@@ -147,6 +158,13 @@ export default function Edit(props) {
                                         </span>
                                     </label>
                                 </div>
+
+                                <MonitorCreditImpact
+                                    credits={auth.credits}
+                                    burnBefore={burnBefore}
+                                    form={form}
+                                    certificateEnabled={monitor.certificate_check_enabled}
+                                />
                             </div>
 
                             <div className="pt-6 border-t border-gray-200">

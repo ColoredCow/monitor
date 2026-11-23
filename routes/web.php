@@ -11,8 +11,10 @@
 |
 */
 
+use App\Http\Controllers\CreditsController;
 use App\Http\Controllers\GroupsController;
 use App\Http\Controllers\MonitorsController;
+use App\Http\Controllers\OrganizationCreditsController;
 use App\Http\Controllers\OrganizationsController;
 use App\Http\Controllers\OrganizationSwitchController;
 use App\Http\Controllers\UsersController;
@@ -34,11 +36,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/organizations/{organization}/restore', [OrganizationsController::class, 'restore'])
         ->name('organizations.restore')
         ->withTrashed();
+    Route::get('/organizations/{organization}/credits', [OrganizationCreditsController::class, 'show'])
+        ->name('organizations.credits.show');
+    Route::post('/organizations/{organization}/credits', [OrganizationCreditsController::class, 'store'])
+        ->name('organizations.credits.store');
 
     Route::middleware('active.organization')->group(function () {
         Route::resource('monitors', MonitorsController::class);
         Route::resource('groups', GroupsController::class);
         Route::resource('users', UsersController::class);
+        Route::get('credits', [CreditsController::class, 'index'])->name('credits.index');
     });
 });
 

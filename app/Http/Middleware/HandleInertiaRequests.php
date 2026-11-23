@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\Organization;
+use App\Services\CreditRunwayService;
 use App\Support\CurrentOrganization;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -74,6 +75,14 @@ class HandleInertiaRequests extends Middleware
                     'activeOrganization' => $active
                         ? ['id' => $active->id, 'name' => $active->name]
                         : null,
+                    // One indexed 4-column query per request; the runway is
+                    // config-derived and computed on read, so monitor edits
+                    // are reflected on the very next Inertia response.
+                    'credits' => $active ? [
+                        'balance' => $active->credit_balance,
+                        'dailyBurn' => app(CreditRunwayService::class)->dailyBurnFor($active),
+                        'warningLevel' => $active->credit_warning_level,
+                    ] : null,
                 ];
             },
             'features' => [

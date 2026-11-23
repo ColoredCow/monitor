@@ -21,7 +21,11 @@ Artisan::command('inspire', function () {
 use Illuminate\Support\Facades\Schedule;
 
 // Core uptime monitoring always runs, regardless of the history feature flag.
-Schedule::command('monitor:check-uptime')->everyMinute();
+// withoutOverlapping: checks are billed per execution, so two overlapping runs
+// would double-charge the same monitors during a slow run (e.g. a widespread
+// outage). A skipped tick is safer than a double charge. The 10-minute mutex
+// expiry keeps a hung run from blocking checks for the default 24 hours.
+Schedule::command('monitor:check-uptime')->everyMinute()->withoutOverlapping(10);
 Schedule::command('monitor:check-certificate')->daily();
 Schedule::command('monitor:check-domain-expiration')->daily();
 
@@ -44,4 +48,15 @@ Schedule::command('monitor:prune-check-history')
 // configurable window (organizations.purge_after_days).
 Schedule::command('organizations:purge-deleted')
     ->dailyAt('02:30')
+    ->withoutOverlapping();
+
+// Credit system: nightly ledger rollup of yesterday's metered usage, then
+// warning-level evaluation (order matters only for tidy ledger timestamps —
+// warnings read live config, not the rollup).
+Schedule::command('credits:rollup-usage')
+    ->dailyAt('00:15')
+    ->withoutOverlapping();
+
+Schedule::command('credits:evaluate-warnings')
+    ->dailyAt('00:30')
     ->withoutOverlapping();
