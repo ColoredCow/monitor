@@ -112,6 +112,47 @@ class EvaluateCreditWarningsTest extends TestCase
         Log::shouldHaveReceived('error')->once();
     }
 
+    public function test_critical_level_steps_down_to_low_silently_when_runway_improves(): void
+    {
+        Notification::fake();
+        [$organization] = $this->orgBurning288PerDay(288 * 5); // 5 days: low band, not critical
+        DB::table('organizations')->where('id', $organization->id)
+            ->update(['credit_warning_level' => Organization::CREDIT_LEVEL_CRITICAL]);
+
+        $this->artisan('credits:evaluate-warnings')->assertSuccessful();
+
+        $this->assertSame(Organization::CREDIT_LEVEL_LOW, $organization->fresh()->credit_warning_level);
+        Notification::assertNothingSent();
+    }
+
+    public function test_exhausted_level_is_never_stepped_down_by_the_warning_job(): void
+    {
+        Notification::fake();
+        // Positive balance with a stale exhausted flag: only a grant may
+        // clear exhaustion, so the step-down must leave it alone.
+        [$organization] = $this->orgBurning288PerDay(288 * 5);
+        DB::table('organizations')->where('id', $organization->id)
+            ->update(['credit_warning_level' => Organization::CREDIT_LEVEL_EXHAUSTED]);
+
+        $this->artisan('credits:evaluate-warnings')->assertSuccessful();
+
+        $this->assertSame(Organization::CREDIT_LEVEL_EXHAUSTED, $organization->fresh()->credit_warning_level);
+        Notification::assertNothingSent();
+    }
+
+    public function test_unexpected_stored_level_does_not_kill_the_run(): void
+    {
+        Notification::fake();
+        [$organization, $admin] = $this->orgBurning288PerDay(288 * 5);
+        DB::table('organizations')->where('id', $organization->id)
+            ->update(['credit_warning_level' => 'bogus']);
+
+        $this->artisan('credits:evaluate-warnings')->assertSuccessful();
+
+        $this->assertSame(Organization::CREDIT_LEVEL_LOW, $organization->fresh()->credit_warning_level);
+        Notification::assertSentToTimes($admin, CreditBalanceLow::class, 1);
+    }
+
     public function test_org_with_no_monitors_clears_stale_low_level_silently(): void
     {
         Notification::fake();

@@ -66,8 +66,24 @@ class EvaluateCreditWarnings extends Command
                 return;
             }
 
-            // Escalation-only: same or lower severity never re-emails.
-            if (self::LEVEL_RANK[$target] <= self::LEVEL_RANK[$organization->credit_warning_level]) {
+            // ?? 0 so an unexpected stored value never kills the loop; the
+            // escalation below then repairs it to a real level.
+            $targetRank = self::LEVEL_RANK[$target] ?? 0;
+            $currentRank = self::LEVEL_RANK[$organization->credit_warning_level] ?? 0;
+
+            // Same severity: nothing to change, and never re-email.
+            if ($targetRank === $currentRank) {
+                return;
+            }
+
+            // Runway improved (critical -> low): step the stored level down
+            // silently so the UI stops over-alarming. Exhausted is owned by
+            // the pause/resume flow; only a grant clears it.
+            if ($targetRank < $currentRank) {
+                if ($organization->credit_warning_level !== Organization::CREDIT_LEVEL_EXHAUSTED) {
+                    $organization->forceFill(['credit_warning_level' => $target])->save();
+                }
+
                 return;
             }
 
