@@ -9,8 +9,10 @@ use App\Notifications\MonitoringResumed;
 use App\Services\CreditLedgerService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use InvalidArgumentException;
+use RuntimeException;
 use Tests\Concerns\InteractsWithOrganizations;
 use Tests\TestCase;
 
@@ -85,6 +87,23 @@ class CreditLedgerServiceTest extends TestCase
         Notification::assertSentTo($admin, MonitoringResumed::class);
         Notification::assertNotSentTo($member, MonitoringResumed::class);
         $this->assertSame(Organization::CREDIT_LEVEL_NONE, $organization->fresh()->credit_warning_level);
+    }
+
+    public function test_resumed_email_failure_is_isolated_after_the_grant_commits(): void
+    {
+        Log::spy();
+        $organization = $this->createOrganization();
+        $admin = User::factory()->create();
+        $organization->users()->attach($admin->id, ['role' => Organization::ROLE_ADMIN]);
+        $this->setCredits($organization, -3, Organization::CREDIT_LEVEL_EXHAUSTED);
+
+        Notification::shouldReceive('send')->once()->andThrow(new RuntimeException('mail down'));
+
+        $transaction = app(CreditLedgerService::class)->grant($organization, 1000);
+
+        $this->assertSame(1000, $transaction->amount);
+        $this->assertSame(997, $organization->fresh()->credit_balance);
+        Log::shouldHaveReceived('error')->once();
     }
 
     public function test_no_resumed_email_when_org_was_not_paused_or_stays_at_zero(): void

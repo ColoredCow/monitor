@@ -289,7 +289,8 @@ php artisan credits:grant <amount> --all
 This grants `<amount>` credits to every organization via
 `CreditLedgerService::grant()` — never a raw balance update — so the ledger
 stays consistent and any org that was paused receives its "monitoring
-resumed" email as part of the normal grant flow.
+resumed" email as part of the normal grant flow. `--all` includes
+soft-deleted organizations, so a restored organization comes back funded.
 
 Three environment variables configure the credit system and should be set
 before migrating in production:

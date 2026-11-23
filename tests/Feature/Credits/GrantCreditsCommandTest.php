@@ -46,6 +46,23 @@ class GrantCreditsCommandTest extends TestCase
         $this->assertSame(2, CreditTransaction::where('type', CreditTransaction::TYPE_GRANT)->where('amount', 250)->count());
     }
 
+    public function test_all_includes_soft_deleted_organizations(): void
+    {
+        $live = $this->createOrganization();
+        $trashed = $this->createOrganization();
+        $trashed->delete();
+
+        $this->artisan('credits:grant', ['amount' => 100, '--all' => true])->assertSuccessful();
+
+        $this->assertSame(100, $live->fresh()->credit_balance);
+        $this->assertSame(100, $trashed->fresh()->credit_balance);
+        $this->assertDatabaseHas('credit_transactions', [
+            'organization_id' => $trashed->id,
+            'type' => CreditTransaction::TYPE_GRANT,
+            'amount' => 100,
+        ]);
+    }
+
     public function test_rejects_zero_amount(): void
     {
         $organization = $this->createOrganization();

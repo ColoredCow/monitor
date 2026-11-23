@@ -7,8 +7,10 @@ use App\Models\Organization;
 use App\Models\User;
 use App\Notifications\MonitoringResumed;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use InvalidArgumentException;
+use Throwable;
 
 class CreditLedgerService
 {
@@ -39,7 +41,7 @@ class CreditLedgerService
     public function recordUsageDebit(Organization $organization, int $credits, string $date): CreditTransaction
     {
         return DB::transaction(function () use ($organization, $credits, $date) {
-            $locked = Organization::query()->whereKey($organization->id)->lockForUpdate()->firstOrFail();
+            $locked = Organization::query()->withTrashed()->whereKey($organization->id)->lockForUpdate()->firstOrFail();
 
             return CreditTransaction::create([
                 'organization_id' => $locked->id,
@@ -55,7 +57,7 @@ class CreditLedgerService
     protected function applyTransaction(Organization $organization, string $type, int $amount, ?User $createdBy, ?string $description): CreditTransaction
     {
         [$transaction, $resumed] = DB::transaction(function () use ($organization, $type, $amount, $createdBy, $description) {
-            $locked = Organization::query()->whereKey($organization->id)->lockForUpdate()->firstOrFail();
+            $locked = Organization::query()->withTrashed()->whereKey($organization->id)->lockForUpdate()->firstOrFail();
 
             $wasPaused = $locked->credit_warning_level === Organization::CREDIT_LEVEL_EXHAUSTED;
             $locked->credit_balance += $amount;
@@ -90,8 +92,18 @@ class CreditLedgerService
         // Outside the DB transaction: never hold a row lock while sending
         // synchronous mail.
         if ($resumed) {
-            $fresh = $organization->fresh();
-            Notification::send($fresh->admins()->get(), new MonitoringResumed($fresh));
+            $fresh = Organization::withTrashed()->find($organization->id);
+
+            // The grant is already committed; a mail failure must not 500
+            // the request or abort a rollout loop.
+            try {
+                Notification::send($fresh->admins()->get(), new MonitoringResumed($fresh));
+            } catch (Throwable $exception) {
+                Log::error('MonitoringResumed notification failed to send.', [
+                    'organization_id' => $organization->id,
+                    'error' => $exception->getMessage(),
+                ]);
+            }
         }
 
         return $transaction;

@@ -25,6 +25,12 @@ describe("dailyBurnForConfig", () => {
         ).toBe(0);
     });
 
+    it("floors the uptime term at one credit for intervals over a day", () => {
+        expect(
+            dailyBurnForConfig({ intervalMinutes: "2000", uptimeEnabled: true, domainEnabled: false })
+        ).toBe(1);
+    });
+
     it("floors bad intervals at one minute", () => {
         expect(
             dailyBurnForConfig({ intervalMinutes: "0", uptimeEnabled: true, domainEnabled: false })

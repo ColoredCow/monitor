@@ -104,6 +104,17 @@ class CreditMeteringCallSitesTest extends TestCase
         ]);
     }
 
+    public function test_forced_domain_run_does_not_bill_domain_disabled_monitors(): void
+    {
+        $organization = $this->orgWithBalance(10);
+        Monitor::factory()->forOrganization($organization)->create(['domain_check_enabled' => false]);
+
+        $this->artisan('monitor:check-domain-expiration', ['--force' => true])->assertSuccessful();
+
+        $this->assertSame(10, $organization->fresh()->credit_balance);
+        $this->assertDatabaseCount('credit_usage_daily', 0);
+    }
+
     public function test_domain_expiration_command_charges_each_checked_monitor(): void
     {
         $organization = $this->orgWithBalance(10);

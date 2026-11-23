@@ -34,7 +34,10 @@ class CheckDomainExpiration extends Command
         $hasNotifications = false;
 
         foreach ($monitors as $monitor) {
-            app(CreditMeteringService::class)->recordCheck($monitor, MonitorCheckLogService::CHECK_TYPE_DOMAIN);
+            // Only bill checks the service will actually run.
+            if ($monitor->domain_check_enabled) {
+                app(CreditMeteringService::class)->recordCheck($monitor, MonitorCheckLogService::CHECK_TYPE_DOMAIN);
+            }
 
             $result = $domainService->verifyDomainExpiration($monitor);
 

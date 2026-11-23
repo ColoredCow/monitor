@@ -5,9 +5,12 @@ namespace App\Console\Commands;
 use App\Models\Organization;
 use App\Notifications\CreditBalanceCritical;
 use App\Notifications\CreditBalanceLow;
+use App\Services\CreditMeteringService;
 use App\Services\CreditRunwayService;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
+use Throwable;
 
 class EvaluateCreditWarnings extends Command
 {
@@ -27,14 +30,23 @@ class EvaluateCreditWarnings extends Command
         Organization::query()->each(function (Organization $organization) use ($runway) {
             // Exhaustion is owned by the live zero-crossing in metering;
             // grants own the reset. This job only handles low/critical.
+            // A balance <= 0 org with a stale level is repaired here; the
+            // conditional UPDATE makes this a no-op for already-flagged orgs.
             if ($organization->credit_balance <= 0) {
+                app(CreditMeteringService::class)->markExhausted($organization->id);
+
                 return;
             }
 
             $days = $runway->runwayDaysFor($organization);
 
             if ($days === null) {
-                return; // nothing is consuming credits
+                // Nothing is consuming credits: clear a stale low/critical.
+                if (in_array($organization->credit_warning_level, [Organization::CREDIT_LEVEL_LOW, Organization::CREDIT_LEVEL_CRITICAL], true)) {
+                    $organization->forceFill(['credit_warning_level' => Organization::CREDIT_LEVEL_NONE])->save();
+                }
+
+                return;
             }
 
             $target = Organization::CREDIT_LEVEL_NONE;
@@ -59,13 +71,24 @@ class EvaluateCreditWarnings extends Command
                 return;
             }
 
-            $organization->forceFill(['credit_warning_level' => $target])->save();
-
             $notification = $target === Organization::CREDIT_LEVEL_CRITICAL
                 ? new CreditBalanceCritical($organization, $days)
                 : new CreditBalanceLow($organization, $days);
 
-            Notification::send($organization->admins()->get(), $notification);
+            // Save the level only after a successful send, so a mail failure
+            // is retried by the next daily run instead of suppressed forever.
+            try {
+                Notification::send($organization->admins()->get(), $notification);
+            } catch (Throwable $exception) {
+                Log::error('Credit warning notification failed to send.', [
+                    'organization_id' => $organization->id,
+                    'error' => $exception->getMessage(),
+                ]);
+
+                return;
+            }
+
+            $organization->forceFill(['credit_warning_level' => $target])->save();
         });
 
         $this->info('Credit warning levels evaluated.');

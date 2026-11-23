@@ -42,7 +42,8 @@ class GrantCredits extends Command
         if ($all) {
             $count = 0;
 
-            Organization::query()->each(function (Organization $organization) use ($ledger, $amount, $description, &$count) {
+            // Include soft-deleted orgs so a later restore comes back funded.
+            Organization::withTrashed()->each(function (Organization $organization) use ($ledger, $amount, $description, &$count) {
                 $ledger->grant($organization, $amount, null, $description);
                 $this->info("Granted {$amount} credits to organization #{$organization->id} ({$organization->name}).");
                 $count++;

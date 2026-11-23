@@ -45,6 +45,25 @@ class RollupCreditUsageTest extends TestCase
         $this->assertSame(2, CreditTransaction::where('type', CreditTransaction::TYPE_USAGE_DEBIT)->count());
     }
 
+    public function test_rollup_handles_soft_deleted_orgs_without_aborting_the_loop(): void
+    {
+        $trashed = $this->createOrganization();
+        $live = $this->createOrganization();
+        DB::table('organizations')->whereIn('id', [$trashed->id, $live->id])->update(['credit_balance' => 500]);
+        $trashedMonitor = Monitor::factory()->forOrganization($trashed)->create();
+        $liveMonitor = Monitor::factory()->forOrganization($live)->create();
+
+        CreditUsageDaily::create(['organization_id' => $trashed->id, 'monitor_id' => $trashedMonitor->id, 'check_type' => MonitorCheckLogService::CHECK_TYPE_UPTIME, 'date' => '2026-07-09', 'credits' => 20]);
+        CreditUsageDaily::create(['organization_id' => $live->id, 'monitor_id' => $liveMonitor->id, 'check_type' => MonitorCheckLogService::CHECK_TYPE_UPTIME, 'date' => '2026-07-09', 'credits' => 30]);
+
+        $trashed->delete();
+
+        $this->artisan('credits:rollup-usage', ['--date' => '2026-07-09'])->assertSuccessful();
+
+        $this->assertDatabaseHas('credit_transactions', ['organization_id' => $trashed->id, 'type' => CreditTransaction::TYPE_USAGE_DEBIT, 'amount' => -20]);
+        $this->assertDatabaseHas('credit_transactions', ['organization_id' => $live->id, 'type' => CreditTransaction::TYPE_USAGE_DEBIT, 'amount' => -30]);
+    }
+
     public function test_rollup_defaults_to_yesterday_utc(): void
     {
         $organization = $this->createOrganization();

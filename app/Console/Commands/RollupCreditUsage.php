@@ -7,6 +7,7 @@ use App\Models\CreditUsageDaily;
 use App\Models\Organization;
 use App\Services\CreditLedgerService;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 
 class RollupCreditUsage extends Command
 {
@@ -34,18 +35,31 @@ class RollupCreditUsage extends Command
                 continue;
             }
 
-            $alreadyRolledUp = CreditTransaction::query()
-                ->where('organization_id', $organizationId)
-                ->where('type', CreditTransaction::TYPE_USAGE_DEBIT)
-                ->where('metadata->date', $date)
-                ->exists();
+            // The exists-check has no DB constraint behind it, so take the org
+            // row lock first: a concurrent run for the same date blocks here,
+            // then sees the row the first run wrote. recordUsageDebit's own
+            // transaction becomes a savepoint and its lock is already held.
+            $wrote = DB::transaction(function () use ($organizationId, $date, $total, $ledger, $organization) {
+                Organization::withTrashed()->whereKey($organizationId)->lockForUpdate()->first();
 
-            if ($alreadyRolledUp) {
-                continue;
+                $alreadyRolledUp = CreditTransaction::query()
+                    ->where('organization_id', $organizationId)
+                    ->where('type', CreditTransaction::TYPE_USAGE_DEBIT)
+                    ->where('metadata->date', $date)
+                    ->exists();
+
+                if ($alreadyRolledUp) {
+                    return false;
+                }
+
+                $ledger->recordUsageDebit($organization, (int) $total, $date);
+
+                return true;
+            });
+
+            if ($wrote) {
+                $written++;
             }
-
-            $ledger->recordUsageDebit($organization, (int) $total, $date);
-            $written++;
         }
 
         $this->info("Rolled up credit usage for {$date}: {$written} organization(s).");

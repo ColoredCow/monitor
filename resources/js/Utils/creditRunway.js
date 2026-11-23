@@ -9,7 +9,7 @@ export function dailyBurnForConfig({
 
     if (uptimeEnabled) {
         const interval = Math.max(1, parseInt(intervalMinutes, 10) || 1);
-        burn += Math.floor(1440 / interval);
+        burn += Math.max(1, Math.floor(1440 / interval));
     }
 
     if (certificateEnabled) burn += 1;

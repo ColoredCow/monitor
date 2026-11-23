@@ -26,7 +26,7 @@ class CreditRunwayService
         if ($monitor->uptime_check_enabled) {
             // Interval is a string column; floor at 1 to avoid division blowups.
             $interval = max(1, (int) $monitor->uptime_check_interval_in_minutes);
-            $burn += intdiv(1440, $interval);
+            $burn += max(1, intdiv(1440, $interval));
         }
 
         if ($monitor->certificate_check_enabled) {

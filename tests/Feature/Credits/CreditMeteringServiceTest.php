@@ -132,4 +132,23 @@ class CreditMeteringServiceTest extends TestCase
         Log::shouldHaveReceived('error')->once();
         $this->assertDatabaseCount('credit_usage_daily', 0);
     }
+
+    public function test_failed_usage_upsert_rolls_back_the_decrement(): void
+    {
+        Log::spy();
+        $organization = $this->createOrganization();
+        $this->setBalance($organization, 10);
+
+        // Real org, unsaved monitor: the decrement succeeds, then the usage
+        // upsert violates the monitor FK. The transaction must undo the charge.
+        $monitor = new Monitor;
+        $monitor->id = 4242;
+        $monitor->organization_id = $organization->id;
+
+        app(CreditMeteringService::class)->recordCheck($monitor, MonitorCheckLogService::CHECK_TYPE_UPTIME);
+
+        Log::shouldHaveReceived('error')->once();
+        $this->assertSame(10, $organization->fresh()->credit_balance);
+        $this->assertDatabaseCount('credit_usage_daily', 0);
+    }
 }

@@ -7,10 +7,13 @@ use App\Models\Organization;
 use App\Models\User;
 use App\Notifications\CreditBalanceCritical;
 use App\Notifications\CreditBalanceLow;
+use App\Notifications\MonitoringPaused;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
+use RuntimeException;
 use Tests\Concerns\InteractsWithOrganizations;
 use Tests\TestCase;
 
@@ -67,6 +70,54 @@ class EvaluateCreditWarningsTest extends TestCase
         [$organization, $admin] = $this->orgBurning288PerDay(288 * 100); // 100 days
         DB::table('organizations')->where('id', $organization->id)
             ->update(['credit_warning_level' => Organization::CREDIT_LEVEL_LOW]);
+
+        $this->artisan('credits:evaluate-warnings')->assertSuccessful();
+
+        $this->assertSame(Organization::CREDIT_LEVEL_NONE, $organization->fresh()->credit_warning_level);
+        Notification::assertNothingSent();
+    }
+
+    public function test_stale_none_level_on_a_zero_balance_org_is_repaired_once(): void
+    {
+        Notification::fake();
+        [$organization, $admin] = $this->orgBurning288PerDay(0);
+
+        $this->artisan('credits:evaluate-warnings')->assertSuccessful();
+
+        $this->assertSame(Organization::CREDIT_LEVEL_EXHAUSTED, $organization->fresh()->credit_warning_level);
+        Notification::assertSentToTimes($admin, MonitoringPaused::class, 1);
+
+        $this->artisan('credits:evaluate-warnings')->assertSuccessful();
+        Notification::assertSentToTimes($admin, MonitoringPaused::class, 1);
+    }
+
+    public function test_failed_send_keeps_level_unchanged_and_continues_to_next_org(): void
+    {
+        Log::spy();
+        [$first] = $this->orgBurning288PerDay(288 * 5);
+        [$second] = $this->orgBurning288PerDay(288 * 5);
+
+        Notification::shouldReceive('send')->twice()
+            ->andReturnUsing(function () {
+                static $calls = 0;
+                if (++$calls === 1) {
+                    throw new RuntimeException('mail down');
+                }
+            });
+
+        $this->artisan('credits:evaluate-warnings')->assertSuccessful();
+
+        $this->assertSame(Organization::CREDIT_LEVEL_NONE, $first->fresh()->credit_warning_level);
+        $this->assertSame(Organization::CREDIT_LEVEL_LOW, $second->fresh()->credit_warning_level);
+        Log::shouldHaveReceived('error')->once();
+    }
+
+    public function test_org_with_no_monitors_clears_stale_low_level_silently(): void
+    {
+        Notification::fake();
+        $organization = $this->createOrganization();
+        DB::table('organizations')->where('id', $organization->id)
+            ->update(['credit_balance' => 100, 'credit_warning_level' => Organization::CREDIT_LEVEL_LOW]);
 
         $this->artisan('credits:evaluate-warnings')->assertSuccessful();
 

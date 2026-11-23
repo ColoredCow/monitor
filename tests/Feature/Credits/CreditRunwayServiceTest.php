@@ -14,6 +14,17 @@ class CreditRunwayServiceTest extends TestCase
     use InteractsWithOrganizations;
     use RefreshDatabase;
 
+    public function test_interval_over_a_day_still_burns_one_credit(): void
+    {
+        $organization = $this->createOrganization();
+        Monitor::factory()->forOrganization($organization)->create([
+            'uptime_check_interval_in_minutes' => 2000,
+            'domain_check_enabled' => false,
+        ]);
+
+        $this->assertSame(1, app(CreditRunwayService::class)->dailyBurnFor($organization));
+    }
+
     public function test_daily_burn_across_configurations(): void
     {
         $organization = $this->createOrganization();

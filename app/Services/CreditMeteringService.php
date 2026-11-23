@@ -26,26 +26,28 @@ class CreditMeteringService
                 return;
             }
 
-            DB::update(
-                'update organizations set credit_balance = credit_balance - 1 where id = ?',
-                [$organizationId]
-            );
+            DB::transaction(function () use ($organizationId, $monitor, $checkType) {
+                DB::update(
+                    'update organizations set credit_balance = credit_balance - 1 where id = ?',
+                    [$organizationId]
+                );
 
-            $now = now();
+                $now = now();
 
-            DB::table('credit_usage_daily')->upsert(
-                [[
-                    'organization_id' => $organizationId,
-                    'monitor_id' => $monitor->id,
-                    'check_type' => $checkType,
-                    'date' => now('UTC')->toDateString(),
-                    'credits' => 1,
-                    'created_at' => $now,
-                    'updated_at' => $now,
-                ]],
-                ['organization_id', 'monitor_id', 'check_type', 'date'],
-                ['credits' => DB::raw('credits + 1'), 'updated_at' => $now]
-            );
+                DB::table('credit_usage_daily')->upsert(
+                    [[
+                        'organization_id' => $organizationId,
+                        'monitor_id' => $monitor->id,
+                        'check_type' => $checkType,
+                        'date' => now('UTC')->toDateString(),
+                        'credits' => 1,
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ]],
+                    ['organization_id', 'monitor_id', 'check_type', 'date'],
+                    ['credits' => DB::raw('credits + 1'), 'updated_at' => $now]
+                );
+            });
 
             $this->handleZeroCrossing($organizationId);
         } catch (Throwable $exception) {
@@ -58,6 +60,15 @@ class CreditMeteringService
     }
 
     protected function handleZeroCrossing(int $organizationId): void
+    {
+        $this->markExhausted($organizationId);
+    }
+
+    /**
+     * Flag the org exhausted and email its admins, once. Also the repair
+     * path for an org stranded at balance <= 0 with a stale level.
+     */
+    public function markExhausted(int $organizationId): void
     {
         // Atomic conditional update: the affected-rows count tells us whether
         // WE made the ->exhausted transition, so overlapping check runs can
