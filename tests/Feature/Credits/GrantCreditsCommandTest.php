@@ -3,6 +3,7 @@
 namespace Tests\Feature\Credits;
 
 use App\Models\CreditTransaction;
+use App\Services\CreditLedgerService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\Concerns\InteractsWithOrganizations;
@@ -55,6 +56,65 @@ class GrantCreditsCommandTest extends TestCase
         $this->artisan('credits:grant', ['amount' => 100, '--all' => true])->assertSuccessful();
 
         $this->assertSame(100, $live->fresh()->credit_balance);
+        $this->assertSame(100, $trashed->fresh()->credit_balance);
+        $this->assertDatabaseHas('credit_transactions', [
+            'organization_id' => $trashed->id,
+            'type' => CreditTransaction::TYPE_GRANT,
+            'amount' => 100,
+        ]);
+    }
+
+    public function test_all_skips_orgs_that_already_hold_a_grant_with_the_same_description(): void
+    {
+        $funded = $this->createOrganization();
+        $unfunded = $this->createOrganization();
+        // Half the fleet got the grant before the command died (or was
+        // funded by hand from the dashboard with the same description).
+        app(CreditLedgerService::class)->grant($funded, 250, null, 'Launch funding');
+
+        $this->artisan('credits:grant', ['amount' => 250, '--all' => true, '--description' => 'Launch funding'])
+            ->expectsOutputToContain("Skipped organization #{$funded->id}")
+            ->expectsOutputToContain('skipped 1 already granted')
+            ->assertSuccessful();
+
+        $this->assertSame(250, $funded->fresh()->credit_balance);
+        $this->assertSame(250, $unfunded->fresh()->credit_balance);
+        $this->assertSame(1, CreditTransaction::where('organization_id', $funded->id)->where('type', CreditTransaction::TYPE_GRANT)->count());
+    }
+
+    public function test_all_rerun_with_the_same_description_grants_nothing_more(): void
+    {
+        $orgA = $this->createOrganization();
+        $orgB = $this->createOrganization();
+
+        $this->artisan('credits:grant', ['amount' => 100, '--all' => true, '--description' => 'Rollout grant'])->assertSuccessful();
+        $this->artisan('credits:grant', ['amount' => 100, '--all' => true, '--description' => 'Rollout grant'])
+            ->expectsOutputToContain('skipped 2 already granted')
+            ->assertSuccessful();
+
+        $this->assertSame(100, $orgA->fresh()->credit_balance);
+        $this->assertSame(100, $orgB->fresh()->credit_balance);
+        $this->assertSame(2, CreditTransaction::where('type', CreditTransaction::TYPE_GRANT)->count());
+    }
+
+    public function test_all_with_a_different_description_grants_again(): void
+    {
+        $organization = $this->createOrganization();
+
+        $this->artisan('credits:grant', ['amount' => 100, '--all' => true, '--description' => 'January top-up'])->assertSuccessful();
+        $this->artisan('credits:grant', ['amount' => 100, '--all' => true, '--description' => 'February top-up'])->assertSuccessful();
+
+        $this->assertSame(200, $organization->fresh()->credit_balance);
+    }
+
+    public function test_org_option_finds_a_soft_deleted_organization(): void
+    {
+        $trashed = $this->createOrganization();
+        $trashed->delete();
+
+        $this->artisan('credits:grant', ['amount' => 100, '--org' => $trashed->id])
+            ->assertSuccessful();
+
         $this->assertSame(100, $trashed->fresh()->credit_balance);
         $this->assertDatabaseHas('credit_transactions', [
             'organization_id' => $trashed->id,
