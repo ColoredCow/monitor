@@ -32,7 +32,7 @@ class CreditsController extends Controller
             ->sortBy('date')
             ->values();
 
-        $topMonitors = $usageRows
+        $monitors = $usageRows
             ->whereNotNull('monitor_id')
             ->groupBy('monitor_id')
             ->map(fn ($rows, $monitorId) => [
@@ -40,14 +40,13 @@ class CreditsController extends Controller
                 'credits' => (int) $rows->sum('credits'),
             ])
             ->sortByDesc('credits')
-            ->take(5)
             ->values();
 
         $monitorNames = Monitor::withTrashed()
-            ->whereIn('id', $topMonitors->pluck('monitor_id'))
+            ->whereIn('id', $monitors->pluck('monitor_id'))
             ->pluck('name', 'id');
 
-        $topMonitors = $topMonitors->map(fn (array $row) => $row + [
+        $monitors = $monitors->map(fn (array $row) => $row + [
             'name' => $monitorNames[$row['monitor_id']] ?? 'Deleted monitor',
         ]);
 
@@ -56,7 +55,7 @@ class CreditsController extends Controller
             'warningLevel' => $organization->credit_warning_level,
             'dailyBurn' => $runway->dailyBurnFor($organization),
             'usageByDay' => $usageByDay,
-            'topMonitors' => $topMonitors,
+            'monitors' => $monitors,
             'transactions' => CreditTransaction::with('createdBy:id,name')
                 ->where('organization_id', $organization->id)
                 ->latest()

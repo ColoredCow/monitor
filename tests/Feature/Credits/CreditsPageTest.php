@@ -36,10 +36,37 @@ class CreditsPageTest extends TestCase
             ->component('Credits/Index')
             ->where('balance', 1500)
             ->where('usageByDay.0.total', 288)
-            ->where('topMonitors.0.name', 'Main site')
-            ->where('topMonitors.0.credits', 288)
+            ->where('monitors.0.name', 'Main site')
+            ->where('monitors.0.credits', 288)
             ->where('transactions.0.type', 'grant')
             ->where('transactions.0.amount', 500));
+    }
+
+    public function test_every_monitor_with_usage_appears_sorted_by_spend(): void
+    {
+        $organization = $this->createOrganization();
+
+        foreach (range(1, 6) as $i) {
+            $monitor = Monitor::factory()->forOrganization($organization)->create(['name' => "Monitor {$i}"]);
+            CreditUsageDaily::create([
+                'organization_id' => $organization->id,
+                'monitor_id' => $monitor->id,
+                'check_type' => MonitorCheckLogService::CHECK_TYPE_UPTIME,
+                'date' => now('UTC')->toDateString(),
+                'credits' => $i * 10, // Monitor 6 spends the most
+            ]);
+        }
+
+        $this->actingAsMember($organization);
+
+        // The old section capped the list at five; the table shows them all.
+        $this->get('/credits')->assertInertia(fn ($page) => $page
+            ->component('Credits/Index')
+            ->has('monitors', 6)
+            ->where('monitors.0.name', 'Monitor 6')
+            ->where('monitors.0.credits', 60)
+            ->where('monitors.5.name', 'Monitor 1')
+            ->where('monitors.5.credits', 10));
     }
 
     public function test_usage_is_scoped_to_the_active_org(): void
